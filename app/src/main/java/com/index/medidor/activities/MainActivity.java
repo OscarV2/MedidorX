@@ -14,11 +14,14 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.bluetooth.BluetoothSocket;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
@@ -29,6 +32,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -41,6 +45,7 @@ import android.view.SubMenu;
 import android.view.View;
 import android.view.Window;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -81,6 +86,7 @@ import com.index.medidor.utils.NavTypeFace;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -124,6 +130,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+
+
+
         helper = OpenHelperManager.getHelper(MainActivity.this, DataBaseHelper.class);
 
         bold = Typeface.createFromAsset(getAssets(), "fonts/Roboto-Bold.ttf");
@@ -670,5 +679,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public List<Estaciones> getEstaciones() {
         return estaciones;
+    }
+
+    public SharedPreferences getMyPreferences() {
+        return myPreferences;
+    }
+
+    public void setImageInfoPersonal(String imagePath, ImageView imgUsuario){
+
+
+
+
     }
 }

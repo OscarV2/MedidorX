@@ -1,18 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.configuracion_cuenta.MiVehiculo"
-    android:orientation="vertical"
-    android:layout_marginTop="150dp">
+    tools:context=".fragments.configuracion_cuenta.MiVehiculo">
 
-    <androidx.recyclerview.widget.RecyclerView
+    <LinearLayout
+        android:layout_marginTop="150dp"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_mis_vehiculos"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
-    <RelativeLayout
+        <LinearLayout
+            android:background="@color/yellow_soft"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+        android:id="@+id/img_mi_vehiculo_nuevo"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:contentDescription="@string/aceptar"
+        android:src="@drawable/carro"
+        android:layout_marginEnd="20dp"/>
+
+            <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="15dp"
+            android:layout_marginLeft="15dp">
+
+        <EditText
+            android:id="@+id/edt_marca_mi_vehiculo_nuevo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_marca"/>
+        <EditText
+            android:id="@+id/edt_anio_mi_vehiculo_nuevo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_modelo"/>
+    </LinearLayout>
+
+            <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="25dp"
+        android:layout_marginLeft="25dp">
+
+        <EditText
+            android:id="@+id/edt_linea_mi_vehiculo_nuevo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_linea"/>
+        <EditText
+            android:id="@+id/edt_placa_mi_vehiculo_nuevo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_placa"/>
+    </LinearLayout>
+
+        </LinearLayout>
+
+        <RelativeLayout
         android:layout_marginTop="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
@@ -21,22 +79,25 @@
             android:id="@+id/img_plus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_menu_add"/>
+            android:src="@drawable/ic_add_black_24dp"/>
 
         <TextView
             android:id="@+id/tv_agregar_vehiculo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/txt_agregar_vc"
-            android:layout_toRightOf="@id/img_plus"/>
+            android:layout_toRightOf="@id/img_plus"
+            android:textColor="@color/colorPrimary"/>
 
         <ImageView
             android:id="@+id/img_borrar_vehiculo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_menu_delete"
+            android:src="@drawable/ic_delete_black_24dp"
             android:layout_alignParentRight="true"
-            android:layout_marginRight="10dp"/>
+            android:layout_marginRight="20dp"/>
     </RelativeLayout>
 
-</LinearLayout>
+    </LinearLayout>
+
+</FrameLayout>

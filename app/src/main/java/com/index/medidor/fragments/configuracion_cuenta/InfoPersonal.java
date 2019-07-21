@@ -1,21 +1,34 @@
 package com.index.medidor.fragments.configuracion_cuenta;
 
-import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-
-import android.preference.PreferenceManager;
+import android.provider.MediaStore;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.index.medidor.R;
 import com.index.medidor.activities.MainActivity;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+
+import static android.app.Activity.RESULT_OK;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -33,9 +46,17 @@ public class InfoPersonal extends Fragment {
     private EditText edtPaisCiudad;
     private EditText edtPassword;
 
+    private Button btnGuardarCambios;
+
+    private SharedPreferences myPreferences;
+
+    private ImageView imgUsuario;
+
     private MainActivity mainActivity;
 
     private OnFragmentInteractionListener mListener;
+
+    final int FROM_STORAGE = 2;
 
     public InfoPersonal() {
         // Required empty public constructor
@@ -76,19 +97,105 @@ public class InfoPersonal extends Fragment {
         edtPaisCiudad = v.findViewById(R.id.edt_ip_pais_ciudad);
         edtPassword = v.findViewById(R.id.edt_ip_password);
         edtTelefono = v.findViewById(R.id.edt_ip_numero_telefono);
+        imgUsuario = v.findViewById(R.id.img_info_usuario);
+        btnGuardarCambios = v.findViewById(R.id.btn_ip_guardar_cambios);
+
+        btnGuardarCambios.setOnClickListener(v1 -> guardarCambios());
 
         if (mainActivity != null){
-            SharedPreferences myPreferences = PreferenceManager.getDefaultSharedPreferences(mainActivity);
+            myPreferences = mainActivity.getMyPreferences();
 
             edtCorreo.setText(myPreferences.getString("email",""));
             edtTelefono.setText(myPreferences.getString("celular",""));
+            edtPaisCiudad.setText(myPreferences.getString("paisCiudad",""));
             String nombres = myPreferences.getString("nombres","");
             String apellidos = myPreferences.getString("apellidos","");
 
-            edtNombresApellidos.setText(nombres + " " + apellidos);
+            String imagePath = myPreferences.getString("fotoUsuario","");
 
+            mainActivity.setImageInfoPersonal(imagePath, imgUsuario);
+            if (imagePath != null && imagePath.length() > 1){
+
+                    Bitmap bitmap = decodeBase64(imagePath);
+                    imgUsuario.setImageBitmap(bitmap);
+
+            }else{
+                imgUsuario.setImageResource(R.mipmap.ic_launcher);
+            }
+
+            edtNombresApellidos.setText(nombres + " " + apellidos);
         }
+
+        imgUsuario.setOnClickListener(v1 -> {
+            Intent intent = new Intent(Intent.ACTION_PICK);
+
+            intent.setDataAndType(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,"image/*");
+
+            Toast.makeText(mainActivity, "Select from Library", Toast.LENGTH_SHORT).show();
+
+            startActivityForResult(Intent.createChooser(intent, "Select File"), FROM_STORAGE);
+
+
+        });
         return v;
+    }
+
+    private void guardarCambios(){
+
+        SharedPreferences.Editor editor = myPreferences.edit();
+
+        editor.putString("email", edtCorreo.getText().toString());
+        editor.putString("paisCiudad", edtPaisCiudad.getText().toString());
+        editor.putString("celular", edtTelefono.getText().toString());
+
+        editor.apply();
+
+        Toast.makeText(mainActivity, "Cambios guardados exitosamente.", Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == RESULT_OK) {
+
+            if (requestCode == FROM_STORAGE){
+
+                Uri selectedImageUri = data.getData();
+
+                try {
+                    if (selectedImageUri != null){
+
+
+                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(mainActivity.getContentResolver(),
+                                selectedImageUri);
+                        imgUsuario.setImageBitmap(bitmap);
+                        SharedPreferences.Editor editor = myPreferences.edit();
+
+                        editor.putString("fotoUsuario", bitmapToBase64(bitmap));
+                        editor.apply();
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+
+    private String bitmapToBase64(Bitmap bitmap){
+        ByteArrayOutputStream baos=new  ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG,100, baos);
+        byte[] arr = baos.toByteArray();
+        return Base64.encodeToString(arr, Base64.DEFAULT);
+    }
+
+    public static Bitmap decodeBase64(String input)
+    {
+        byte[] decodedByte = Base64.decode(input, 0);
+        return BitmapFactory.decodeByteArray(decodedByte, 0,   decodedByte.length);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -118,4 +225,6 @@ public class InfoPersonal extends Fragment {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
+
+
 }
