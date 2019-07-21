@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/img_mi_vehiculo"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:contentDescription="@string/aceptar"
+        android:src="@drawable/carro"
+        android:layout_marginEnd="20dp"/>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="25dp"
+        android:layout_marginLeft="25dp">
+
+        <TextView
+            android:id="@+id/tv_marca_mi_vehiculo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"  />
+        <TextView
+            android:id="@+id/tv_anio_mi_vehiculo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"  />
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="25dp"
+        android:layout_marginLeft="25dp">
+
+        <TextView
+            android:id="@+id/tv_linea_mi_vehiculo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"    />
+        <TextView
+            android:id="@+id/tv_placa_mi_vehiculo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+</LinearLayout>

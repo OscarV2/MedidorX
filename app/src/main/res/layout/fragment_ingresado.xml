@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingTop="5dp"
+    android:paddingBottom="5dp"
+    android:paddingLeft="5dp"
+    android:paddingRight="5dp"
+    tools:context=".fragments.combustible.IngresadoFragment"
+    android:layout_marginTop="50dp"
+    android:background="@color/fondo_mapa">
+
+    <LinearLayout
+        android:id="@+id/lay_cantidad_deseada"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/shadowfile"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginLeft="@dimen/margin_box"
+        android:layout_marginRight="@dimen/margin_box"
+        android:layout_marginTop="150dp"
+        android:orientation="vertical"
+        android:elevation="@dimen/elevation"
+        tools:targetApi="lollipop"
+        android:translationZ="10dp">
+
+        <TextView
+            android:id="@+id/tvCantDeseada"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/size_text"
+            android:layout_gravity="center_horizontal"
+            android:textColor="@color/colorPrimary"
+            android:text="@string/cant_deseada"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:orientation="horizontal"
+            android:layout_marginBottom="5dp">
+
+            <Spinner
+                android:id="@+id/spCantDeseada"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <EditText
+                android:id="@+id/edtCantDeseadaNum"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                tools:targetApi="o"
+                android:hint="0"
+                android:textColor="@color/colorAccent"
+                android:textSize="@dimen/size_text" />
+
+            <!--com.santalu.maskedittext.MaskEditText
+                android:id="@+id/edtCantDeseadaNum"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:autofillHints="@string/correo"
+                tools:targetApi="o"
+                android:hint="0"
+                android:textColor="@color/colorAccent"
+                android:textSize="@dimen/size_text"
+                app:met_mask="##.###,##"/-->
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/precio_galon"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/shadowfile"
+        android:layout_marginTop="5dp"
+        android:orientation="horizontal"
+        android:layout_marginLeft="@dimen/margin_box"
+        android:layout_marginRight="@dimen/margin_box"
+        android:layout_below="@id/lay_cantidad_deseada">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/yellow_soft">
+
+            <TextView
+                android:id="@+id/tv1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/size_text"
+                android:textColor="@color/colorPrimary"
+                android:layout_gravity="center"
+                android:text="@string/precio"
+                android:layout_marginStart="5dp"/>
+
+            <TextView
+                android:id="@+id/tv2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/size_text"
+                android:textColor="@color/colorPrimary"
+                android:text="$"
+                android:layout_marginLeft="10sp"/>
+
+            <EditText
+                android:id="@+id/etValor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:textColor="@color/colorPrimary"
+                android:textSize="@dimen/size_text"
+                android:hint="0"/>
+
+        </LinearLayout>
+
+        </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/shadowfile"
+        android:layout_marginTop="5dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginLeft="@dimen/margin_box"
+        android:layout_marginRight="@dimen/margin_box"
+        android:orientation="vertical"
+        android:layout_below="@id/precio_galon">
+
+        <TextView
+            android:id="@+id/tv3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/size_text"
+            android:layout_gravity="center_horizontal"
+            android:textColor="@color/colorPrimary"
+            android:text="@string/combustible"
+            android:layout_marginBottom="5dp"
+            android:layout_marginTop="5dp"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:orientation="horizontal"
+            android:layout_marginBottom="5dp"
+            android:elevation="10dp"
+            android:translationZ="50dp"
+            tools:targetApi="lollipop" >
+
+            <TextView
+                android:id="@+id/tvGalones"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/colorPrimary"
+                android:textSize="@dimen/size_text"
+                android:text="0.0 Gal. /"
+                android:layout_marginEnd="5dp"/>
+
+            <TextView
+                android:id="@+id/tvTotal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/colorAccent"
+                android:textSize="@dimen/size_text"
+                android:text=" $0"/>
+
+            <ImageButton
+                android:id="@+id/btnRefresh"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10sp"
+                android:layout_gravity="center_vertical"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_refresh"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnMedicion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/size_text"
+        android:textColor="@android:color/white"
+        android:textAllCaps="false"
+        android:textStyle="bold"
+        android:background="@color/colorPrimaryDark"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="15dp"
+        android:text="@string/iniciar"
+        android:layout_marginLeft="@dimen/margin_box"
+        android:layout_marginRight="@dimen/margin_box"
+        android:layout_centerHorizontal="true"/>
+
+</RelativeLayout>

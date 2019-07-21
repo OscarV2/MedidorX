@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".fragments.configuracion_cuenta.InfoPersonal"
+    android:layout_marginTop="150dp"
+    android:layout_marginStart="15dp">
+
+    <ImageView
+        android:id="@+id/img_info_usuario"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/iniciar"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/nombres_y_apellidos"
+        android:textSize="@dimen/texto_info_personal"/>
+    <EditText
+        android:id="@+id/edt_ip_nombres_apellidos"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/texto_edt_info_personal"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/n_mero_de_tel_fono"
+        android:textSize="@dimen/texto_info_personal"/>
+    <EditText
+        android:id="@+id/edt_ip_numero_telefono"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/texto_edt_info_personal"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/correo"
+        android:textSize="@dimen/texto_info_personal"/>
+    <EditText
+        android:id="@+id/edt_ip_correo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/texto_edt_info_personal"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/pa_s_ciudad"
+        android:textSize="@dimen/texto_info_personal"/>
+    <EditText
+        android:id="@+id/edt_ip_pais_ciudad"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/texto_edt_info_personal"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/contrase_a"
+        android:textSize="@dimen/texto_info_personal"/>
+    <EditText
+        android:id="@+id/edt_ip_password"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/texto_edt_info_personal"
+        android:inputType="textPassword"/>
+
+    <Button
+        android:id="@+id/btn_ip_guardar_cambios"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:background="@color/colorPrimary"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        android:text="Guardar Cambios"/>
+
+</LinearLayout>

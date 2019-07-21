@@ -1,0 +1,184 @@
+#
+# generated on 2019/07/05 09:58:01
+#
+# --table-start--
+dataClass=com.index.medidor.model.Estaciones
+tableName=estaciones
+# --table-fields-start--
+# --field-start--
+fieldName=id
+generatedId=true
+# --field-end--
+# --field-start--
+fieldName=nombre
+canBeNull=false
+indexName=estaciones_nombre_idx
+# --field-end--
+# --field-start--
+fieldName=distancia
+# --field-end--
+# --field-start--
+fieldName=direccion
+unique=true
+# --field-end--
+# --field-start--
+fieldName=horario
+# --field-end--
+# --field-start--
+fieldName=clasificacion
+# --field-end--
+# --field-start--
+fieldName=latitud
+# --field-end--
+# --field-start--
+fieldName=longitud
+# --field-end--
+# --field-start--
+fieldName=marca
+# --field-end--
+# --field-start--
+fieldName=departamento
+# --field-end--
+# --field-start--
+fieldName=municipio
+# --field-end--
+# --field-start--
+fieldName=certificada
+# --field-end--
+# --field-start--
+fieldName=descripcionCertificado
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.index.medidor.model.MarcaCarros
+tableName=marcas_carros
+# --table-fields-start--
+# --field-start--
+fieldName=id
+generatedId=true
+# --field-end--
+# --field-start--
+fieldName=nombre
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.index.medidor.model.ModeloCarros
+tableName=modelos_carros
+# --table-fields-start--
+# --field-start--
+fieldName=id
+generatedId=true
+# --field-end--
+# --field-start--
+fieldName=nombre
+# --field-end--
+# --field-start--
+fieldName=muestreo
+# --field-end--
+# --field-start--
+fieldName=id_marca
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.index.medidor.model.Recorridos
+tableName=recorridos
+# --table-fields-start--
+# --field-start--
+fieldName=id
+generatedId=true
+# --field-end--
+# --field-start--
+fieldName=rutas
+canBeNull=false
+# --field-end--
+# --field-start--
+fieldName=idUsuario
+canBeNull=false
+# --field-end--
+# --field-start--
+fieldName=galonesPerdidos
+# --field-end--
+# --field-start--
+fieldName=horaInicio
+# --field-end--
+# --field-start--
+fieldName=distancia
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.index.medidor.model.Tanqueadas
+tableName=tanqueadas
+# --table-fields-start--
+# --field-start--
+fieldName=nombre
+# --field-end--
+# --field-start--
+fieldName=direccion
+# --field-end--
+# --field-start--
+fieldName=galones
+# --field-end--
+# --field-start--
+fieldName=total
+# --field-end--
+# --field-start--
+fieldName=fecha
+# --field-end--
+# --field-start--
+fieldName=latitud
+# --field-end--
+# --field-start--
+fieldName=longitud
+# --field-end--
+# --field-start--
+fieldName=cantDeseada
+# --field-end--
+# --field-start--
+fieldName=galDeseados
+# --field-end--
+# --field-start--
+fieldName=flagCantidadDeseada
+# --field-end--
+# --field-start--
+fieldName=calificacion
+# --field-end--
+# --field-start--
+fieldName=comentarios
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.index.medidor.model.Usuario
+tableName=usuarios
+# --table-fields-start--
+# --field-start--
+fieldName=id
+generatedId=true
+# --field-end--
+# --field-start--
+fieldName=email
+# --field-end--
+# --field-start--
+fieldName=password
+# --field-end--
+# --field-start--
+fieldName=nombres
+# --field-end--
+# --field-start--
+fieldName=apellidos
+# --field-end--
+# --field-start--
+fieldName=celular
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################

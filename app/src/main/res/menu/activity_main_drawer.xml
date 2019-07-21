@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_combustible"
+            android:title="@string/title_activity_combustible" />
+        <item
+            android:id="@+id/nav_historial"
+            android:title="@string/historial" />
+        <item
+            android:id="@+id/nav_adq_datos"
+            android:title="@string/adquisici_n" />
+        <item
+            android:id="@+id/nav_config"
+            android:title="@string/config" />
+    </group>
+
+    <item
+        android:id="@+id/logout"
+        android:title="@string/logout" />
+
+</menu>

@@ -1,0 +1,94 @@
+<resources>
+    <string name="app_name">Inndex</string>
+    <string name="tab1">Ingresado</string>
+    <string name="tab2">Rendimiento</string>
+    <string name="title_activity_combustible">Medir Combustible</string>
+    <string name="precio">Precio Galon:</string>
+    <string name="combustible">Combustible Ingresado</string>
+    <string name="iniciar">Iniciar Medición</string>
+    <string name="detener">Detener Medición</string>
+    <string name="iniciar2">Iniciar Recorrido</string>
+    <string name="detener2">Detener Recorrido</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+    <string name="config">Configuración</string>
+    <string name="medir">Medir Combustible</string>
+    <string name="tanquear">¿Donde tanquear?</string>
+    <string name="title_activity_tanquear">TanquearActivity</string>
+    <string name="title_activity_historial">HistorialActivity</string>
+    <string name="back">back</string>
+    <string name="cero_galon">0.0 Gal.</string>
+    <string name="title_activity_inicio">InicioActivity</string>
+    <string name="title_activity_login">LoginActivity</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="recordar">Recordar Password</string>
+    <string name="ingresar">Ingresar</string>
+    <string name="registrar">Registrar</string>
+    <string name="confirmar">Confirmar</string>
+    <string name="codigo">Codigo</string>
+    <string name="title_activity_registro">RegistroActivity</string>
+    <string name="title_activity_validacion">ValidacionActivity</string>
+    <string name="logout">Cerrar Sesión</string>
+    <string name="perfil">Perfil</string>
+    <string name="dispostivo">Dispositivos</string>
+    <string name="title_activity_dispositivo">DispositivoActivity</string>
+    <string name="capacidad">Capacidad de combustible</string>
+    <string name="guardar">Guardar cambios</string>
+    <string name="title_activity_config">ConfigActivity</string>
+    <string name="config2">Configuración de cuenta</string>
+    <string name="agregar_inf">Agregar Información</string>
+    <string name="cambiar_password">Cambiar Contraseña</string>
+    <string name="mi_vehiculo">Mi vehiculo</string>
+    <string name="title_activity_password">Password</string>
+    <string name="password_actual">Contraseña actual</string>
+    <string name="password_nueva">Contraseña nueva</string>
+    <string name="password_nueva_confir">Confirmar contraseña nueva</string>
+    <string name="txt_galones">%1$.2f Gal. /</string>
+    <string name="txt_distancia">%1$.2f Km</string>
+    <string name="content_image_btn_refresh">TODO</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="cant_deseada">Cantidad deseada</string>
+    <string name="gal">Gal. /</string>
+    <string name="historial">Historial</string>
+
+    <string name="iniciarAdqModelo">Iniciar adquicisión de datos</string>
+    <string name="finalizarAdqModelo">Finalizar adquicisión de datos</string>
+    <string name="datosAdqModeloOk">Datos adquiridos correctamente</string>
+
+    <string-array name="optCantDeseada">
+        <item>COP</item>
+        <item>Gal</item>
+    </string-array>
+    <string name="title_activity_estaciones">Estaciones</string>
+    <string name="cal_aceptar">Aceptar</string>
+    <string name="cal_cancelar">Cancelar</string>
+
+    <string name="cant_gal">%1$.2f Gal. </string>
+    <string name="title_activity_detalle_recorrido">Map</string>
+    <string name="btn_menu_content_desc">menu</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="comentarios">Comentarios</string>
+    <string name="aceptar">Aceptar</string>
+    <string name="cancelar">Cancelar</string>
+    <string name="otra_estacion">Otra</string>
+    <string name="txt_agregar_vc"> Agregar vehículo</string>
+    <string name="hint_marca">MARCA</string>
+    <string name="hint_modelo">MODELO</string>
+    <string name="hint_linea">LINEA</string>
+    <string name="hint_combustible">COMBUSTIBLE</string>
+    <string name="adquisici_n">Adquisición</string>
+    <string name="contrase_a">Contraseña</string>
+    <string name="pa_s_ciudad">País, Ciudad</string>
+    <string name="correo">Correo electrónico</string>
+    <string name="n_mero_de_tel_fono">Número de teléfono</string>
+    <string name="nombres_y_apellidos">Nombres y Apellidos</string>
+
+</resources>

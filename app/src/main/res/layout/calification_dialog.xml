@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/rank_dialog_title1"
+        android:textSize="24sp" android:layout_marginTop="10dp"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"/>
+
+    <TextView
+        android:id="@+id/rank_dialog_title2"
+        android:textSize="14sp"
+        android:layout_marginTop="2dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/rank_dialog_title1"/>
+
+    <RadioButton
+        android:id="@+id/rb_otra_estacion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/rank_dialog_title2"
+        android:text="@string/otra_estacion"
+        android:textSize="18sp"
+        android:layout_marginLeft="10dp"/>
+
+    <TextView
+        android:id="@+id/txtCal"
+        android:textSize="14sp"
+        android:layout_marginTop="2dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/rb_otra_estacion"/>
+
+    <RatingBar
+           android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/cal_ratingbar"
+            android:numStars="5" android:stepSize="1"
+            android:isIndicator="false"
+            android:layout_below="@id/txtCal"
+            android:layout_centerHorizontal="true"
+            style="@style/ImageRatingBar"/>
+
+    <EditText
+        android:id="@+id/edt_comentarios"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/comentarios"
+        android:layout_below="@id/cal_ratingbar"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"/>
+
+    <LinearLayout
+        android:layout_below="@id/edt_comentarios"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="10dp">
+
+        <Button android:id="@+id/btnCalAceptar"
+            android:layout_height="wrap_content"
+            android:text="@string/cal_aceptar"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:layout_width="150dp"
+            android:layout_marginEnd="20dp"
+            android:background="@color/colorPrimaryDark"
+            android:padding="8dp"/>
+
+        <Button android:id="@+id/btnCalCancelar"
+            android:layout_height="wrap_content"
+            android:text="@string/cal_cancelar"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:layout_width="150dp"
+            android:background="@color/colorPrimaryDark"            />
+
+    </LinearLayout>
+
+</RelativeLayout>
