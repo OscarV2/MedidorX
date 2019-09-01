@@ -11,16 +11,16 @@ public class Estaciones implements Serializable {
 
     @DatabaseField(generatedId = true)
     private int id;
-    @DatabaseField(index = true, canBeNull = false)
+    @DatabaseField(canBeNull = false)
     private String nombre;
     @DatabaseField
     private Float distancia;
-    @DatabaseField(unique = true)
+    @DatabaseField
     private String direccion;
     @DatabaseField
     private String horario;
     @DatabaseField
-    private float clasificacion;
+    private double clasificacion;
     @DatabaseField
     private double latitud;
     @DatabaseField
@@ -77,11 +77,11 @@ public class Estaciones implements Serializable {
         this.horario = horario;
     }
 
-    public float getClasificacion() {
+    public double getClasificacion() {
         return clasificacion;
     }
 
-    public void setClasificacion(float clasificacion) {
+    public void setClasificacion(double clasificacion) {
         this.clasificacion = clasificacion;
     }
 

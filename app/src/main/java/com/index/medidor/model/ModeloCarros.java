@@ -11,11 +11,18 @@ public class ModeloCarros implements Serializable {
     @DatabaseField(generatedId = true)
     private int id;
     @DatabaseField
-    private String nombre;
+    private String linea;
     @DatabaseField
     private String muestreo;
     @DatabaseField
-    private int id_marca;
+    private int idMarca;
+    @DatabaseField
+    private double galones;
+
+    @DatabaseField
+    private String tipo_combustuble;
+    @DatabaseField
+    private String modelo;
 
     public ModeloCarros() {
     }
@@ -28,12 +35,12 @@ public class ModeloCarros implements Serializable {
         this.id = id;
     }
 
-    public String getNombre() {
-        return nombre;
+    public String getLinea() {
+        return linea;
     }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
+    public void setLinea(String linea) {
+        this.linea = linea;
     }
 
     public String getMuestreo() {
@@ -44,11 +51,35 @@ public class ModeloCarros implements Serializable {
         this.muestreo = muestreo;
     }
 
-    public int getId_marca() {
-        return id_marca;
+    public int getIdMarca() {
+        return idMarca;
     }
 
-    public void setId_marca(int id_marca) {
-        this.id_marca = id_marca;
+    public void setIdMarca(int idMarca) {
+        this.idMarca = idMarca;
+    }
+
+    public double getGalones() {
+        return galones;
+    }
+
+    public void setGalones(double galones) {
+        this.galones = galones;
+    }
+
+    public String getTipo_combustuble() {
+        return tipo_combustuble;
+    }
+
+    public void setTipo_combustuble(String tipo_combustuble) {
+        this.tipo_combustuble = tipo_combustuble;
+    }
+
+    public String getModelo() {
+        return modelo;
+    }
+
+    public void setModelo(String modelo) {
+        this.modelo = modelo;
     }
 }

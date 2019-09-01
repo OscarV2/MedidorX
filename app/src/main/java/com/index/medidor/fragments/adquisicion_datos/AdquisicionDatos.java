@@ -6,15 +6,47 @@ import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
+import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.index.medidor.R;
+import com.index.medidor.activities.InicioActivity;
 import com.index.medidor.activities.MainActivity;
+import com.index.medidor.database.DataBaseHelper;
+import com.index.medidor.model.MarcaCarros;
 import com.index.medidor.model.ModeloCarros;
+import com.index.medidor.retrofit.MedidorApiAdapter;
+import com.index.medidor.retrofit.SmartBillApiServices;
+import com.index.medidor.utils.BluetoothDataReceiver;
+import com.index.medidor.utils.BluetoothHelper;
+import com.index.medidor.utils.Constantes;
+import com.j256.ormlite.android.apptools.OpenHelperManager;
+import com.j256.ormlite.dao.Dao;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -26,11 +58,13 @@ import com.index.medidor.model.ModeloCarros;
  */
 public class AdquisicionDatos extends Fragment {
 
-    private EditText edtMarca;
+    private Spinner spMarca;
     private EditText edtLinea;
-    private EditText edtAnio;
-    private EditText edtCombustible;
+    private Spinner spAnio;
+    private Spinner spCombustible;
     private EditText edtGalIngresados;
+    private int estadoAdquicision;
+    private boolean acquisitionStarted;
 
     private Button btnAdquisicion;
     private Button btnRegistrar;
@@ -39,7 +73,14 @@ public class AdquisicionDatos extends Fragment {
 
     private ModeloCarros modeloCarros;
 
+    private JsonObject jsonMuestreo;
+
     private OnFragmentInteractionListener mListener;
+    private Timer mTimer1;
+    private Handler mHandler;
+    private BluetoothHelper bluetoothHelper;
+    private double galIngresados;
+    private List<Integer> keyArraysAdq;
 
     public AdquisicionDatos() {
         // Required empty public constructor
@@ -47,11 +88,10 @@ public class AdquisicionDatos extends Fragment {
 
     public AdquisicionDatos(MainActivity mainActivity) {
 
+        //this.bluetoothHelper = new BluetoothHelper();
         this.mainActivity = mainActivity;
-
+        this.keyArraysAdq = new ArrayList<>();
     }
-
-
 
     /**
      * Use this factory method to create a new instance of
@@ -80,31 +120,200 @@ public class AdquisicionDatos extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_adquisicion_datos, container, false);
-        edtAnio = v.findViewById(R.id.edt_anio_adq_modelo);
-        edtCombustible = v.findViewById(R.id.edt_combustible_adq_modelo);
+        spAnio = v.findViewById(R.id.sp_anio_adq_modelo);
+        spCombustible = v.findViewById(R.id.edt_combustible_adq_modelo);
         edtGalIngresados = v.findViewById(R.id.edt_gal_ingresados_modelo);
         edtLinea = v.findViewById(R.id.edt_linea_adq_modelo);
-        edtMarca = v.findViewById(R.id.edt_marca_adq_modelo);
+        spMarca = v.findViewById(R.id.sp_marca_adq_modelo);
 
         btnAdquisicion = v.findViewById(R.id.btn_datos_adq_correctamente);
         btnRegistrar = v.findViewById(R.id.btn_registrar_adq_correctamente);
-
-        modeloCarros = new ModeloCarros();
+        estadoAdquicision = 0;
+        init();
+        acquisitionStarted = false;
 
         return v;
     }
 
+    private void init() {
+
+        btnRegistrar.setEnabled(false);
+        btnRegistrar.setVisibility(View.GONE);
+        btnAdquisicion.setEnabled(false);
+
+        modeloCarros = new ModeloCarros();
+
+        spAnio.setAdapter(new ArrayAdapter<>(mainActivity, android.R.layout.simple_spinner_dropdown_item,
+                Constantes.getYearsModelsCars()));
+
+        spCombustible.setAdapter( ArrayAdapter.createFromResource(mainActivity,
+                R.array.tipos_combustibles, android.R.layout.simple_spinner_item));
+
+        try {
+            DataBaseHelper helper = OpenHelperManager.getHelper(mainActivity, DataBaseHelper.class);
+
+            spMarca.setAdapter(new ArrayAdapter<>(mainActivity, android.R.layout.simple_spinner_dropdown_item,
+                    Constantes.getAllMarcasNames(helper)));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        edtLinea.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                if (estadoAdquicision == 0){
+
+                    if (s.length() > 0){
+                        btnAdquisicion.setEnabled(true);
+                        btnAdquisicion.setBackgroundColor(mainActivity.getResources().getColor(R.color.colorPrimaryDark));
+                    }else{
+                        btnAdquisicion.setEnabled(false);
+                        btnAdquisicion.setBackgroundColor(mainActivity.getResources().getColor(R.color.colorPrimaryDark));
+
+                    }
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+        btnAdquisicion.setOnClickListener(v -> {
+
+            if (!acquisitionStarted){
+
+                iniciarAdq();
+
+                btnAdquisicion.setText(R.string.finalizarAdqModelo);
+                estadoAdquicision = 1;
+
+            }else if(estadoAdquicision == 1 && acquisitionStarted) {
+
+                finalizarAdq();
+
+            }
+
+        });
+        btnRegistrar.setOnClickListener(v -> {
+
+            String val = edtGalIngresados.getText().toString();
+
+            if(val.length() == 0){
+
+                Toast.makeText(mainActivity, "Debe ingresar un valor de galones ingresados válido", Toast.LENGTH_SHORT).show();
+
+                edtGalIngresados.requestFocus();
+
+            }else{
+                galIngresados = Double.valueOf(val);
+
+                if (galIngresados < 1){
+                    Toast.makeText(mainActivity, "Debe ingresar un valor de galones ingresados válido", Toast.LENGTH_SHORT).show();
+
+                    edtGalIngresados.requestFocus();
+                }else{
+
+                        guardarAdq();
+
+                }
+            }
+
+        });
+    }
+
     private void iniciarAdq(){
 
+        if (mainActivity.getBtSocket() != null){
 
+            acquisitionStarted = true;
+            mainActivity.getBluetoothHelper().setAdq(true);
+
+        }else{
+
+            Toast.makeText(mainActivity, "ASEGURESE DE QUE EL DISPOSITIVO INNDEX ESTA CONECTADO.", Toast.LENGTH_SHORT).show();
+        }
 
     }
 
     private void finalizarAdq(){
 
+        btnAdquisicion.setText(R.string.datosAdqModeloOk);
+        btnAdquisicion.setEnabled(false);
+        btnRegistrar.setEnabled(true);
+        btnRegistrar.setBackgroundColor(mainActivity.getResources().getColor(R.color.colorPrimaryDark));
+        btnRegistrar.setVisibility(View.VISIBLE);
+        estadoAdquicision = 0;
+        acquisitionStarted = false;
+
     }
 
+    private void guardarAdq() {
 
+        Log.e("guardar","Adq");
+
+        Gson gson = new Gson();
+
+        JsonObject jsonArrayKeys = new JsonObject();
+
+        jsonArrayKeys.add("galones", gson.toJsonTree(keyArraysAdq));
+
+        modeloCarros.setMuestreo( gson.toJson(jsonArrayKeys));
+        modeloCarros.setLinea(edtLinea.getText().toString());
+        modeloCarros.setGalones(this.galIngresados);
+        modeloCarros.setIdMarca(1);
+
+        Call<ModeloCarros> callRegistrarModelo = MedidorApiAdapter.getApiService()
+                .postRegisterModelo(Constantes.CONTENT_TYPE_JSON, modeloCarros);
+
+        callRegistrarModelo.enqueue(new Callback<ModeloCarros>() {
+            @Override
+            public void onResponse(Call<ModeloCarros> call, Response<ModeloCarros> response) {
+
+                if(response.isSuccessful()){
+
+                    DataBaseHelper helper = OpenHelperManager.getHelper(mainActivity, DataBaseHelper.class);
+
+                    try {
+                        Dao<ModeloCarros, Integer> daoModeloCarros = helper.getDaoModelos();
+                        daoModeloCarros.create(modeloCarros);
+                        resetAdq();
+
+                        Toast.makeText(mainActivity, "Modelo registrado exitosamente", Toast.LENGTH_SHORT).show();
+                    } catch (SQLException e) {
+                        Toast.makeText(mainActivity, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
+                    }
+                }else{
+
+                    Toast.makeText(mainActivity, "NO SE PUDO REGISTRAR LA ADQUISICIÓN", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+
+            @Override
+            public void onFailure(Call<ModeloCarros> call, Throwable t) {
+
+                Toast.makeText(mainActivity, "ERROR " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
+
+    private void resetAdq(){
+
+        btnAdquisicion.setEnabled(false);
+        btnRegistrar.setEnabled(false);
+        //btnRegistrar.setVisibility(View.GONE);
+        btnRegistrar.setBackgroundColor(mainActivity.getResources().getColor(R.color.textSecond));
+        btnAdquisicion.setBackgroundColor(mainActivity.getResources().getColor(R.color.textSecond));
+
+    }
 
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
@@ -129,6 +338,18 @@ public class AdquisicionDatos extends Fragment {
         super.onDetach();
         mListener = null;
     }
+
+
+    public void getBluetoothData(int dato) {
+
+        if (acquisitionStarted){
+
+            Log.e("tu adqDato", String.valueOf(dato));
+            keyArraysAdq.add(dato);
+
+        }
+    }
+
 
     /**
      * This interface must be implemented by activities that contain this

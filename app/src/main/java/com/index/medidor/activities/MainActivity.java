@@ -122,6 +122,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     Typeface bold;
     View viewMap;
     private Estaciones estacionMasCercana;
+    private EstacionesPlaces estacionesPlaces;
+    Fragment miFragment;
+
+    private BluetoothHelper bluetoothHelper;
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @SuppressLint("ResourceType")
@@ -130,8 +134,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-
-
 
         helper = OpenHelperManager.getHelper(MainActivity.this, DataBaseHelper.class);
 
@@ -155,7 +157,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         assert mapFragment != null;
         mapFragment.getMapAsync(this);
 
-        BluetoothHelper bluetoothHelper = new BluetoothHelper(MainActivity.this);
+        bluetoothHelper = new BluetoothHelper(MainActivity.this);
         bluetoothHelper.checkBTState();
         btSocket = bluetoothHelper.getBtSocket();
 
@@ -166,12 +168,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         initControls();
         try {
 
-            EstacionesPlaces places = new EstacionesPlaces();
+            estacionesPlaces = new EstacionesPlaces();
             SharedPreferences myPreferences = PreferenceManager.getDefaultSharedPreferences(this);
             LatLng newPosition;
             newPosition = new LatLng(Double.valueOf(myPreferences.getString("latitud", "0")),
                     Double.valueOf(myPreferences.getString("longitud", "0")));
-            estacionMasCercana = places.getEstacionMasCercana(newPosition, helper);
+            estacionMasCercana = estacionesPlaces.getEstacionMasCercana(newPosition, helper);
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -205,7 +207,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        Fragment miFragment = null;
+        miFragment = null;
         boolean fragmentSeleccionado = false;
 
         if (id == R.id.nav_combustible) {
@@ -314,6 +316,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         //newMarker(10.468854, -73.257013);
         //newMarker(8.60, -74.08);
         mMap.setOnMarkerClickListener(this);
+        mMap.setMyLocationEnabled(true);
 
     }
 
@@ -419,6 +422,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         pbCombustible.setProgress((int)nivelCombustible);
         tvCombustible.setText(getString(R.string.cant_gal,nivelCombustible));
         myPreferences.edit().putString("nivel", String.valueOf(nivelCombustible)).apply();
+
+        if(miFragment instanceof AdquisicionDatos){
+
+            (((AdquisicionDatos) miFragment)).getBluetoothData(dato);
+        }
     }
 
     public void mostrarUbicacion() {
@@ -685,10 +693,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return myPreferences;
     }
 
-    public void setImageInfoPersonal(String imagePath, ImageView imgUsuario){
+    public void irCambiarContrasena(){
 
+    }
 
+    public BluetoothHelper getBluetoothHelper() {
+        return bluetoothHelper;
+    }
 
+    public void setBluetoothHelper(BluetoothHelper bluetoothHelper) {
+        this.bluetoothHelper = bluetoothHelper;
+    }
 
+    public List<Estaciones> getEstacionesCercanas() throws SQLException {
+
+        return estacionesPlaces.getEstacionesCercanas(new LatLng(Double.valueOf(myPreferences.getString("latitud", "0")),
+                Double.valueOf(myPreferences.getString("longitud", "0"))), helper);
+    }
+
+    public Location getMyLocation() {
+        return myLocation;
     }
 }

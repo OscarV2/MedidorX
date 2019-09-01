@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.Window;
 import android.widget.Toast;
 
@@ -14,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.index.medidor.R;
 import com.index.medidor.database.DataBaseHelper;
 import com.index.medidor.model.Estaciones;
+import com.index.medidor.model.MarcaCarros;
 import com.index.medidor.retrofit.MedidorApiAdapter;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
@@ -38,22 +40,21 @@ public class InicioActivity extends AppCompatActivity {
         final SharedPreferences myPreferences= PreferenceManager.getDefaultSharedPreferences(this);
         try {
             getAllStations();
+            getAllMarcas();
         } catch (SQLException e) {
             e.printStackTrace();
         }
         int DURACION_SPLASH = 2000;
-        new Handler().postDelayed(new Runnable(){
-            public void run(){
-                // Cuando pasen los 3 segundos, pasamos al Login
-                if(myPreferences.getBoolean("sesion",false)){
-                    irMain();
-                }else{
+        new Handler().postDelayed(() -> {
+            // Cuando pasen los 3 segundos, pasamos al Login
+            if(myPreferences.getBoolean("sesion",false)){
+                irMain();
+            }else{
 
-                    Intent intent = new Intent(InicioActivity.this, LoginActivity.class);
-                    startActivity(intent);
-                    finish();
-                }
-            };
+                Intent intent = new Intent(InicioActivity.this, LoginActivity.class);
+                startActivity(intent);
+                finish();
+            }
         }, DURACION_SPLASH);
     }
 
@@ -81,6 +82,10 @@ public class InicioActivity extends AppCompatActivity {
                                 try {
                                     dao.create(e);
                                 } catch (SQLException e1) {
+                                    Log.e("ERROR", e1.getMessage());
+                                    Log.e("ERROR", e1.getLocalizedMessage());
+                                    Log.e("ERROR", e1.getCause().getMessage());
+
                                     Toast.makeText(InicioActivity.this, "Error en la base de datos.", Toast.LENGTH_SHORT).show();
                                     break;
                                 }
@@ -101,5 +106,45 @@ public class InicioActivity extends AppCompatActivity {
 
         }
     }
+
+    private void getAllMarcas() throws SQLException {
+
+        DataBaseHelper helper = OpenHelperManager.getHelper(InicioActivity.this, DataBaseHelper.class);
+        final Dao<MarcaCarros, Integer> dao = helper.getDaoMarcas();
+        if (!(dao.queryForAll().size() > 0)){
+
+            Call<List<MarcaCarros>> callGetMarcas = MedidorApiAdapter.getApiService().getMarcasCarros();
+            callGetMarcas.enqueue(new Callback<List<MarcaCarros>>() {
+                @Override
+                public void onResponse(@NonNull Call<List<MarcaCarros>> call, @NonNull Response<List<MarcaCarros>> response) {
+
+                    if (response.isSuccessful()){
+                        List<MarcaCarros> list = response.body();
+                        if (list != null && list.size() > 0) {
+                            for (MarcaCarros e: list) {
+                                try {
+                                    dao.create(e);
+                                } catch (SQLException e1) {
+                                    Toast.makeText(InicioActivity.this, "Error en la base de datos.", Toast.LENGTH_SHORT).show();
+                                    break;
+                                }
+                            }
+
+                        }
+                    }else{
+                        Toast.makeText(InicioActivity.this, "NO SE PUDIERON DESCARGAR LAS MARCAS INTENTALO MAS TARDE.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<List<MarcaCarros>> call, @NonNull Throwable t) {
+                    Toast.makeText(InicioActivity.this, "NO SE PUDIERON DESCARGAR LAS MARCAS INTENTALO MAS TARDE.", Toast.LENGTH_SHORT).show();
+
+                }
+            });
+
+        }
+    }
+
 
 }

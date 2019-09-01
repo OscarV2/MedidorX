@@ -10,6 +10,7 @@ import com.index.medidor.model.ModeloCarros;
 import com.index.medidor.model.Recorridos;
 import com.index.medidor.model.Tanqueadas;
 import com.index.medidor.model.Usuario;
+import com.index.medidor.model.UsuarioHasModeloCarro;
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
@@ -41,6 +42,9 @@ public class DataBaseHelper extends OrmLiteSqliteOpenHelper {
     private Dao<ModeloCarros, Integer> daoModelos = null;
     private RuntimeExceptionDao<ModeloCarros, Integer> modelosRuntimeDao = null;
 
+    private Dao<UsuarioHasModeloCarro, Integer> daoUsuarioHasModeloCarros = null;
+    private RuntimeExceptionDao<UsuarioHasModeloCarro, Integer> usuarioHasModeloCarroRuntimeDao = null;
+
     public DataBaseHelper(Context context) {
         super(context, DATABASE_NAME, null, VERSION, R.raw.medidor_config);
  //       super(context, DATABASE_NAME, null, VERSION, 0);
@@ -56,6 +60,7 @@ public class DataBaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.createTable(connectionSource, Recorridos.class);
             TableUtils.createTable(connectionSource, MarcaCarros.class);
             TableUtils.createTable(connectionSource, ModeloCarros.class);
+            TableUtils.createTable(connectionSource, UsuarioHasModeloCarro.class);
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -73,6 +78,7 @@ public class DataBaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.dropTable(connection, Recorridos.class, true);
             TableUtils.dropTable(connection, MarcaCarros.class,true);
             TableUtils.dropTable(connection, ModeloCarros.class,true);
+            TableUtils.dropTable(connection, UsuarioHasModeloCarro.class,true);
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -138,9 +144,19 @@ public class DataBaseHelper extends OrmLiteSqliteOpenHelper {
         return daoModelos;
     }
 
-    public RuntimeExceptionDao<ModeloCarros, Integer> getModelosRuntimeDao() {
+    public RuntimeExceptionDao<ModeloCarros, Integer> getUsua() {
         if(modelosRuntimeDao == null) modelosRuntimeDao = getRuntimeExceptionDao(ModeloCarros.class);
         return modelosRuntimeDao;
+    }
+
+    public Dao<UsuarioHasModeloCarro, Integer> getDaoUsuarioHasModeloCarros() throws SQLException {
+        if (daoUsuarioHasModeloCarros == null) daoUsuarioHasModeloCarros = getDao(UsuarioHasModeloCarro.class);
+        return daoUsuarioHasModeloCarros;
+    }
+
+    public RuntimeExceptionDao<UsuarioHasModeloCarro, Integer> getUsuarioHasModeloCarroIntegerRuntimeDao() {
+        if(usuarioHasModeloCarroRuntimeDao == null) usuarioHasModeloCarroRuntimeDao = getRuntimeExceptionDao(UsuarioHasModeloCarro.class);
+        return usuarioHasModeloCarroRuntimeDao;
     }
 
     @Override
@@ -152,11 +168,13 @@ public class DataBaseHelper extends OrmLiteSqliteOpenHelper {
         daoRecorridos = null;
         daoMarcas = null;
         daoModelos = null;
+        daoUsuarioHasModeloCarros = null;
         tanqueadasRuntimeDao = null;
         estacionesRuntimeDao = null;
         recorridosRuntimeDao = null;
         usuarioRuntimeDao = null;
         marcasRuntimeDao = null;
         modelosRuntimeDao = null;
+        usuarioHasModeloCarroRuntimeDao = null;
     }
 }

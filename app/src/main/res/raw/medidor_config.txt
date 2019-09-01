@@ -1,5 +1,5 @@
 #
-# generated on 2019/07/05 09:58:01
+# generated on 2019/09/01 11:09:10
 #
 # --table-start--
 dataClass=com.index.medidor.model.Estaciones
@@ -12,14 +12,12 @@ generatedId=true
 # --field-start--
 fieldName=nombre
 canBeNull=false
-indexName=estaciones_nombre_idx
 # --field-end--
 # --field-start--
 fieldName=distancia
 # --field-end--
 # --field-start--
 fieldName=direccion
-unique=true
 # --field-end--
 # --field-start--
 fieldName=horario
@@ -74,13 +72,22 @@ fieldName=id
 generatedId=true
 # --field-end--
 # --field-start--
-fieldName=nombre
+fieldName=linea
 # --field-end--
 # --field-start--
 fieldName=muestreo
 # --field-end--
 # --field-start--
-fieldName=id_marca
+fieldName=idMarca
+# --field-end--
+# --field-start--
+fieldName=galones
+# --field-end--
+# --field-start--
+fieldName=tipo_combustuble
+# --field-end--
+# --field-start--
+fieldName=modelo
 # --field-end--
 # --table-fields-end--
 # --table-end--
@@ -178,6 +185,29 @@ fieldName=apellidos
 # --field-end--
 # --field-start--
 fieldName=celular
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.index.medidor.model.UsuarioHasModeloCarro
+tableName=usuarios_has_modelos_carros
+# --table-fields-start--
+# --field-start--
+fieldName=id
+generatedId=true
+# --field-end--
+# --field-start--
+fieldName=modelosCarrosId
+# --field-end--
+# --field-start--
+fieldName=usuariosId
+# --field-end--
+# --field-start--
+fieldName=bluetoothNombre
+# --field-end--
+# --field-start--
+fieldName=bluetoothMac
 # --field-end--
 # --table-fields-end--
 # --table-end--

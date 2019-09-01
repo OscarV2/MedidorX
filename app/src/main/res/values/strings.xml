@@ -92,5 +92,36 @@
     <string name="nombres_y_apellidos">Nombres y Apellidos</string>
     <string name="guardar_cambios">Guardar Cambios</string>
     <string name="hint_placa">PLACA</string>
+    <string name="hint_password">********</string>
 
+    <string-array name="tipos_combustibles">
+        <item>ACPM</item>
+        <item>Biodiesel</item>
+        <item>Diesel</item>
+        <item>Gasolina</item>
+        <item>GNV</item>
+    </string-array>
+
+    <string-array name="marcas_estaciones">
+        <item>TERPEL</item>
+        <item>BIOMAX</item>
+        <item>MOBIL</item>
+        <item>TEXACO</item>
+        <item>PETROMIL</item>
+        <item>ZEUS</item>
+        <item>AYATAWACOOP</item>
+        <item>PETROBRAS</item>
+        <item>ECOS</item>
+        <item>COOMULPINORT</item>
+        <item>PUMA</item>
+        <item>ESSO</item>
+        <item>CASAMOTOR</item>
+        <item>SAVE</item>
+        <item>OCTANO</item>
+        <item>ZAP Y VELASQUEZ</item>
+        <item>DISCOWACOOP</item>
+        <item>BRIO</item>
+        <item>PROXXON</item>
+        <item>GULF</item>
+    </string-array>
 </resources>

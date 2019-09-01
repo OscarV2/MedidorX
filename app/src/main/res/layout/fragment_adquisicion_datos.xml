@@ -6,56 +6,58 @@
     tools:context=".fragments.adquisicion_datos.AdquisicionDatos"
     android:layout_marginTop="120dp">
 
-    <LinearLayout
-        android:id="@+id/lay_datos_adq_modelo"
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-
-        <ImageView
+    <ImageView
         android:id="@+id/img_mi_vehiculo_adq"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:contentDescription="@string/aceptar"
         android:src="@drawable/carro"
-        android:layout_marginEnd="10dp"/>
+        android:layout_marginEnd="5dp"/>
 
-        <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/lay_datos_adq_modelo"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginRight="15dp"
-        android:layout_marginLeft="15dp">
+        android:layout_toEndOf="@id/img_mi_vehiculo_adq"
+        android:layout_marginEnd="10dp">
 
-        <EditText
-            android:id="@+id/edt_marca_adq_modelo"
-            android:layout_width="wrap_content"
+        <Spinner
+            android:id="@+id/sp_marca_adq_modelo"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:hint="@string/hint_marca"/>
-        <EditText
-            android:id="@+id/edt_anio_adq_modelo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="@string/hint_modelo"/>
-    </LinearLayout>
-
-        <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
 
         <EditText
             android:id="@+id/edt_linea_adq_modelo"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/hint_linea"/>
-        <EditText
-            android:id="@+id/edt_combustible_adq_modelo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="@string/hint_combustible"/>
+
     </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="15dp"
+        android:layout_marginLeft="15dp"
+            android:layout_below="@id/lay_datos_adq_modelo"
+            android:layout_toEndOf="@id/img_mi_vehiculo_adq"
+            android:layout_marginEnd="10dp">
+
+
+        <Spinner
+            android:id="@+id/sp_anio_adq_modelo"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_modelo"/>
+
+            <Spinner
+                android:id="@+id/edt_combustible_adq_modelo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_combustible"/>
 
     </LinearLayout>
 
@@ -66,7 +68,7 @@
         android:text="@string/iniciarAdqModelo"
         android:layout_centerHorizontal="true"
         android:textColor="@color/white"
-        android:layout_below="@id/lay_datos_adq_modelo"
+        android:layout_below="@id/img_mi_vehiculo_adq"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="20dp"
         android:textSize="20sp"/>
@@ -90,6 +92,7 @@
 
         <EditText
             android:id="@+id/edt_gal_ingresados_modelo"
+            android:inputType="number"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 

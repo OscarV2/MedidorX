@@ -34,38 +34,39 @@
             android:orientation="vertical"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="15dp"
-            android:layout_marginLeft="15dp">
+            android:layout_marginEnd="10dp">
 
-        <EditText
-            android:id="@+id/edt_marca_mi_vehiculo_nuevo"
-            android:layout_width="wrap_content"
+        <Spinner
+            android:id="@+id/sp_marca_mi_vehiculo_nuevo"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:hint="@string/hint_marca"/>
-        <EditText
-            android:id="@+id/edt_anio_mi_vehiculo_nuevo"
-            android:layout_width="wrap_content"
+        <Spinner
+            android:id="@+id/sp_anio_mi_vehiculo_nuevo"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
-            android:hint="@string/hint_modelo"/>
+            android:hint="@string/hint_modelo"
+            android:layout_marginTop="25dp"/>
     </LinearLayout>
 
             <LinearLayout
         android:orientation="vertical"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginRight="25dp"
-        android:layout_marginLeft="25dp">
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="5dp">
 
-        <EditText
-            android:id="@+id/edt_linea_mi_vehiculo_nuevo"
-            android:layout_width="wrap_content"
+        <Spinner
+            android:id="@+id/sp_linea_mi_vehiculo_nuevo"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/hint_linea"/>
         <EditText
             android:id="@+id/edt_placa_mi_vehiculo_nuevo"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/hint_placa"/>
+            android:hint="@string/hint_placa"
+            android:layout_marginTop="25dp"/>
     </LinearLayout>
 
         </LinearLayout>

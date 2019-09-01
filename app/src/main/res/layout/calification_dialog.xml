@@ -16,16 +16,17 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_below="@id/rank_dialog_title1"/>
+        android:layout_below="@id/rank_dialog_title1"
+        android:layout_marginBottom="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"/>
 
-    <RadioButton
-        android:id="@+id/rb_otra_estacion"
-        android:layout_width="wrap_content"
+    <Spinner
+        android:id="@+id/sp_otra_estacion"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/rank_dialog_title2"
-        android:text="@string/otra_estacion"
-        android:textSize="18sp"
-        android:layout_marginLeft="10dp"/>
+        android:layout_marginTop="10dp"
+        android:layout_below="@id/rank_dialog_title2"/>
 
     <TextView
         android:id="@+id/txtCal"
@@ -34,7 +35,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_below="@id/rb_otra_estacion"/>
+        android:layout_below="@id/sp_otra_estacion"/>
 
     <RatingBar
            android:layout_marginTop="10dp"

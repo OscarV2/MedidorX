@@ -69,7 +69,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="@dimen/texto_edt_info_personal"
-        android:inputType="textPassword"/>
+        android:hint="@string/hint_password"
+        android:inputType="textPassword"
+        android:enabled="false"/>
 
     <Button
         android:id="@+id/btn_ip_guardar_cambios"

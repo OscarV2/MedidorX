@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
@@ -23,6 +24,8 @@ import androidx.core.content.ContextCompat;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class BluetoothHelper {
@@ -36,6 +39,9 @@ public class BluetoothHelper {
     private static final UUID BTMODULEUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private int REQUEST_ENABLE_BT;
     private BluetoothAdapter btAdapter;
+    private static int dato;
+    private static List<Integer> dataToAverage;
+    private static boolean isAdq;
 
     public BluetoothHelper(Context context) {
         recDataString = new StringBuilder();
@@ -45,6 +51,7 @@ public class BluetoothHelper {
         btAdapter = BluetoothAdapter.getDefaultAdapter();
         bluetoothDataReceiver = (BluetoothDataReceiver) context;
         bluetoothIn = new MyVeryOwnHandler();
+        dataToAverage = new ArrayList<>();
     }
 
     private static class MyVeryOwnHandler extends Handler{
@@ -53,22 +60,50 @@ public class BluetoothHelper {
         public void handleMessage(Message msg) {
 
             if (msg.what == handlerState) {          //if message is what we want
-                String readMessage = (String) msg.obj;                                                                // msg.arg1 = bytes from connect thread
+                String readMessage = (String) msg.obj;  // msg.arg1 = bytes from connect thread
+                readMessage = readMessage.replace(" ","");
+
                 recDataString.append(readMessage);              //keep appending to string until ~
+
                 int endOfLineIndex = recDataString.indexOf("~");                    // determine the end-of-line
+
                 if (endOfLineIndex > 0) {                                           // make sure there data before ~
-                    String dataInPrint = recDataString.substring(0, endOfLineIndex);    // extract string
-                    int dataLength = dataInPrint.length();       //get length of data received
 
                     if (recDataString.charAt(0) == '#')        //if it starts with # we know it is what we are looking for
                     {
 
-                        int dato = Integer.parseInt(recDataString.substring(1,endOfLineIndex));     //get sensor value from string between indices 1-5
-                        bluetoothDataReceiver.getBluetoothData(dato);
+                        dato = Integer.parseInt(recDataString.substring(1,endOfLineIndex ));     //get sensor value from string between indices 1-5
+                        dataToAverage.add(dato);
 
+                        if (!isAdq){
+
+                            if (dataToAverage.size() == Constantes.ARRAY_DATA_SIZE){
+
+                                int sum = 0;
+
+                                for (int i = 0; i < dataToAverage.size(); i++){
+
+                                    sum += dataToAverage.get(i);
+                                }
+
+                                sum = (sum / dataToAverage.size());
+
+                                //dataToAverage.remove(dataToAverage.get(Constantes.ARRAY_DATA_SIZE - 1)) ;
+                                //dataToAverage.set(Constantes.ARRAY_DATA_SIZE - 1, dato);
+
+                                dataToAverage = new ArrayList<>();
+
+                                bluetoothDataReceiver.getBluetoothData(sum);
+
+                            }
+
+                        }else{
+
+                            bluetoothDataReceiver.getBluetoothData(dato);
+                        }
                     }
                     recDataString.delete(0, recDataString.length());      //clear all string data
-
+                    //GRANT ALL PRIVILEGES ON *.* TO oscarremote@186.80.130.184 IDENTIFIED BY '12345678';
                 }
             }
         }
@@ -129,7 +164,8 @@ public class BluetoothHelper {
             Toast.makeText(context, "El dispositivo no soporta bluetooth", Toast.LENGTH_LONG).show();
         } else {
             if (btAdapter.isEnabled()) {
-                String address = "00:21:13:00:C2:B0";
+                //String address = "00:21:13:00:C2:B0";
+                String address = "00:18:E4:0A:00:01";
                 BluetoothDevice device = btAdapter.getRemoteDevice(address);
 
                 try {
@@ -170,7 +206,15 @@ public class BluetoothHelper {
         return btSocket;
     }
 
-    public void setBtSocket(BluetoothSocket btSocket) {
-        this.btSocket = btSocket;
+    public static int getDato() {
+        return dato;
+    }
+
+    public boolean isAdq() {
+        return isAdq;
+    }
+
+    public void setAdq(boolean adq) {
+        isAdq = adq;
     }
 }

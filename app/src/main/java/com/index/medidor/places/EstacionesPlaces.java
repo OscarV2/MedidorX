@@ -8,7 +8,10 @@ import com.google.android.gms.maps.model.LatLng;
 import com.index.medidor.database.DataBaseHelper;
 import com.index.medidor.model.Estaciones;
 import com.index.medidor.utils.Constantes;
+import com.index.medidor.utils.SortByDistance;
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.PreparedQuery;
+import com.j256.ormlite.stmt.QueryBuilder;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -35,6 +38,40 @@ public class EstacionesPlaces {
     }
 
     public void dondeTanquear(){
+
+    }
+
+    public List<Estaciones> getEstacionesCercanas(LatLng myPosition, DataBaseHelper helper) throws SQLException {
+
+        final Dao<Estaciones, Integer> daoEstaciones = helper.getDaoEstaciones();
+
+        QueryBuilder<Estaciones, Integer> queryBuilder =
+                daoEstaciones.queryBuilder();
+
+        queryBuilder.where().between("latitud",myPosition.latitude - Constantes.LAT_LNG_TOLERANCE,
+                myPosition.latitude + Constantes.LAT_LNG_TOLERANCE)
+        .and().between("longitud", myPosition.longitude - Constantes.LAT_LNG_TOLERANCE,
+                myPosition.longitude + Constantes.LAT_LNG_TOLERANCE);
+
+        PreparedQuery<Estaciones> preparedQuery = queryBuilder.prepare();
+
+        List<Estaciones> listEstaciones = daoEstaciones.query(preparedQuery);
+        float distancia;
+        if(listEstaciones.size() > 0){
+
+            for (int i = 0; i < listEstaciones.size(); i++) {
+
+                distancia = Constantes.getDistance(myPosition, listEstaciones.get(i).getCoordenadas());
+                listEstaciones.get(i).setDistancia(distancia);
+            }
+
+            Collections.sort(listEstaciones, (e1, e2) -> new SortByDistance().compare(e1,e2));
+
+            return  listEstaciones;
+
+        }else{
+            return null;
+        }
 
     }
 

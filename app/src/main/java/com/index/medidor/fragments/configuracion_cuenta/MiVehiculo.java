@@ -1,16 +1,28 @@
 package com.index.medidor.fragments.configuracion_cuenta;
 
-import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.Spinner;
 
 import com.index.medidor.R;
+import com.index.medidor.activities.MainActivity;
+import com.index.medidor.database.DataBaseHelper;
+import com.index.medidor.model.MarcaCarros;
+import com.index.medidor.utils.Constantes;
+import com.j256.ormlite.android.apptools.OpenHelperManager;
+import com.j256.ormlite.dao.Dao;
+
+import java.sql.SQLException;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -25,8 +37,12 @@ public class MiVehiculo extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-
+    private Spinner spMarca;
+    private Spinner spLinea;
+    private Spinner spAnio;
+    private EditText edtPlaca;
     // TODO: Rename and change types of parameters
+    private MainActivity mainActivity;
     private String mParam1;
     private String mParam2;
 
@@ -35,6 +51,12 @@ public class MiVehiculo extends Fragment {
     public MiVehiculo() {
         // Required empty public constructor
     }
+
+    public MiVehiculo(MainActivity mainActivity) {
+
+        this.mainActivity = mainActivity;
+    }
+
 
     /**
      * Use this factory method to create a new instance of
@@ -67,7 +89,23 @@ public class MiVehiculo extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_mi_vehiculo, container, false);
+        View v = inflater.inflate(R.layout.fragment_mi_vehiculo, container, false);
+        spAnio = v.findViewById(R.id.sp_anio_mi_vehiculo_nuevo);
+        edtPlaca = v.findViewById(R.id.edt_placa_mi_vehiculo_nuevo);
+        spLinea = v.findViewById(R.id.sp_linea_mi_vehiculo_nuevo);
+        spMarca = v.findViewById(R.id.sp_marca_mi_vehiculo_nuevo);
+
+        spAnio.setAdapter(new ArrayAdapter<>(mainActivity, android.R.layout.simple_spinner_dropdown_item,
+                Constantes.getYearsModelsCars()));
+
+        try {
+            spMarca.setAdapter(new ArrayAdapter<>(mainActivity, android.R.layout.simple_spinner_dropdown_item,
+                    getAllMarcasNames()));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return v;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -75,6 +113,26 @@ public class MiVehiculo extends Fragment {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
         }
+    }
+
+    private String[] getAllMarcasNames() throws SQLException {
+
+        DataBaseHelper helper = OpenHelperManager.getHelper(mainActivity, DataBaseHelper.class);
+        final Dao<MarcaCarros, Integer> dao = helper.getDaoMarcas();
+
+        List<MarcaCarros> listMarcas = dao.queryForAll();
+        if (listMarcas!= null && listMarcas.size() > 0){
+
+            Log.e("marcas",String.valueOf(listMarcas.size()));
+        }
+        String[] marcas = new String[listMarcas.size()];
+
+        for (int i = 0; i < listMarcas.size(); i++ ) {
+
+            marcas[i] = listMarcas.get(i).getNombre();
+        }
+
+        return  marcas;
     }
 
 

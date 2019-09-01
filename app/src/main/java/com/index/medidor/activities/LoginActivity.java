@@ -91,8 +91,6 @@ public class LoginActivity extends AppCompatActivity {
         tvRecordar = findViewById(R.id.tvRecordar);
         tvRecordar.setTypeface(bold);
         tvRecordar.setOnClickListener(view -> {
-
-
         });
 
     }

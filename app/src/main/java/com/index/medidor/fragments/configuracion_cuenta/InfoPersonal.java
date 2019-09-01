@@ -113,7 +113,7 @@ public class InfoPersonal extends Fragment {
 
             String imagePath = myPreferences.getString("fotoUsuario","");
 
-            mainActivity.setImageInfoPersonal(imagePath, imgUsuario);
+            //mainActivity.setImageInfoPersonal(imagePath, imgUsuario);
             if (imagePath != null && imagePath.length() > 1){
 
                     Bitmap bitmap = decodeBase64(imagePath);
@@ -136,6 +136,10 @@ public class InfoPersonal extends Fragment {
             startActivityForResult(Intent.createChooser(intent, "Select File"), FROM_STORAGE);
 
 
+        });
+
+        edtPassword.setOnClickListener(view -> {
+            mainActivity.irCambiarContrasena();
         });
         return v;
     }
