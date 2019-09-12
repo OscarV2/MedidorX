@@ -41,20 +41,21 @@ public class Constantes {
     /**
      * MODELOS CARROS
      */
-    public static final String GET_MODELOS_CARROS =  "tanqueadas/getByUser/";
+    public static final String GET_MODELOS_CARROS_BY_MARCA =  "modelos-carros/getByMarca/";
     public static final String POST_REGISTER_MODELO_CARRO = "modelos-carros/postRegistrar";
 
     /**
      * MARCAS CARROS
      */
-    public static final String GET_MARCAS_CARROS =  "modelos-carros/getAll";
+    public static final String GET_MARCAS_CARROS =  "marcas-carros/getAll";
 
     public static int ROTATION = 0;
 
     public static int ARRAY_DATA_SIZE = 5;
 
+    public static final String DEFAULT_BLUETOOTH_VALUE_ARRAY = "defaultValuesBluetoothArray";
     public static final String CONTENT_TYPE_JSON = "application/json";
-
+    public static final String DEFAULT_GAL_CANT = "defaultValuesBluetoothArray";
 
     public static final double LAT_LNG_TOLERANCE = 0.002;
 
@@ -83,8 +84,6 @@ public class Constantes {
 
         return  marcas;
     }
-
-
 
     public static String[] getYearsModelsCars(){
 

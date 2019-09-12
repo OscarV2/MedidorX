@@ -10,10 +10,12 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
@@ -21,11 +23,19 @@ import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class BluetoothHelper {
@@ -42,8 +52,10 @@ public class BluetoothHelper {
     private static int dato;
     private static List<Integer> dataToAverage;
     private static boolean isAdq;
+    private static JsonObject jsonValues;
+    private static int[] arrayKeys;
 
-    public BluetoothHelper(Context context) {
+    public BluetoothHelper(Context context, String valoresString) {
         recDataString = new StringBuilder();
         handlerState = 0;
         this.context = context;
@@ -52,6 +64,26 @@ public class BluetoothHelper {
         bluetoothDataReceiver = (BluetoothDataReceiver) context;
         bluetoothIn = new MyVeryOwnHandler();
         dataToAverage = new ArrayList<>();
+
+        Gson gson = new Gson();
+
+        JsonArray jsonArray = gson.fromJson(valoresString, JsonArray.class);
+
+        jsonValues = jsonArray.get(0).getAsJsonObject();
+
+        List<Integer> listKeys = new ArrayList<>();
+
+        arrayKeys = new int[jsonValues.keySet().size()];
+        int cont = 0;
+        for (String key: jsonValues.keySet()) {
+
+            listKeys.add(Integer.parseInt(key));
+            cont++;
+        }
+        /*for (int i =0; i < listKeys.size(); i++){
+
+            arrayKeys[i] = listKeys.get(i);
+        }*/
     }
 
     private static class MyVeryOwnHandler extends Handler{
@@ -93,8 +125,31 @@ public class BluetoothHelper {
 
                                 dataToAverage = new ArrayList<>();
 
-                                bluetoothDataReceiver.getBluetoothData(sum);
+                                JsonElement element = jsonValues.get(String.valueOf(sum));
 
+                                if (element != null){
+
+                                    //buscar el mas cercano
+
+                                    Log.e("1KEY", String.valueOf(sum));
+                                    Log.e("1Value", String.valueOf(element.getAsDouble()));
+
+                                    bluetoothDataReceiver.getBluetoothData(element.getAsDouble());
+
+                                }else{  // no esta en la lista, buscar el mas cercanp
+
+                                    element = jsonValues.get(String.valueOf(sum));
+                                    try{
+                                        Log.e("2KEY", String.valueOf(sum));
+                                        Log.e("2Value", String.valueOf(element.getAsDouble()));
+
+                                        bluetoothDataReceiver.getBluetoothData(element.getAsDouble());
+
+                                    }catch (NullPointerException ex){
+
+                                        Log.e("EX","EXcepcion");
+                                    }
+                                }
                             }
 
                         }else{
@@ -103,7 +158,6 @@ public class BluetoothHelper {
                         }
                     }
                     recDataString.delete(0, recDataString.length());      //clear all string data
-                    //GRANT ALL PRIVILEGES ON *.* TO oscarremote@186.80.130.184 IDENTIFIED BY '12345678';
                 }
             }
         }
@@ -217,4 +271,21 @@ public class BluetoothHelper {
     public void setAdq(boolean adq) {
         isAdq = adq;
     }
+/*
+    public static int getClosestValue(int sum){
+
+        float smallestDiff = Math.abs(sum - arrayKeys[0]);
+        int closest = 0; //index of the current closest number
+        int currentDiff;
+        for (int i = 1; i < arrayKeys.length; i++) {
+            currentDiff = Math.abs(sum - arrayKeys[i]);
+            if (currentDiff < smallestDiff) {
+                smallestDiff = currentDiff;
+                closest = i;
+            }
+        }
+
+        return arrayKeys[closest];
+    }
+    */
 }

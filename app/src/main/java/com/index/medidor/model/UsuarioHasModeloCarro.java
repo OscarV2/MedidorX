@@ -16,11 +16,12 @@ public class UsuarioHasModeloCarro {
     private String bluetoothNombre;
     @DatabaseField
     private String bluetoothMac;
+    @DatabaseField
+    private String valoresAdq;
 
     public UsuarioHasModeloCarro() {
 
     }
-
 
     public Long getId() {
         return id;
@@ -60,5 +61,13 @@ public class UsuarioHasModeloCarro {
 
     public void setBluetoothMac(String bluetoothMac) {
         this.bluetoothMac = bluetoothMac;
+    }
+
+    public String getValoresAdq() {
+        return valoresAdq;
+    }
+
+    public void setValoresAdq(String valoresAdq) {
+        this.valoresAdq = valoresAdq;
     }
 }

@@ -1,28 +1,44 @@
 package com.index.medidor.fragments.configuracion_cuenta;
 
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 
+import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.index.medidor.R;
 import com.index.medidor.activities.MainActivity;
 import com.index.medidor.database.DataBaseHelper;
 import com.index.medidor.model.MarcaCarros;
+import com.index.medidor.model.ModeloCarros;
+import com.index.medidor.model.UsuarioHasModeloCarro;
+import com.index.medidor.retrofit.MedidorApiAdapter;
 import com.index.medidor.utils.Constantes;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.QueryBuilder;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -41,10 +57,21 @@ public class MiVehiculo extends Fragment {
     private Spinner spLinea;
     private Spinner spAnio;
     private EditText edtPlaca;
+    private List<MarcaCarros> listMarcas;
+    private List<ModeloCarros> listModeloCarros;
+    private DataBaseHelper helper;
+    private String[] marcas;
+    private UsuarioHasModeloCarro nuevoUsuarioHasModeloCarro;
+    private TextView tvAgregarVehiculo;
+
+    int idMarca;
+    private String linea = "";
+
+    private Dao<MarcaCarros, Integer> daoModelosCarros;
+    private Dao<UsuarioHasModeloCarro, Integer> daoUsuarioModeloCarros;
+
     // TODO: Rename and change types of parameters
     private MainActivity mainActivity;
-    private String mParam1;
-    private String mParam2;
 
     private OnFragmentInteractionListener mListener;
 
@@ -55,8 +82,18 @@ public class MiVehiculo extends Fragment {
     public MiVehiculo(MainActivity mainActivity) {
 
         this.mainActivity = mainActivity;
-    }
+        this.listModeloCarros = new ArrayList<>();
+        helper = OpenHelperManager.getHelper(mainActivity, DataBaseHelper.class);
+        try {
+            daoModelosCarros = helper.getDaoMarcas();
+            daoUsuarioModeloCarros = helper.getDaoUsuarioHasModeloCarros();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        nuevoUsuarioHasModeloCarro = new UsuarioHasModeloCarro();
 
+
+    }
 
     /**
      * Use this factory method to create a new instance of
@@ -79,12 +116,10 @@ public class MiVehiculo extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
+
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -94,6 +129,12 @@ public class MiVehiculo extends Fragment {
         edtPlaca = v.findViewById(R.id.edt_placa_mi_vehiculo_nuevo);
         spLinea = v.findViewById(R.id.sp_linea_mi_vehiculo_nuevo);
         spMarca = v.findViewById(R.id.sp_marca_mi_vehiculo_nuevo);
+        tvAgregarVehiculo = v.findViewById(R.id.tv_agregar_vehiculo);
+
+        tvAgregarVehiculo.setOnClickListener(v1 -> {
+
+            guardarVehiculo();
+        });
 
         spAnio.setAdapter(new ArrayAdapter<>(mainActivity, android.R.layout.simple_spinner_dropdown_item,
                 Constantes.getYearsModelsCars()));
@@ -104,6 +145,52 @@ public class MiVehiculo extends Fragment {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        spMarca.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+                //buscar id de marca por nombre
+                //int idMarca = listMarcas.stream().filter( m -> m.getNombre().equals(parent.getSelectedItem().toString()) ).findFirst().get().getId();
+                QueryBuilder<MarcaCarros, Integer> queryBuilder = daoModelosCarros.queryBuilder();
+                try {
+                    queryBuilder.where().eq("nombre", marcas[position]);
+                    List<MarcaCarros> modeloCarrosList = queryBuilder.query();
+
+                    if(modeloCarrosList != null && modeloCarrosList.size() > 0){
+
+                        idMarca = modeloCarrosList.get(0).getId();
+
+                        getByMarca(idMarca);
+
+                    }
+
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        spLinea.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+                linea = listModeloCarros.get(position).getLinea();
+                nuevoUsuarioHasModeloCarro.setModelosCarrosId(listModeloCarros.get(position).getId());
+                nuevoUsuarioHasModeloCarro.setValoresAdq(listModeloCarros.get(position).getValoresAdq());
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
 
         return v;
     }
@@ -117,15 +204,12 @@ public class MiVehiculo extends Fragment {
 
     private String[] getAllMarcasNames() throws SQLException {
 
-        DataBaseHelper helper = OpenHelperManager.getHelper(mainActivity, DataBaseHelper.class);
-        final Dao<MarcaCarros, Integer> dao = helper.getDaoMarcas();
-
-        List<MarcaCarros> listMarcas = dao.queryForAll();
+        listMarcas = daoModelosCarros.queryForAll();
         if (listMarcas!= null && listMarcas.size() > 0){
 
             Log.e("marcas",String.valueOf(listMarcas.size()));
         }
-        String[] marcas = new String[listMarcas.size()];
+        marcas = new String[listMarcas.size()];
 
         for (int i = 0; i < listMarcas.size(); i++ ) {
 
@@ -135,6 +219,22 @@ public class MiVehiculo extends Fragment {
         return  marcas;
     }
 
+    private String[] getAllLineasNames(List<ModeloCarros> listModeloCarros) {
+
+        if (listModeloCarros!= null && listModeloCarros.size() > 0){
+
+            Log.e("marcas",String.valueOf(listModeloCarros.size()));
+        }
+        String[] lineas = new String[listModeloCarros.size()];
+
+        for (int i = 0; i < listModeloCarros.size(); i++ ) {
+
+            lineas[i] = listModeloCarros.get(i).getLinea();
+        }
+
+        return  lineas;
+    }
+
 
     @Override
     public void onDetach() {
@@ -142,16 +242,114 @@ public class MiVehiculo extends Fragment {
         mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
+    public void getByMarca(int idMarca){
+
+        List<ModeloCarros> listMarcas = new ArrayList<>();
+
+        Call<List<ModeloCarros>> callListModeloCarros = MedidorApiAdapter.getApiService()
+                .getModelosCarrosByMarca(String.valueOf(idMarca));
+
+        callListModeloCarros.enqueue(new Callback<List<ModeloCarros>>() {
+            @Override
+            public void onResponse(Call<List<ModeloCarros>> call, Response<List<ModeloCarros>> response) {
+
+                if (response.isSuccessful()){
+
+                    listModeloCarros = response.body();
+                    if(listModeloCarros != null && listModeloCarros.size() > 0){
+
+                        spLinea.setAdapter(new ArrayAdapter<>(mainActivity, android.R.layout.simple_spinner_dropdown_item,
+                                getAllLineasNames(listModeloCarros)));
+                    }else{
+
+
+                    }
+
+                }else {
+
+
+                }
+
+            }
+
+            @Override
+            public void onFailure(Call<List<ModeloCarros>> call, Throwable t) {
+
+                Toast.makeText(mainActivity, "NO SE PUDO OBTENER TODOAS LAS LÍNEAS ASOCIADASA A ESTA MARCA.", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
+
+    public void guardarVehiculo(){
+
+        String placa =  edtPlaca.getText().toString();
+
+        if(placa.equals("") || placa.length() < 6){
+
+            edtPlaca.requestFocus();
+            Toast.makeText(mainActivity, "La placa no es válida.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        int idUsuario = mainActivity.getMyPreferences().getInt("idUsuario", 0);
+
+
+
+        if(idUsuario != 0){
+
+            nuevoUsuarioHasModeloCarro.setUsuariosId(idUsuario);
+            nuevoUsuarioHasModeloCarro.setBluetoothMac("00:18:E4:0A:00:01");
+            nuevoUsuarioHasModeloCarro.setBluetoothNombre("INNDEX");
+
+            Call<ResponseBody> callRegisterUsuariosHasModeloCarro = MedidorApiAdapter.getApiService()
+                    .postRegisterUsuarioHasModeloCarro(Constantes.CONTENT_TYPE_JSON ,
+                            String.valueOf(idMarca), linea,
+                            nuevoUsuarioHasModeloCarro);
+
+            callRegisterUsuariosHasModeloCarro.enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+
+                    Log.e("respu", new Gson().toJson(response));
+                    Log.e("responseU", response.message());
+
+                    if(response.isSuccessful()){
+
+                        try {
+                            daoUsuarioModeloCarros.create(nuevoUsuarioHasModeloCarro);
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+
+                        Toast.makeText(mainActivity, "VEHÍCULO REGISTRADO DE MANERA EXITOSA.", Toast.LENGTH_SHORT).show();
+
+                    }else{
+
+                        Log.e("en else",".....");
+                        Toast.makeText(mainActivity, "NO SE PUDO REGISTRAR EL VEHÍCULO.", Toast.LENGTH_SHORT).show();
+
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+
+                    Toast.makeText(mainActivity, "NO SE PUDO REGISTRAR EL VEHÍCULO." + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e("reg beh", t.getMessage());
+                }
+            });
+        }else{
+
+            Toast.makeText(mainActivity, "ESTE USUARIO NO EXISTE", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+
+
+
+
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);

@@ -16,12 +16,21 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.gson.Gson;
 import com.index.medidor.R;
+import com.index.medidor.database.DataBaseHelper;
+import com.index.medidor.model.ModeloCarros;
 import com.index.medidor.model.Usuario;
+import com.index.medidor.model.UsuarioHasModeloCarro;
 import com.index.medidor.retrofit.MedidorApiAdapter;
 import com.index.medidor.utils.Constantes;
 import com.index.medidor.utils.CustomProgressDialog;
+import com.index.medidor.utils.SetArrayValuesForInndex;
+import com.j256.ormlite.android.apptools.OpenHelperManager;
+import com.j256.ormlite.dao.Dao;
 
+import java.sql.SQLException;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,6 +39,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class LoginActivity extends AppCompatActivity {
+
     private EditText etPassword, etEmail;
     private TextView tvRecordar;
     private Button btnIngresar, btnRegistrar;
@@ -37,6 +47,13 @@ public class LoginActivity extends AppCompatActivity {
 
     private CustomProgressDialog mCustomProgressDialog;
     private SharedPreferences.Editor infoUsuario;
+
+    private Dao<UsuarioHasModeloCarro, Integer> daoUsuarioModeloCarros;
+    private Dao<ModeloCarros, Integer> daoModeloCarros;
+
+    private DataBaseHelper helper;
+
+    private SetArrayValuesForInndex setArrayValuesForInndex;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +67,7 @@ public class LoginActivity extends AppCompatActivity {
         mCustomProgressDialog.setCanceledOnTouchOutside(false);
         mCustomProgressDialog.setCancelable(false);
 
+        //setArrayValuesForInndex;
         etEmail =  findViewById(R.id.etEmail);
         etEmail.setTypeface(light);
         etPassword =  findViewById(R.id.etPassword);
@@ -97,15 +115,18 @@ public class LoginActivity extends AppCompatActivity {
 
     private void login(Usuario user){
 
+
+
         Call<Usuario> login = MedidorApiAdapter.getApiService().postLogin(Constantes.CONTENT_TYPE_JSON, user);
         login.enqueue(new Callback<Usuario>() {
             @Override
             public void onResponse(Call<Usuario> call, Response<Usuario> response) {
                 mCustomProgressDialog.dismiss("");
-                Log.e("1", response.message());
                 if (response.isSuccessful()){
 
                     if (response.body() != null){
+
+                        getAllUsuariosHasModelosCarros(response.body());
                         irMain(response.body());
                     }else{
                         Toast.makeText(LoginActivity.this, "Error: ESTE USUARIO NO EXISTE.", Toast.LENGTH_SHORT).show();
@@ -157,5 +178,69 @@ public class LoginActivity extends AppCompatActivity {
         Matcher matcher = pattern.matcher(inputStr);
 
         return matcher.matches();
+    }
+
+    public void getAllUsuariosHasModelosCarros(Usuario user){
+
+        helper = OpenHelperManager.getHelper(LoginActivity.this, DataBaseHelper.class);
+
+
+        Call<List<UsuarioHasModeloCarro>> callGetAllUhmc = MedidorApiAdapter.getApiService()
+                .getUsuarioHasModeloCarros(String.valueOf(user.getId()));
+
+        callGetAllUhmc.enqueue(new Callback<List<UsuarioHasModeloCarro>>() {
+            @Override
+            public void onResponse(Call<List<UsuarioHasModeloCarro>> call, Response<List<UsuarioHasModeloCarro>> response) {
+
+                if (response.isSuccessful()){
+
+                    if (response.body() != null && response.body().size() > 0){
+
+                        try {
+                            daoUsuarioModeloCarros = helper.getDaoUsuarioHasModeloCarros();
+                            daoModeloCarros = helper.getDaoModelos();
+
+                            for (UsuarioHasModeloCarro uhmc: response.body()) {
+
+                                Log.e("res", new Gson().toJson(uhmc));
+                                if(uhmc.getValoresAdq() != null){
+
+                                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
+
+                                    preferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_VALUE_ARRAY, uhmc.getValoresAdq()).apply();
+                                    //ModeloCarros modeloCarros = daoModeloCarros.queryForId(uhmc.getModelosCarrosId());
+                                    preferences.edit().putInt(Constantes.DEFAULT_GAL_CANT, 100).apply();
+
+                                }
+
+                                daoUsuarioModeloCarros.create(uhmc);
+
+                            }
+
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+
+                    }else  {
+
+                        Toast.makeText(LoginActivity.this, "NO SE PUDO DESCARGAR LOS VEHICULOS PARA SU USUARIO.", Toast.LENGTH_SHORT).show();
+
+                    }
+
+                }else {
+
+                    Toast.makeText(LoginActivity.this, "NO SE PUDO DESCARGAR LOS VEHICULOS PARA SU USUARIO.", Toast.LENGTH_SHORT).show();
+
+                }
+
+            }
+
+            @Override
+            public void onFailure(Call<List<UsuarioHasModeloCarro>> call, Throwable t) {
+
+                Toast.makeText(LoginActivity.this, "NO SE PUDO DESCARGAR LOS VEHICULOS PARA SU USUARIO.", Toast.LENGTH_SHORT).show();
+                Log.e("ERROR", t.getMessage());
+            }
+        });
     }
 }

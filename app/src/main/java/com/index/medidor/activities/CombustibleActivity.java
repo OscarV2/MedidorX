@@ -108,7 +108,7 @@ public class CombustibleActivity extends AppCompatActivity implements OnMapReady
         }
 
         init();
-        BluetoothHelper bluetoothHelper = new BluetoothHelper(CombustibleActivity.this);
+        BluetoothHelper bluetoothHelper = new BluetoothHelper(CombustibleActivity.this, "");
         bluetoothHelper.checkBTState();
         try {
             getAllStations();
@@ -192,8 +192,7 @@ public class CombustibleActivity extends AppCompatActivity implements OnMapReady
     }
 
     @Override
-    public void getBluetoothData(int dato) {
-        nivelCombustible = (double) (20 * dato) / 1023;
+    public void getBluetoothData(double dato) {
         pbCombustible.setProgress((int) nivelCombustible);
         tvCombustible.setText(getString(R.string.cant_gal, nivelCombustible));
     }

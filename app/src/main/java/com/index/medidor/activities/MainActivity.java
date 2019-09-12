@@ -81,8 +81,10 @@ import com.index.medidor.rutas.PasarUbicacion;
 import com.index.medidor.rutas.Route;
 import com.index.medidor.utils.BluetoothDataReceiver;
 import com.index.medidor.utils.BluetoothHelper;
+import com.index.medidor.utils.Constantes;
 import com.index.medidor.utils.CustomProgressDialog;
 import com.index.medidor.utils.NavTypeFace;
+import com.index.medidor.utils.SetArrayValuesForInndex;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
 
@@ -94,7 +96,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, SetArrayValuesForInndex,
         GoogleMap.OnMarkerClickListener, PasarUbicacion, BluetoothDataReceiver, AdquisicionDatos.OnFragmentInteractionListener,
         InicioFragment.OnFragmentInteractionListener, HistorialTabs.OnFragmentInteractionListener, DondeTanquearFragment.OnFragmentInteractionListener,
         CombustibleTabs.OnFragmentInteractionListener, ConfiguracionTabs.OnFragmentInteractionListener,LocationListener, IngresadoFragment.OnFragmentInteractionListener, DondeTanquearTabs.OnFragmentInteractionListener {
@@ -156,10 +158,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 .findFragmentById(R.id.map);
         assert mapFragment != null;
         mapFragment.getMapAsync(this);
+        SharedPreferences myPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-        bluetoothHelper = new BluetoothHelper(MainActivity.this);
-        bluetoothHelper.checkBTState();
-        btSocket = bluetoothHelper.getBtSocket();
+        String values = myPreferences.getString(Constantes.DEFAULT_BLUETOOTH_VALUE_ARRAY, "");
+
+        if (values != null && !values.equals("")){
+
+            bluetoothHelper = new BluetoothHelper(MainActivity.this, values);
+            bluetoothHelper.checkBTState();
+            btSocket = bluetoothHelper.getBtSocket();
+
+        }
 
         Fragment fragment = new InicioFragment(bold, this);
         getSupportFragmentManager().beginTransaction().replace(R.id.content_main, fragment).commit();
@@ -169,7 +178,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         try {
 
             estacionesPlaces = new EstacionesPlaces();
-            SharedPreferences myPreferences = PreferenceManager.getDefaultSharedPreferences(this);
             LatLng newPosition;
             newPosition = new LatLng(Double.valueOf(myPreferences.getString("latitud", "0")),
                     Double.valueOf(myPreferences.getString("longitud", "0")));
@@ -287,6 +295,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
             myLocation = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+            mMap.setMyLocationEnabled(true);
+
             Log.e("onMapReady","Dentro de segundo if");
             if (myLocation != null){
                 Log.e("onMapReady","Dentro de segundo if, mostrando ubicacion");
@@ -306,6 +316,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     MainActivity.this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     LOCATION_REQUEST_CODE);
+
             //}
         }
 
@@ -316,7 +327,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         //newMarker(10.468854, -73.257013);
         //newMarker(8.60, -74.08);
         mMap.setOnMarkerClickListener(this);
-        mMap.setMyLocationEnabled(true);
 
     }
 
@@ -417,15 +427,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     @Override
-    public void getBluetoothData(int dato) {
-        nivelCombustible = (double) (20*dato)/1023;
-        pbCombustible.setProgress((int)nivelCombustible);
+    public void getBluetoothData(double dato) {
+        nivelCombustible = dato;
+        pbCombustible.setProgress(this.myPreferences.getInt(Constantes.DEFAULT_GAL_CANT, 100));
         tvCombustible.setText(getString(R.string.cant_gal,nivelCombustible));
         myPreferences.edit().putString("nivel", String.valueOf(nivelCombustible)).apply();
 
         if(miFragment instanceof AdquisicionDatos){
 
-            (((AdquisicionDatos) miFragment)).getBluetoothData(dato);
+            (((AdquisicionDatos) miFragment)).getBluetoothData((int)dato);
         }
     }
 
@@ -713,5 +723,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public Location getMyLocation() {
         return myLocation;
+    }
+
+
+    @Override
+    public void setValues(String values) {
+
+
+
     }
 }

@@ -1,5 +1,5 @@
 #
-# generated on 2019/09/01 11:09:10
+# generated on 2019/09/01 04:35:04
 #
 # --table-start--
 dataClass=com.index.medidor.model.Estaciones
@@ -88,6 +88,9 @@ fieldName=tipo_combustuble
 # --field-end--
 # --field-start--
 fieldName=modelo
+# --field-end--
+# --field-start--
+fieldName=valoresAdq
 # --field-end--
 # --table-fields-end--
 # --table-end--
@@ -208,6 +211,9 @@ fieldName=bluetoothNombre
 # --field-end--
 # --field-start--
 fieldName=bluetoothMac
+# --field-end--
+# --field-start--
+fieldName=valoresAdq
 # --field-end--
 # --table-fields-end--
 # --table-end--

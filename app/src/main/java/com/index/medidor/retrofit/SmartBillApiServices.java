@@ -48,13 +48,14 @@ public interface SmartBillApiServices {
     /**
      * USUARIO HAS MODELO CARROS
      */
-    @POST(Constantes.POST_REGISTRAR_USUARIO_HAS_MODELO_CARRO)
+    @POST(Constantes.POST_REGISTRAR_USUARIO_HAS_MODELO_CARRO + "{idMarca}" + "/" + "{linea}")
     Call<ResponseBody> postRegisterUsuarioHasModeloCarro(@Header("Content-Type") String headerContentType,
+                                                         @Path("idMarca") String idMarca,
+                                                         @Path("linea") String linea,
                                           @Body UsuarioHasModeloCarro uhmc);
 
-
-    @GET(Constantes.GET_MARCAS_CARROS)
-    Call<List<UsuarioHasModeloCarro>> getUsuarioHasModeloCarros();
+    @GET(Constantes.GET_USUARIO_HAS_MODELO_CARROS_BY_ID_USER + "{idUsuario}")
+    Call<List<UsuarioHasModeloCarro>> getUsuarioHasModeloCarros(@Path("idUsuario") String idUsuario);
 
     /**
      * MODELOS CARROS
@@ -62,6 +63,10 @@ public interface SmartBillApiServices {
     @POST(Constantes.POST_REGISTER_MODELO_CARRO)
     Call<ModeloCarros> postRegisterModelo(@Header("Content-Type") String headerContentType,
                                                  @Body ModeloCarros modeloCarros);
+
+    @GET(Constantes.GET_MODELOS_CARROS_BY_MARCA + "{idMarca}")
+    Call<List<ModeloCarros>> getModelosCarrosByMarca(@Path("idMarca") String idMarca);
+
     /**
      * MARCAS CARROS
      */

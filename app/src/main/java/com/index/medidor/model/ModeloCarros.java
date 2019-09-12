@@ -23,6 +23,8 @@ public class ModeloCarros implements Serializable {
     private String tipo_combustuble;
     @DatabaseField
     private String modelo;
+    @DatabaseField
+    private String valoresAdq;
 
     public ModeloCarros() {
     }
@@ -81,5 +83,13 @@ public class ModeloCarros implements Serializable {
 
     public void setModelo(String modelo) {
         this.modelo = modelo;
+    }
+
+    public String getValoresAdq() {
+        return valoresAdq;
+    }
+
+    public void setValoresAdq(String valoresAdq) {
+        this.valoresAdq = valoresAdq;
     }
 }
