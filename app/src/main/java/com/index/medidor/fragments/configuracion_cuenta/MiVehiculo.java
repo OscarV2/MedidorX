@@ -284,7 +284,7 @@ public class MiVehiculo extends Fragment {
     public void guardarVehiculo(){
 
         String placa =  edtPlaca.getText().toString();
-
+     
         if(placa.equals("") || placa.length() < 6){
 
             edtPlaca.requestFocus();
