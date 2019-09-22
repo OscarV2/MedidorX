@@ -66,9 +66,9 @@ public class IngresadoFragment extends Fragment {
     private boolean estado=false;
     private boolean flagCantidadDeseada; // true = cantidad deseada en dinero, false = galones
     private boolean reset = false;
-    private double combustible=0.0, combustibleInicial;
-    private double valor=0;
-    private double total=0;
+    private double combustible = 0.0, combustibleInicial;
+    private double valor = 0;
+    private double total = 0;
     private MainActivity mainActivity;
     private Timer mTimer1;
     private Handler mHandler;
@@ -229,6 +229,16 @@ public class IngresadoFragment extends Fragment {
                     cantDeseada = 0;
                     tvSignoPeso.setVisibility(View.VISIBLE);
 
+                    String cantDeseadaPrefs = mainActivity.getMyPreferences().getString("cantDeseada","0");
+                    Log.e("Ingresado", "lo que viene de shared preferences cd " + cantDeseadaPrefs);
+
+                    if (!cantDeseadaPrefs.equals("0")){
+
+                        cantDeseada = Double.valueOf(cantDeseadaPrefs);
+                        edtCantDeseadaNum.setText(cantDeseadaPrefs);
+
+                    }
+
                 }else{                          //cantidad
                     flagCantidadDeseada = false;
                     edtCantDeseadaNum.setText("");
@@ -242,6 +252,8 @@ public class IngresadoFragment extends Fragment {
                 flagCantidadDeseada = true;
             }
         });
+
+
 
         btnMedicion.setTypeface(bold);
         btnMedicion.setOnClickListener(v -> {
@@ -283,6 +295,17 @@ public class IngresadoFragment extends Fragment {
         edtCantDeseadaNum.setSpacing(false);
         edtCantDeseadaNum.setDecimals(false);
 
+        String precioGalonPrefs = mainActivity.getMyPreferences().getString("precioGalon","0");
+
+        Log.e("Ingresado", "lo que viene de shared preferences " + precioGalonPrefs);
+
+        if(!precioGalonPrefs.equals("0")){
+
+            //precioGalonPrefs = precioGalonPrefs.replace(".",",");
+            valor = Double.valueOf(precioGalonPrefs);
+            edtValor.setText(precioGalonPrefs);
+        }
+
         ImageButton btnRefresh = view.findViewById(R.id.btnRefresh);
         btnRefresh.setOnClickListener(v -> {
             if (!estado){
@@ -301,6 +324,8 @@ public class IngresadoFragment extends Fragment {
             Dao<Tanqueadas, Integer> dao = helper.getDaoTanqueadas();
             dao.create(tanqueada);
             Toast.makeText(mainActivity, "TANQUEADA REGISTRADA DE MANERA EXITOSA.", Toast.LENGTH_SHORT).show();
+
+            saveOnPreferences();
 
             //mCustomProgressDialog.dismiss("");
             //Toast.makeText(mainActivity, "Medición registrada de forma exitosa.", Toast.LENGTH_SHORT).show();
@@ -511,6 +536,13 @@ public class IngresadoFragment extends Fragment {
                 Toast.makeText(mainActivity, "NO SE PUDO REGISTRAR LA TANQUEADA.", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void saveOnPreferences(){
+
+        this.mainActivity.getMyPreferences().edit().putString("precioGalon", String.valueOf((int)this.valor)).apply();
+        this.mainActivity.getMyPreferences().edit().putString("cantDeseada", String.valueOf((int)this.cantDeseada)).apply();
+
     }
 
     /**

@@ -1,4 +1,4 @@
-package com.index.medidor.utils;
+package com.index.medidor.bluetooth;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -27,15 +27,16 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
+import com.index.medidor.activities.MainActivity;
+import com.index.medidor.bluetooth.interfaces.BluetoothDataReceiver;
+import com.index.medidor.bluetooth.interfaces.IBluetoothState;
+import com.index.medidor.utils.Constantes;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 public class BluetoothHelper {
@@ -45,16 +46,19 @@ public class BluetoothHelper {
     private static int handlerState;
     private static BluetoothDataReceiver bluetoothDataReceiver;
     private Context context;
-    private BluetoothSocket btSocket;
     private static final UUID BTMODULEUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private int REQUEST_ENABLE_BT;
     private BluetoothAdapter btAdapter;
+    private BluetoothSocket btSocket;
+    private BluetoothDevice bluetoothDevice;
     private static int dato;
     private static List<Integer> dataToAverage;
     private static boolean isAdq;
     private static JsonObject jsonValues;
     private static int[] arrayKeys;
     private SharedPreferences preferences;
+    private ConnectedThread mConnectedThread;
+    private IBluetoothState iBluetoothState;
 
     public BluetoothHelper(Context context, String valoresString) {
         recDataString = new StringBuilder();
@@ -66,6 +70,7 @@ public class BluetoothHelper {
         bluetoothIn = new MyVeryOwnHandler();
         dataToAverage = new ArrayList<>();
         btSocket = null;
+        iBluetoothState = (MainActivity)context;
 
         preferences = PreferenceManager.getDefaultSharedPreferences(context);
 
@@ -180,6 +185,7 @@ public class BluetoothHelper {
                 tmpOut = socket.getOutputStream();
             } catch (IOException e) {
 
+                e.printStackTrace();
             }
 
             mmInStream = tmpIn;
@@ -191,7 +197,7 @@ public class BluetoothHelper {
             int bytes;
 
             // Keep looping to listen for received messages
-            while (btSocket!=null && btSocket.isConnected()) {
+            while (btSocket != null && btSocket.isConnected()) {
                 try {
                     //if (btSocket.){
                     bytes = mmInStream.read(buffer);         //read bytes from input buffer
@@ -202,7 +208,15 @@ public class BluetoothHelper {
 
                 } catch (IOException e) {
 
-                    e.printStackTrace();
+//                    Toast.makeText(context, "EL DISPOSITIVO SE HA DESCONECTADO.", Toast.LENGTH_SHORT).show();
+                    try {
+                        btSocket.close();
+                        //El dicpositivo bluetooth se ha desconectado7
+                        ((MainActivity)context).onPairedDeviceOff();
+                        this.interrupt();
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
                 }
             }
         }
@@ -231,22 +245,23 @@ public class BluetoothHelper {
                 //String address = "00:18:E4:0A:00:01";
                 String address = preferences.getString(Constantes.DEFAULT_BLUETOOTH_MAC, "");
                 Log.e("BH","4");
-                BluetoothDevice device = btAdapter.getRemoteDevice(address);
-
+                bluetoothDevice = btAdapter.getRemoteDevice(address);
 
                 try {
-                    Log.e("BH","5");
-                    btSocket = device.createRfcommSocketToServiceRecord(BTMODULEUUID);
+
+                    btSocket = bluetoothDevice.createRfcommSocketToServiceRecord(BTMODULEUUID);
 
                     if (btSocket != null){
 
                         btSocket.connect();
-                        ConnectedThread mConnectedThread = new ConnectedThread(btSocket);
+                        ((MainActivity)context).cancelTimers();
+                        mConnectedThread = new ConnectedThread(btSocket);
                         mConnectedThread.start();
 
                     }else {
 
-                        Toast.makeText(context, "No se pudo establecer conexion con el dispositivo", Toast.LENGTH_LONG).show();
+                      //  iBluetoothState.couldNotConnectToDevice();
+                      //  ((MainActivity)context).couldNotConnectToDevice();
                     }
 
                 } catch (IOException e) {
@@ -255,7 +270,8 @@ public class BluetoothHelper {
                     } catch (IOException e1) {
                         e1.printStackTrace();
                     }
-                    Toast.makeText(context, "No se pudo establecer conexion con el dispositivo", Toast.LENGTH_LONG).show();
+                    //iBluetoothState.couldNotConnectToDevice();
+                    //((MainActivity)context).couldNotConnectToDevice();
                 }
 
                 // Establish the Bluetooth socket connection.
@@ -301,4 +317,11 @@ public class BluetoothHelper {
         isAdq = adq;
     }
 
+    public BluetoothDevice getBluetoothDevice() {
+        return bluetoothDevice;
+    }
+
+    public void setBluetoothDevice(BluetoothDevice bluetoothDevice) {
+        this.bluetoothDevice = bluetoothDevice;
+    }
 }

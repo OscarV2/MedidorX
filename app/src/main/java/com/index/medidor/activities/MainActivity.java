@@ -12,16 +12,16 @@ import androidx.fragment.app.Fragment;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Dialog;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.content.ContentResolver;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
@@ -31,24 +31,19 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.provider.MediaStore;
 import android.provider.Settings;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
-import android.view.Window;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -66,6 +61,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.navigation.NavigationView;
 import com.google.gson.Gson;
 import com.index.medidor.R;
+import com.index.medidor.bluetooth.interfaces.IBluetoothState;
 import com.index.medidor.database.DataBaseHelper;
 import com.index.medidor.fragments.adquisicion_datos.AdquisicionDatos;
 import com.index.medidor.fragments.combustible.CombustibleTabs;
@@ -79,8 +75,8 @@ import com.index.medidor.model.Estaciones;
 import com.index.medidor.places.EstacionesPlaces;
 import com.index.medidor.rutas.PasarUbicacion;
 import com.index.medidor.rutas.Route;
-import com.index.medidor.utils.BluetoothDataReceiver;
-import com.index.medidor.utils.BluetoothHelper;
+import com.index.medidor.bluetooth.interfaces.BluetoothDataReceiver;
+import com.index.medidor.bluetooth.BluetoothHelper;
 import com.index.medidor.utils.Constantes;
 import com.index.medidor.utils.CustomProgressDialog;
 import com.index.medidor.utils.NavTypeFace;
@@ -88,16 +84,16 @@ import com.index.medidor.utils.SetArrayValuesForInndex;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
 
-import java.io.File;
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, SetArrayValuesForInndex,
-        GoogleMap.OnMarkerClickListener, PasarUbicacion, BluetoothDataReceiver, AdquisicionDatos.OnFragmentInteractionListener,
+        GoogleMap.OnMarkerClickListener, PasarUbicacion, BluetoothDataReceiver, AdquisicionDatos.OnFragmentInteractionListener, IBluetoothState,
         InicioFragment.OnFragmentInteractionListener, HistorialTabs.OnFragmentInteractionListener, DondeTanquearFragment.OnFragmentInteractionListener,
         CombustibleTabs.OnFragmentInteractionListener, ConfiguracionTabs.OnFragmentInteractionListener,LocationListener, IngresadoFragment.OnFragmentInteractionListener, DondeTanquearTabs.OnFragmentInteractionListener {
 
@@ -126,6 +122,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private Estaciones estacionMasCercana;
     private EstacionesPlaces estacionesPlaces;
     Fragment miFragment;
+
+    private Timer timerInndexDeviceListener;
+    private Handler handlerInndexDeviceListener;
 
     private BluetoothHelper bluetoothHelper;
 
@@ -168,7 +167,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             bluetoothHelper = new BluetoothHelper(MainActivity.this, values);
             bluetoothHelper.checkBTState();
             btSocket = bluetoothHelper.getBtSocket();
-            Log.e("MAIN","9");
+
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
+            filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
+            filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+//            this.registerReceiver(mReceiver, filter);
         }
         Fragment fragment = new InicioFragment(bold, this);
         getSupportFragmentManager().beginTransaction().replace(R.id.content_main, fragment).commit();
@@ -723,12 +727,89 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            Log.e("Main", "en on receive");
+            BluetoothDevice device = bluetoothHelper.getBluetoothDevice();
+
+            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                Log.e("MAIN", "ACTION_FOUND");
+            //Device found
+            }
+            else if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
+                Log.e("MAIN", "ACTION_ACL_CONNECTED");
+
+                //Device is now connected
+            }
+            else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+                Log.e("MAIN", "ACTION_DISCOVERY_FINISHED");
+
+                //Done searching
+            }
+            else if (BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED.equals(action)) {
+                Log.e("MAIN", "ACTION_ACL_DISCONNECT_REQUESTED");
+
+                //Device is about to disconnect
+            }
+            else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
+                Log.e("MAIN", "ACTION_ACL_DISCONNECTED");
+
+
+
+                //Device has disconnected
+            }
+        }
+    };
+
     public void addNewStationToMap(Estaciones estacion){
 
         estaciones.add(estacion);
 
         LatLng latLng = new LatLng(estacion.getLatitud(), estacion.getLongitud());
         mMap.addMarker(new MarkerOptions().position(latLng).title(estacion.getMarca()).snippet(estacion.getDireccion()).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker)));
+
+    }
+
+    @Override
+    public void onPairedDeviceOff() {
+
+        timerInndexDeviceListener = new Timer();
+        //handlerInndexDeviceListener = new Handler();
+        Log.e("Main", "Esa vaina se apagó");
+
+        TimerTask tTInndexDeviceListener = new TimerTask() {
+            @Override
+            public void run() {
+
+                if (!btSocket.isConnected()){
+
+                    bluetoothHelper.checkBTState();
+
+                }
+
+            }
+        };
+
+        timerInndexDeviceListener.schedule(tTInndexDeviceListener, 1,3000);
+
+    }
+
+    public void cancelTimers(){
+
+        if (timerInndexDeviceListener != null){
+
+            timerInndexDeviceListener.cancel();
+            timerInndexDeviceListener.purge();
+        }
+
+    }
+
+    @Override
+    public void couldNotConnectToDevice() {
+
+        Toast.makeText(getApplicationContext(), "No se pudo establecer conexion con el dispositivo", Toast.LENGTH_LONG).show();
 
     }
 }

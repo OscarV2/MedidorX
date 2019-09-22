@@ -20,29 +20,21 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.index.medidor.R;
-import com.index.medidor.activities.InicioActivity;
 import com.index.medidor.activities.MainActivity;
 import com.index.medidor.database.DataBaseHelper;
-import com.index.medidor.model.MarcaCarros;
 import com.index.medidor.model.ModeloCarros;
 import com.index.medidor.retrofit.MedidorApiAdapter;
-import com.index.medidor.retrofit.SmartBillApiServices;
-import com.index.medidor.utils.BluetoothDataReceiver;
-import com.index.medidor.utils.BluetoothHelper;
+import com.index.medidor.bluetooth.BluetoothHelper;
 import com.index.medidor.utils.Constantes;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Timer;
-import java.util.TimerTask;
 
 import retrofit2.Call;
 import retrofit2.Callback;

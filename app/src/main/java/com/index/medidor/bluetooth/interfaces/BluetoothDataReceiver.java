@@ -1,4 +1,4 @@
-package com.index.medidor.utils;
+package com.index.medidor.bluetooth.interfaces;
 
 public interface BluetoothDataReceiver {
 
