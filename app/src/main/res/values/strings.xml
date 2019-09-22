@@ -3,7 +3,7 @@
     <string name="tab1">Ingresado</string>
     <string name="tab2">Rendimiento</string>
     <string name="title_activity_combustible">Medir Combustible</string>
-    <string name="precio">Precio Galon:</string>
+    <string name="precio">Precio Galón:</string>
     <string name="combustible">Combustible Ingresado</string>
     <string name="iniciar">Iniciar Medición</string>
     <string name="detener">Detener Medición</string>

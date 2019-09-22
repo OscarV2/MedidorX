@@ -17,6 +17,7 @@ import com.index.medidor.database.DataBaseHelper;
 import com.index.medidor.model.Estaciones;
 import com.index.medidor.model.MarcaCarros;
 import com.index.medidor.retrofit.MedidorApiAdapter;
+import com.index.medidor.utils.Constantes;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
 
@@ -28,8 +29,10 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-
 public class InicioActivity extends AppCompatActivity {
+
+    private DataBaseHelper helper;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,17 +40,20 @@ public class InicioActivity extends AppCompatActivity {
         //this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_inicio);
 
-        final SharedPreferences myPreferences= PreferenceManager.getDefaultSharedPreferences(this);
+        helper = OpenHelperManager.getHelper(InicioActivity.this, DataBaseHelper.class);
+
+        final SharedPreferences myPreferences= PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         try {
             getAllStations();
             getAllMarcas();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        int DURACION_SPLASH = 2000;
+
+        int DURACION_SPLASH = 1200;
         new Handler().postDelayed(() -> {
             // Cuando pasen los 3 segundos, pasamos al Login
-            if(myPreferences.getBoolean("sesion",false)){
+            if(myPreferences.getBoolean(Constantes.SESION_ACTIVE,false)){
                 irMain();
             }else{
 
@@ -66,11 +72,11 @@ public class InicioActivity extends AppCompatActivity {
 
     private void getAllStations() throws SQLException {
 
-        DataBaseHelper helper = OpenHelperManager.getHelper(InicioActivity.this, DataBaseHelper.class);
         final Dao<Estaciones, Integer> dao = helper.getDaoEstaciones();
         if (!(dao.queryForAll().size() > 0)){
 
             Call<List<Estaciones>> callGetStations = MedidorApiAdapter.getApiService().getEstaciones();
+            Log.e("Inicio","descargando estaciones");
             callGetStations.enqueue(new Callback<List<Estaciones>>() {
                 @Override
                 public void onResponse(@NonNull Call<List<Estaciones>> call, @NonNull Response<List<Estaciones>> response) {
@@ -93,6 +99,7 @@ public class InicioActivity extends AppCompatActivity {
 
                         }
                     }else{
+
                         Toast.makeText(InicioActivity.this, "NO SE PUDIERON DESCARGAR LAS ESTACIONES INTENTALO MAS TARDE.", Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -109,7 +116,6 @@ public class InicioActivity extends AppCompatActivity {
 
     private void getAllMarcas() throws SQLException {
 
-        DataBaseHelper helper = OpenHelperManager.getHelper(InicioActivity.this, DataBaseHelper.class);
         final Dao<MarcaCarros, Integer> dao = helper.getDaoMarcas();
         if (!(dao.queryForAll().size() > 0)){
 

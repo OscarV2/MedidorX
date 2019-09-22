@@ -2,6 +2,7 @@ package com.index.medidor.database;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import com.index.medidor.R;
 import com.index.medidor.model.Estaciones;
@@ -61,8 +62,9 @@ public class DataBaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.createTable(connectionSource, MarcaCarros.class);
             TableUtils.createTable(connectionSource, ModeloCarros.class);
             TableUtils.createTable(connectionSource, UsuarioHasModeloCarro.class);
-
+            Log.e("creating ","tables");
         } catch (SQLException e) {
+            Log.e("Error ","Creating tables");
             e.printStackTrace();
             throw new RuntimeException(e);
         }
@@ -111,7 +113,6 @@ public class DataBaseHelper extends OrmLiteSqliteOpenHelper {
         return daoEstaciones;
     }
 
-
     public RuntimeExceptionDao<Estaciones, Integer> getEstacionesRuntimeDao() {
         if(estacionesRuntimeDao == null) estacionesRuntimeDao = getRuntimeExceptionDao(Estaciones.class);
         return estacionesRuntimeDao;
@@ -121,7 +122,6 @@ public class DataBaseHelper extends OrmLiteSqliteOpenHelper {
         if (daoRecorridos == null) daoRecorridos = getDao(Recorridos.class);
         return daoRecorridos;
     }
-
 
     public RuntimeExceptionDao<Recorridos, Integer> getRecorridosRuntimeDao() {
         if(recorridosRuntimeDao == null) recorridosRuntimeDao = getRuntimeExceptionDao(Recorridos.class);

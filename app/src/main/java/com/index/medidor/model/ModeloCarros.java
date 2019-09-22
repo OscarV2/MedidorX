@@ -18,7 +18,6 @@ public class ModeloCarros implements Serializable {
     private int idMarca;
     @DatabaseField
     private double galones;
-
     @DatabaseField
     private String tipo_combustuble;
     @DatabaseField

@@ -20,7 +20,7 @@ public class Estaciones implements Serializable {
     @DatabaseField
     private String horario;
     @DatabaseField
-    private double clasificacion;
+    private double calificacion;
     @DatabaseField
     private double latitud;
     @DatabaseField
@@ -77,19 +77,19 @@ public class Estaciones implements Serializable {
         this.horario = horario;
     }
 
-    public double getClasificacion() {
-        return clasificacion;
+    public double getCalificacion() {
+        return calificacion;
     }
 
-    public void setClasificacion(double clasificacion) {
-        this.clasificacion = clasificacion;
+    public void setCalificacion(double calificacion) {
+        this.calificacion = calificacion;
     }
 
     public double getLatitud() {
         return latitud;
     }
 
-    public void setLatitud(double latitud) { latitud = latitud; }
+    public void setLatitud(double latitud) { this.latitud = latitud; }
 
     public double getLongitud() {
         return longitud;

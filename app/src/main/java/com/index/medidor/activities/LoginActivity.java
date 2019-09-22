@@ -54,6 +54,7 @@ public class LoginActivity extends AppCompatActivity {
     private DataBaseHelper helper;
 
     private SetArrayValuesForInndex setArrayValuesForInndex;
+    private SharedPreferences myPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,11 +112,10 @@ public class LoginActivity extends AppCompatActivity {
         tvRecordar.setOnClickListener(view -> {
         });
 
+        myPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
     }
 
     private void login(Usuario user){
-
-
 
         Call<Usuario> login = MedidorApiAdapter.getApiService().postLogin(Constantes.CONTENT_TYPE_JSON, user);
         login.enqueue(new Callback<Usuario>() {
@@ -127,7 +127,9 @@ public class LoginActivity extends AppCompatActivity {
                     if (response.body() != null){
 
                         getAllUsuariosHasModelosCarros(response.body());
-                        irMain(response.body());
+                        Usuario user = response.body();
+
+                        //irMain(response.body());
                     }else{
                         Toast.makeText(LoginActivity.this, "Error: ESTE USUARIO NO EXISTE.", Toast.LENGTH_SHORT).show();
 
@@ -149,9 +151,8 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void irMain(Usuario user){
-        SharedPreferences myPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         infoUsuario = myPreferences.edit();
-        infoUsuario.putBoolean("sesion",true);
+        infoUsuario.putBoolean(Constantes.SESION_ACTIVE, true);
         infoUsuario.putString("email", user.getEmail());
         infoUsuario.putString("nombres", user.getNombres());
         infoUsuario.putInt("idUsuario", user.getId());
@@ -202,20 +203,21 @@ public class LoginActivity extends AppCompatActivity {
 
                             for (UsuarioHasModeloCarro uhmc: response.body()) {
 
-                                Log.e("res", new Gson().toJson(uhmc));
-                                if(uhmc.getValoresAdq() != null){
+                                Log.e("res vadq", new Gson().toJson(uhmc.getModeloCarros().getValoresAdq()));
+                                if(uhmc.getModeloCarros().getValoresAdq() != null){
 
-                                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
+                                    Log.e("galones",String.valueOf((int)uhmc.getModeloCarros().getGalones()));
 
-                                    preferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_VALUE_ARRAY, uhmc.getValoresAdq()).apply();
+                                    myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_VALUE_ARRAY, uhmc.getModeloCarros().getValoresAdq()).apply();
                                     //ModeloCarros modeloCarros = daoModeloCarros.queryForId(uhmc.getModelosCarrosId());
-                                    preferences.edit().putInt(Constantes.DEFAULT_GAL_CANT, 100).apply();
+                                    myPreferences.edit().putInt(Constantes.DEFAULT_GAL_CANT, (int)uhmc.getModeloCarros().getGalones()).apply();
+                                    myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_MAC, uhmc.getBluetoothMac()).apply();
 
                                 }
 
                                 daoUsuarioModeloCarros.create(uhmc);
-
                             }
+                            irMain(user);
 
                         } catch (SQLException e) {
                             e.printStackTrace();

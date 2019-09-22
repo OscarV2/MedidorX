@@ -10,8 +10,10 @@ import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
 
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 public class Constantes {
 
@@ -54,10 +56,15 @@ public class Constantes {
     public static int ARRAY_DATA_SIZE = 5;
 
     public static final String DEFAULT_BLUETOOTH_VALUE_ARRAY = "defaultValuesBluetoothArray";
+    public static final String DEFAULT_BLUETOOTH_MAC = "defaultBluetoothMac";
     public static final String CONTENT_TYPE_JSON = "application/json";
-    public static final String DEFAULT_GAL_CANT = "defaultValuesBluetoothArray";
+    public static final String DEFAULT_GAL_CANT = "defaultGalCant";
+
+    public static final String SESION_ACTIVE = "sesionMedidor";
 
     public static final double LAT_LNG_TOLERANCE = 0.002;
+
+    public static final SimpleDateFormat SDF_FOR_BACKEND = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
 
     public static float getDistance(LatLng myPosition, LatLng estacionLatLng){
 
@@ -99,4 +106,17 @@ public class Constantes {
 
         return years;
     }
+
+    /**
+     * Constants for FetchAddressIntentService
+     */
+    public static final int SUCCESS_RESULT = 0;
+    public static final int FAILURE_RESULT = 1;
+    public static final String PACKAGE_NAME =
+            "com.google.android.gms.location.sample.locationaddress";
+    public static final String RECEIVER = PACKAGE_NAME + ".RECEIVER";
+    public static final String RESULT_DATA_KEY = PACKAGE_NAME +
+            ".RESULT_DATA_KEY";
+    public static final String LOCATION_DATA_EXTRA = PACKAGE_NAME +
+            ".LOCATION_DATA_EXTRA";
 }

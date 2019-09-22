@@ -24,6 +24,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
+import com.google.gson.Gson;
 import com.index.medidor.R;
 import com.index.medidor.activities.MainActivity;
 import com.index.medidor.database.DataBaseHelper;
@@ -37,6 +38,8 @@ import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
 
 import java.sql.SQLException;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -58,7 +61,7 @@ public class IngresadoFragment extends Fragment {
     private TextView tvGalones;
     private TextView tvTotal, tvSignoPeso;
     private CurrencyEditText edtCantDeseadaNum;
-    private CurrencyEditText edtValor;
+    private CurrencyEditText edtValor;          //precio combustible
     private Spinner spOtraEstacion;
     private boolean estado=false;
     private boolean flagCantidadDeseada; // true = cantidad deseada en dinero, false = galones
@@ -78,6 +81,7 @@ public class IngresadoFragment extends Fragment {
     private Typeface light;
     private List<Estaciones> estacionesCercanas;
     private Estaciones estacionTanquea;
+    private Tanqueadas t;
 
     public IngresadoFragment(MainActivity m){
         this.mainActivity = m;
@@ -99,7 +103,7 @@ public class IngresadoFragment extends Fragment {
         return view;
     }
 
-    private void iniciarMedicion(){
+    private void iniciarMedicion() {
 
         combustibleInicial = mainActivity.getNivelCombustible();
         valor = edtValor.getCleanDoubleValue();
@@ -132,21 +136,28 @@ public class IngresadoFragment extends Fragment {
             TimerTask mTt1 = new TimerTask() {
                 public void run() {
                     mHandler.post(() -> {
-                        Log.e("Cantidad", "Combustible " + mainActivity.getNivelCombustible());
                         if (mainActivity.getNivelCombustible() > combustibleInicial){
 
                             combustible = mainActivity.getNivelCombustible() - combustibleInicial;
                         }
                         total = valor * combustible;
                         tvGalones.setText(String.format("%.1f", combustible) + " Gal. /");
-                        tvTotal.setText("$ " + String.format("%.1f", total));
+
+                        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+                        symbols.setGroupingSeparator(',');
+                        symbols.setDecimalSeparator('.');
+
+                        DecimalFormat decimalFormat = new DecimalFormat("$ #,###.00", symbols);
+
+//                        tvTotal.setText("$ " + String.format("%.1f", total));
+                        tvTotal.setText(decimalFormat.format(total));
+
                     });
                 }
             };
 
             mTimer1.schedule(mTt1, 1, 1000);
         }
-
     }
 
     private void detenerMedicion(){
@@ -289,6 +300,8 @@ public class IngresadoFragment extends Fragment {
         try {
             Dao<Tanqueadas, Integer> dao = helper.getDaoTanqueadas();
             dao.create(tanqueada);
+            Toast.makeText(mainActivity, "TANQUEADA REGISTRADA DE MANERA EXITOSA.", Toast.LENGTH_SHORT).show();
+
             //mCustomProgressDialog.dismiss("");
             //Toast.makeText(mainActivity, "Medición registrada de forma exitosa.", Toast.LENGTH_SHORT).show();
         } catch (SQLException e) {
@@ -326,7 +339,6 @@ public class IngresadoFragment extends Fragment {
         calRatingBar.setOnRatingBarChangeListener((ratingBar, rating, fromUser) -> {
             tvTxtCal.setVisibility(View.VISIBLE);
             int ratingInt = (int)rating;
-            Log.e("Rating",String.valueOf(ratingInt));
 
             switch (ratingInt){
                 case 1:
@@ -349,12 +361,12 @@ public class IngresadoFragment extends Fragment {
 
         Button btnAceptar = dialogView.findViewById(R.id.btnCalAceptar);
         btnAceptar.setOnClickListener(v -> {
-            guardarTanqueada();
+            setTanqueada();
             dialogCal.dismiss();
         });
         Button btnCancelar = dialogView.findViewById(R.id.btnCalCancelar);
         btnCancelar.setOnClickListener(v -> {
-            guardarTanqueada();
+            setTanqueada();
             dialogCal.dismiss();
 
         });
@@ -362,9 +374,9 @@ public class IngresadoFragment extends Fragment {
         dialogCal = dialog.create();
     }
 
-    private void guardarTanqueada(){
+    private void setTanqueada(){
 
-        Tanqueadas t = new Tanqueadas();
+        t = new Tanqueadas();
 
         t.setCalificacion((int)calRatingBar.getRating());
 
@@ -382,43 +394,58 @@ public class IngresadoFragment extends Fragment {
             }
 
             estacionTanquea = new Estaciones();
-            estacionTanquea.setNombre("DESCONOCIDO");
-            estacionTanquea.setDireccion("DESCONOCIDO");
+            estacionTanquea.setNombre(marca);
+            estacionTanquea.setDireccion("Cll 10 b # 30-55");
             estacionTanquea.setCertificada(0);
             estacionTanquea.setMarca(spOtraEstacion.getSelectedItem().toString());
 
             estacionTanquea.setLatitud(mainActivity.getMyLocation().getLatitude());
             estacionTanquea.setLongitud(mainActivity.getMyLocation().getLongitude());
 
+            guardarNuevaEstacion(estacionTanquea);
+        }else{
+
+            guardarTanqueada();
+
         }
 
+    }
+
+    private void guardarTanqueada(){
+
         t.setDireccion(estacionTanquea.getDireccion());
-        t.setNombre(estacionTanquea.getNombre());
+        t.setNombre(estacionTanquea.getMarca());
         t.setGalones(combustible);
         t.setTotal(total);
-        SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.US);
-        t.setFecha(df.format(new Date()));
+        t.setFecha(Constantes.SDF_FOR_BACKEND.format(new Date()));
         t.setGalDeseados(galonesDeseados);
         t.setCantDeseada(cantDeseada);
         t.setFlagCantidadDeseada(flagCantidadDeseada);
+        t.setPrecioGalon(this.valor);
+
+        t.setIdUsuario(mainActivity.getMyPreferences().getInt("idUsuario", 0));
 
         t.setLatitud(estacionTanquea.getLatitud());
         t.setLongitud(estacionTanquea.getLongitud());
-        guardarMedicion(t);
+
+        t.setIdEstacion(estacionTanquea.getId());
+        //guardarMedicion(t);
+        Log.e("Tanq", new Gson().toJson(t));
+        enviarTanqueada(t);
     }
 
     private void guardarNuevaEstacion(Estaciones nuevaEstacion)  {
 
-
         Call<ResponseServices> callRegisterStation = MedidorApiAdapter.getApiService()
                 .postRegisterStation(Constantes.CONTENT_TYPE_JSON, nuevaEstacion);
+        Log.e("lat", String.valueOf(nuevaEstacion.getLatitud()));
+        Log.e("long", String.valueOf(nuevaEstacion.getLongitud()));
 
         callRegisterStation.enqueue(new Callback<ResponseServices>() {
             @Override
             public void onResponse(Call<ResponseServices> call, Response<ResponseServices> response) {
 
                 if(response.isSuccessful()){
-
 
                     try {
                         DataBaseHelper helper = OpenHelperManager.getHelper(mainActivity, DataBaseHelper.class);
@@ -429,27 +456,61 @@ public class IngresadoFragment extends Fragment {
 
                         Toast.makeText(mainActivity, "Estación registrada de manera exitosa.", Toast.LENGTH_SHORT).show();
 
+                        guardarTanqueada();
+
+                        mainActivity.addNewStationToMap(nuevaEstacion);
+
                     } catch (SQLException e) {
                         e.printStackTrace();
+                        return;
                     }
+                }else{
+                    Log.e("ON ELSE", response.message());
+                    Toast.makeText(mainActivity, "NO SE PUDO REGISTRAR LA ESTACIÓN", Toast.LENGTH_SHORT).show();
+
                 }
 
-                Toast.makeText(mainActivity, "NO SE PUDO REGISTRAR LA ESTACIÓN", Toast.LENGTH_SHORT).show();
 
             }
 
             @Override
             public void onFailure(Call<ResponseServices> call, Throwable t) {
 
+                Log.e("FAILURE", "FALLOOOO");
+
+                Log.e("FAILURE", t.getMessage());
                 Toast.makeText(mainActivity, "NO SE PUDO REGISTRAR LA ESTACIÓN", Toast.LENGTH_SHORT).show();
             }
         });
 
+    }
 
+    private void enviarTanqueada(Tanqueadas tanqueada){
 
+        Call<ResponseServices> callRegistrarTanqueada = MedidorApiAdapter.getApiService()
+                .postRegisterTanqueada(Constantes.CONTENT_TYPE_JSON, tanqueada);
 
+        callRegistrarTanqueada.enqueue(new Callback<ResponseServices>() {
+            @Override
+            public void onResponse(Call<ResponseServices> call, Response<ResponseServices> response) {
 
+                if (response.isSuccessful()){
 
+                    guardarMedicion(t);
+
+                }else {
+
+                    Toast.makeText(mainActivity, "NO SE PUDO REGISTRAR LA TANQUEADA.", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+
+            @Override
+            public void onFailure(Call<ResponseServices> call, Throwable t) {
+
+                Toast.makeText(mainActivity, "NO SE PUDO REGISTRAR LA TANQUEADA.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     /**

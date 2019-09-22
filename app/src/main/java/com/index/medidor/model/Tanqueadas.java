@@ -33,6 +33,15 @@ public class Tanqueadas implements Serializable {
     @DatabaseField
     private String comentarios;
 
+    @DatabaseField
+    private double precioGalon;
+
+    @DatabaseField
+    private int idEstacion;
+
+    @DatabaseField
+    private int idUsuario;
+
     public Tanqueadas() {
     }
 
@@ -80,6 +89,22 @@ public class Tanqueadas implements Serializable {
 
     public void setFecha(String fecha) {
         this.fecha = fecha;
+    }
+
+    public int getIdEstacion() {
+        return idEstacion;
+    }
+
+    public void setIdEstacion(int idEstacion) {
+        this.idEstacion = idEstacion;
+    }
+
+    public int getIdUsuario() {
+        return idUsuario;
+    }
+
+    public void setIdUsuario(int idUsuario) {
+        this.idUsuario = idUsuario;
     }
 
     public double getLatitud() {
@@ -136,5 +161,13 @@ public class Tanqueadas implements Serializable {
 
     public void setFlagCantidadDeseada(boolean flagCantidadDeseada) {
         this.flagCantidadDeseada = flagCantidadDeseada;
+    }
+
+    public double getPrecioGalon() {
+        return precioGalon;
+    }
+
+    public void setPrecioGalon(double precioGalon) {
+        this.precioGalon = precioGalon;
     }
 }

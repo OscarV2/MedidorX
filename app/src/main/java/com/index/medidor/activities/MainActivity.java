@@ -141,7 +141,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         bold = Typeface.createFromAsset(getAssets(), "fonts/Roboto-Bold.ttf");
         viewMap = findViewById(R.id.map);
+
         try {
+
             getAllStations();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -158,25 +160,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 .findFragmentById(R.id.map);
         assert mapFragment != null;
         mapFragment.getMapAsync(this);
-        SharedPreferences myPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences myPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         String values = myPreferences.getString(Constantes.DEFAULT_BLUETOOTH_VALUE_ARRAY, "");
 
-        if (values != null && !values.equals("")){
-
+        if (values != null && !values.equals("")) {
             bluetoothHelper = new BluetoothHelper(MainActivity.this, values);
             bluetoothHelper.checkBTState();
             btSocket = bluetoothHelper.getBtSocket();
-
+            Log.e("MAIN","9");
         }
-
         Fragment fragment = new InicioFragment(bold, this);
         getSupportFragmentManager().beginTransaction().replace(R.id.content_main, fragment).commit();
 //        ((InicioFragment) fragment).getFabRuta().setVisibility(View.GONE);
-
         initControls();
         try {
-
             estacionesPlaces = new EstacionesPlaces();
             LatLng newPosition;
             newPosition = new LatLng(Double.valueOf(myPreferences.getString("latitud", "0")),
@@ -297,9 +295,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             myLocation = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
             mMap.setMyLocationEnabled(true);
 
-            Log.e("onMapReady","Dentro de segundo if");
             if (myLocation != null){
-                Log.e("onMapReady","Dentro de segundo if, mostrando ubicacion");
                 mostrarUbicacion();
             }else{
                 Log.e("onMapReady","Dentro de segundo if, mulocation es NULL");
@@ -333,15 +329,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onResume() {
         super.onResume();
-        Log.e("MAIN","on RESUME");
     }
 
     @Override
     public void onPause() {
-        Log.e("MAIN","on pause");
 
-        if (btSocket != null ){
-            Log.e("MAIN","EL btSocket NOOOOO ES NULO");
+        /*if (btSocket != null ){
 
             if (btSocket.isConnected()){
                 Log.e("MAIN","EL btSocket ESTA CONECTADO");
@@ -356,7 +349,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }else{
             Log.e("MAIN","EL btSocket ES NULO");
 
-        }
+        }*/
         super.onPause();
 
     }
@@ -429,7 +422,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void getBluetoothData(double dato) {
         nivelCombustible = dato;
-        pbCombustible.setProgress(this.myPreferences.getInt(Constantes.DEFAULT_GAL_CANT, 100));
+        //pbCombustible.setProgress(this.myPreferences.getInt(Constantes.DEFAULT_GAL_CANT, 10));
+        pbCombustible.setProgress((int)dato);
         tvCombustible.setText(getString(R.string.cant_gal,nivelCombustible));
         myPreferences.edit().putString("nivel", String.valueOf(nivelCombustible)).apply();
 
@@ -514,7 +508,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         pbCombustible = findViewById(R.id.pbCombustible);
-        pbCombustible.setMax(20);
+        pbCombustible.setMax(this.myPreferences.getInt(Constantes.DEFAULT_GAL_CANT, 10));
         tvCombustible = findViewById(R.id.tvCombustible);
         btnBack = findViewById(R.id.btnBack2);
         btnBack.setVisibility(View.GONE);
@@ -560,8 +554,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             editor.putString("longitud",String.valueOf(myLocation.getLongitude()));
                             editor.apply();
                             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(newPosition, 14));
-                            mMap.addMarker(new MarkerOptions().position(newPosition).flat(true).title("Mi ubicación"));
+                            //mMap.addMarker(new MarkerOptions().position(newPosition).flat(true).title("Mi ubicación"));
                             EstacionesPlaces places = new EstacionesPlaces();
+                            mMap.setMyLocationEnabled(true);
                             try {
                                 Estaciones estacionMasCercana = places.getEstacionMasCercana(newPosition, helper);
                                 Gson gson = new Gson();
@@ -602,11 +597,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         final Dao<Estaciones, Integer> dao = helper.getDaoEstaciones();
 
         estaciones = dao.queryForAll();
-        Log.e("EstacionesActivity",String.valueOf(estaciones.size()));
     }
 
     public void irDondeTanquear(){
-
 
         Fragment miFragment = null;
         boolean fragmentSeleccionado = false;
@@ -725,11 +718,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return myLocation;
     }
 
-
     @Override
     public void setValues(String values) {
 
+    }
 
+    public void addNewStationToMap(Estaciones estacion){
+
+        estaciones.add(estacion);
+
+        LatLng latLng = new LatLng(estacion.getLatitud(), estacion.getLongitud());
+        mMap.addMarker(new MarkerOptions().position(latLng).title(estacion.getMarca()).snippet(estacion.getDireccion()).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker)));
 
     }
 }

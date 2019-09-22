@@ -1,44 +1,44 @@
 package com.index.medidor.fragments.configuracion_cuenta;
 
-import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
+        import android.net.Uri;
+        import android.os.Build;
+        import android.os.Bundle;
 
-import androidx.annotation.RequiresApi;
-import androidx.fragment.app.Fragment;
+        import androidx.annotation.RequiresApi;
+        import androidx.fragment.app.Fragment;
 
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.EditText;
-import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.Toast;
+        import android.util.Log;
+        import android.view.LayoutInflater;
+        import android.view.View;
+        import android.view.ViewGroup;
+        import android.widget.AdapterView;
+        import android.widget.ArrayAdapter;
+        import android.widget.EditText;
+        import android.widget.Spinner;
+        import android.widget.TextView;
+        import android.widget.Toast;
 
-import com.google.gson.Gson;
-import com.index.medidor.R;
-import com.index.medidor.activities.MainActivity;
-import com.index.medidor.database.DataBaseHelper;
-import com.index.medidor.model.MarcaCarros;
-import com.index.medidor.model.ModeloCarros;
-import com.index.medidor.model.UsuarioHasModeloCarro;
-import com.index.medidor.retrofit.MedidorApiAdapter;
-import com.index.medidor.utils.Constantes;
-import com.j256.ormlite.android.apptools.OpenHelperManager;
-import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.stmt.QueryBuilder;
+        import com.google.gson.Gson;
+        import com.index.medidor.R;
+        import com.index.medidor.activities.MainActivity;
+        import com.index.medidor.database.DataBaseHelper;
+        import com.index.medidor.model.MarcaCarros;
+        import com.index.medidor.model.ModeloCarros;
+        import com.index.medidor.model.UsuarioHasModeloCarro;
+        import com.index.medidor.retrofit.MedidorApiAdapter;
+        import com.index.medidor.utils.Constantes;
+        import com.j256.ormlite.android.apptools.OpenHelperManager;
+        import com.j256.ormlite.dao.Dao;
+        import com.j256.ormlite.stmt.QueryBuilder;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+        import java.sql.SQLException;
+        import java.util.ArrayList;
+        import java.util.List;
 
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+        import okhttp3.ResponseBody;
+        import retrofit2.Call;
+        import retrofit2.Callback;
+        import retrofit2.Response;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -63,11 +63,12 @@ public class MiVehiculo extends Fragment {
     private String[] marcas;
     private UsuarioHasModeloCarro nuevoUsuarioHasModeloCarro;
     private TextView tvAgregarVehiculo;
+    private ModeloCarros modeloCarros;
 
     int idMarca;
     private String linea = "";
 
-    private Dao<MarcaCarros, Integer> daoModelosCarros;
+    private Dao<MarcaCarros, Integer> daoMarcaCarros;
     private Dao<UsuarioHasModeloCarro, Integer> daoUsuarioModeloCarros;
 
     // TODO: Rename and change types of parameters
@@ -85,13 +86,12 @@ public class MiVehiculo extends Fragment {
         this.listModeloCarros = new ArrayList<>();
         helper = OpenHelperManager.getHelper(mainActivity, DataBaseHelper.class);
         try {
-            daoModelosCarros = helper.getDaoMarcas();
+            daoMarcaCarros = helper.getDaoMarcas();
             daoUsuarioModeloCarros = helper.getDaoUsuarioHasModeloCarros();
         } catch (SQLException e) {
             e.printStackTrace();
         }
         nuevoUsuarioHasModeloCarro = new UsuarioHasModeloCarro();
-
 
     }
 
@@ -152,7 +152,7 @@ public class MiVehiculo extends Fragment {
 
                 //buscar id de marca por nombre
                 //int idMarca = listMarcas.stream().filter( m -> m.getNombre().equals(parent.getSelectedItem().toString()) ).findFirst().get().getId();
-                QueryBuilder<MarcaCarros, Integer> queryBuilder = daoModelosCarros.queryBuilder();
+                QueryBuilder<MarcaCarros, Integer> queryBuilder = daoMarcaCarros.queryBuilder();
                 try {
                     queryBuilder.where().eq("nombre", marcas[position]);
                     List<MarcaCarros> modeloCarrosList = queryBuilder.query();
@@ -161,7 +161,7 @@ public class MiVehiculo extends Fragment {
 
                         idMarca = modeloCarrosList.get(0).getId();
 
-                        getByMarca(idMarca);
+                        getModelosByMarca(idMarca);
 
                     }
 
@@ -183,7 +183,9 @@ public class MiVehiculo extends Fragment {
 
                 linea = listModeloCarros.get(position).getLinea();
                 nuevoUsuarioHasModeloCarro.setModelosCarrosId(listModeloCarros.get(position).getId());
-                nuevoUsuarioHasModeloCarro.setValoresAdq(listModeloCarros.get(position).getValoresAdq());
+                //nuevoUsuarioHasModeloCarro.setValoresAdq(listModeloCarros.get(position).getValoresAdq());
+                modeloCarros = listModeloCarros.get(position);
+                nuevoUsuarioHasModeloCarro.setModeloCarros(modeloCarros);
             }
 
             @Override
@@ -204,7 +206,7 @@ public class MiVehiculo extends Fragment {
 
     private String[] getAllMarcasNames() throws SQLException {
 
-        listMarcas = daoModelosCarros.queryForAll();
+        listMarcas = daoMarcaCarros.queryForAll();
         if (listMarcas!= null && listMarcas.size() > 0){
 
             Log.e("marcas",String.valueOf(listMarcas.size()));
@@ -235,16 +237,13 @@ public class MiVehiculo extends Fragment {
         return  lineas;
     }
 
-
     @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;
     }
 
-    public void getByMarca(int idMarca){
-
-        List<ModeloCarros> listMarcas = new ArrayList<>();
+    public void getModelosByMarca(int idMarca){
 
         Call<List<ModeloCarros>> callListModeloCarros = MedidorApiAdapter.getApiService()
                 .getModelosCarrosByMarca(String.valueOf(idMarca));
@@ -260,14 +259,16 @@ public class MiVehiculo extends Fragment {
 
                         spLinea.setAdapter(new ArrayAdapter<>(mainActivity, android.R.layout.simple_spinner_dropdown_item,
                                 getAllLineasNames(listModeloCarros)));
+                        modeloCarros = listModeloCarros.get(0);
+
                     }else{
 
-
+                        spLinea.setAdapter(null);
                     }
 
                 }else {
 
-
+                    spLinea.setAdapter(null);
                 }
 
             }
@@ -284,7 +285,7 @@ public class MiVehiculo extends Fragment {
     public void guardarVehiculo(){
 
         String placa =  edtPlaca.getText().toString();
-     
+
         if(placa.equals("") || placa.length() < 6){
 
             edtPlaca.requestFocus();
@@ -294,12 +295,10 @@ public class MiVehiculo extends Fragment {
 
         int idUsuario = mainActivity.getMyPreferences().getInt("idUsuario", 0);
 
-
-
         if(idUsuario != 0){
 
             nuevoUsuarioHasModeloCarro.setUsuariosId(idUsuario);
-            nuevoUsuarioHasModeloCarro.setBluetoothMac("00:18:E4:0A:00:01");
+            nuevoUsuarioHasModeloCarro.setBluetoothMac("00:21:13:00:BF:AD");
             nuevoUsuarioHasModeloCarro.setBluetoothNombre("INNDEX");
 
             Call<ResponseBody> callRegisterUsuariosHasModeloCarro = MedidorApiAdapter.getApiService()
@@ -311,7 +310,6 @@ public class MiVehiculo extends Fragment {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
 
-                    Log.e("respu", new Gson().toJson(response));
                     Log.e("responseU", response.message());
 
                     if(response.isSuccessful()){
@@ -325,10 +323,7 @@ public class MiVehiculo extends Fragment {
                         Toast.makeText(mainActivity, "VEHÍCULO REGISTRADO DE MANERA EXITOSA.", Toast.LENGTH_SHORT).show();
 
                     }else{
-
-                        Log.e("en else",".....");
                         Toast.makeText(mainActivity, "NO SE PUDO REGISTRAR EL VEHÍCULO.", Toast.LENGTH_SHORT).show();
-
                     }
                 }
 
@@ -346,9 +341,10 @@ public class MiVehiculo extends Fragment {
 
     }
 
+    private void checkForInndexDevice(){
 
 
-
+    }
 
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name

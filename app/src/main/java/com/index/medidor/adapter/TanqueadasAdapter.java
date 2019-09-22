@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.index.medidor.R;
 import com.index.medidor.model.Tanqueadas;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -67,17 +69,20 @@ public class TanqueadasAdapter extends RecyclerView.Adapter<TanqueadasAdapter.Ta
         holder.tvNombre.setText(items.get(position).getNombre());
         holder.tvDireccion.setText(items.get(position).getDireccion());
         holder.tvGalones.setText(String.format(Locale.US,"%.1f",items.get(position).getGalones()) + " Gal. /");
-        holder.tvValor.setText(" $" + String.format(Locale.US,"%.1f",items.get(position).getTotal()));
 
-        SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.US);
-        try {
-            Date date = df.parse(items.get(position).getFecha());
-            SimpleDateFormat df2 = new SimpleDateFormat("dd/MM/yyyy, HH:mm", Locale.US);
-            holder.tvFecha.setText(df2.format(date));
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+        symbols.setGroupingSeparator(',');
+        symbols.setDecimalSeparator('.');
 
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+        DecimalFormat decimalFormat = new DecimalFormat("$ #,###.00", symbols);
+ //       String prezzo = decimalFormat.format(number);
+//        holder.tvValor.setText(" $" + String.format(Locale.US,"%.1f",items.get(position).getTotal()));
+        holder.tvValor.setText(decimalFormat.format(items.get(position).getTotal()));
+
+        //SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.US);
+
+        //SimpleDateFormat df2 = new SimpleDateFormat("dd/MM/yyyy, HH:mm", Locale.US);
+        holder.tvFecha.setText(items.get(position).getFecha());
 
     }
 

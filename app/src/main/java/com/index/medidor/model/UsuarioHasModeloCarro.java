@@ -19,6 +19,9 @@ public class UsuarioHasModeloCarro {
     @DatabaseField
     private String valoresAdq;
 
+    @DatabaseField(foreign = true, foreignAutoRefresh = true)
+    private ModeloCarros modeloCarros;
+
     public UsuarioHasModeloCarro() {
 
     }
@@ -69,5 +72,13 @@ public class UsuarioHasModeloCarro {
 
     public void setValoresAdq(String valoresAdq) {
         this.valoresAdq = valoresAdq;
+    }
+
+    public ModeloCarros getModeloCarros() {
+        return modeloCarros;
+    }
+
+    public void setModeloCarros(ModeloCarros modeloCarros) {
+        this.modeloCarros = modeloCarros;
     }
 }

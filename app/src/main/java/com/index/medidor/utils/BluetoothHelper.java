@@ -54,6 +54,7 @@ public class BluetoothHelper {
     private static boolean isAdq;
     private static JsonObject jsonValues;
     private static int[] arrayKeys;
+    private SharedPreferences preferences;
 
     public BluetoothHelper(Context context, String valoresString) {
         recDataString = new StringBuilder();
@@ -64,6 +65,9 @@ public class BluetoothHelper {
         bluetoothDataReceiver = (BluetoothDataReceiver) context;
         bluetoothIn = new MyVeryOwnHandler();
         dataToAverage = new ArrayList<>();
+        btSocket = null;
+
+        preferences = PreferenceManager.getDefaultSharedPreferences(context);
 
         Gson gson = new Gson();
 
@@ -74,11 +78,9 @@ public class BluetoothHelper {
         List<Integer> listKeys = new ArrayList<>();
 
         arrayKeys = new int[jsonValues.keySet().size()];
-        int cont = 0;
         for (String key: jsonValues.keySet()) {
 
             listKeys.add(Integer.parseInt(key));
-            cont++;
         }
         /*for (int i =0; i < listKeys.size(); i++){
 
@@ -131,8 +133,8 @@ public class BluetoothHelper {
 
                                     //buscar el mas cercano
 
-                                    Log.e("1KEY", String.valueOf(sum));
-                                    Log.e("1Value", String.valueOf(element.getAsDouble()));
+                                    //Log.e("1KEY", String.valueOf(sum));
+                                    //Log.e("1Value", String.valueOf(element.getAsDouble()));
 
                                     bluetoothDataReceiver.getBluetoothData(element.getAsDouble());
 
@@ -164,9 +166,9 @@ public class BluetoothHelper {
     }
 
     private class ConnectedThread extends Thread {
+
         private final InputStream mmInStream;
         private final OutputStream mmOutStream;
-        //creation of the connect thread
 
         public ConnectedThread(BluetoothSocket socket) {
             InputStream tmpIn = null;
@@ -177,12 +179,12 @@ public class BluetoothHelper {
                 tmpIn = socket.getInputStream();
                 tmpOut = socket.getOutputStream();
             } catch (IOException e) {
+
             }
 
             mmInStream = tmpIn;
             mmOutStream = tmpOut;
         }
-
 
         public void run() {
             byte[] buffer = new byte[256];
@@ -191,7 +193,7 @@ public class BluetoothHelper {
             // Keep looping to listen for received messages
             while (btSocket!=null && btSocket.isConnected()) {
                 try {
-                    //if (){
+                    //if (btSocket.){
                     bytes = mmInStream.read(buffer);         //read bytes from input buffer
                     String readMessage = new String(buffer, 0, bytes);
                     // Send the obtained bytes to the UI Activity via handler
@@ -199,6 +201,7 @@ public class BluetoothHelper {
                     //}
 
                 } catch (IOException e) {
+
                     e.printStackTrace();
                 }
             }
@@ -212,34 +215,60 @@ public class BluetoothHelper {
                 ActivityCompat.requestPermissions((Activity) context,
                         new String[]{Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN},
                         REQUEST_ENABLE_BT);
+                return;
             }
         }
+
         if (btAdapter == null) {
+
             Toast.makeText(context, "El dispositivo no soporta bluetooth", Toast.LENGTH_LONG).show();
         } else {
+
+            btAdapter.cancelDiscovery();
+
             if (btAdapter.isEnabled()) {
                 //String address = "00:21:13:00:C2:B0";
-                String address = "00:18:E4:0A:00:01";
+                //String address = "00:18:E4:0A:00:01";
+                String address = preferences.getString(Constantes.DEFAULT_BLUETOOTH_MAC, "");
+                Log.e("BH","4");
                 BluetoothDevice device = btAdapter.getRemoteDevice(address);
 
+
                 try {
+                    Log.e("BH","5");
                     btSocket = device.createRfcommSocketToServiceRecord(BTMODULEUUID);
+
+                    if (btSocket != null){
+
+                        btSocket.connect();
+                        ConnectedThread mConnectedThread = new ConnectedThread(btSocket);
+                        mConnectedThread.start();
+
+                    }else {
+
+                        Toast.makeText(context, "No se pudo establecer conexion con el dispositivo", Toast.LENGTH_LONG).show();
+                    }
+
                 } catch (IOException e) {
-                    Toast.makeText(context, "La creacción del Socket fallo", Toast.LENGTH_LONG).show();
+                    try {
+                        btSocket.close();
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
+                    Toast.makeText(context, "No se pudo establecer conexion con el dispositivo", Toast.LENGTH_LONG).show();
                 }
+
                 // Establish the Bluetooth socket connection.
-                try {
-                    btSocket.connect();
-                    ConnectedThread mConnectedThread = new ConnectedThread(btSocket);
-                    mConnectedThread.start();
-                } catch (IOException e) {
+                /*try {
+
+                } /*catch (IOException e) {
                     try {
                         btSocket.close();
                         Toast.makeText(context, "No se pudo establecer conexion con el dispositivo", Toast.LENGTH_LONG).show();
                     } catch (IOException e2) {
                         //insert code to deal with this
                     }
-                }
+                }*/
             } else {
                 final AlertDialog.Builder builder = new AlertDialog.Builder(context);
                 builder.setMessage("El Bluetooth esta desactivado").setCancelable(false).setPositiveButton("Activar", new DialogInterface.OnClickListener() {
@@ -271,21 +300,5 @@ public class BluetoothHelper {
     public void setAdq(boolean adq) {
         isAdq = adq;
     }
-/*
-    public static int getClosestValue(int sum){
 
-        float smallestDiff = Math.abs(sum - arrayKeys[0]);
-        int closest = 0; //index of the current closest number
-        int currentDiff;
-        for (int i = 1; i < arrayKeys.length; i++) {
-            currentDiff = Math.abs(sum - arrayKeys[i]);
-            if (currentDiff < smallestDiff) {
-                smallestDiff = currentDiff;
-                closest = i;
-            }
-        }
-
-        return arrayKeys[closest];
-    }
-    */
 }

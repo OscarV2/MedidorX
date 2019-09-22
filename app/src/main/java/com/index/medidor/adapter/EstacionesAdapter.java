@@ -25,7 +25,7 @@ public class EstacionesAdapter  extends RecyclerView.Adapter<EstacionesAdapter.E
         public TextView tvDistancia;
         public TextView tvDireccion;
         public TextView tvHorario;
-        public TextView tvClasificacion;
+        public TextView tvCalificacion;
         public RatingBar rbClasificacion;
 
         public EstacionesViewHolder(View itemView) {
@@ -34,11 +34,11 @@ public class EstacionesAdapter  extends RecyclerView.Adapter<EstacionesAdapter.E
             tvDistancia = itemView.findViewById(R.id.tvDistancia);
             tvDireccion = itemView.findViewById(R.id.tvDireccion);
             tvHorario =  itemView.findViewById(R.id.tvHorario);
-            tvClasificacion = itemView.findViewById(R.id.tvClasificacion);
+            tvCalificacion = itemView.findViewById(R.id.tvClasificacion);
             rbClasificacion =  itemView.findViewById(R.id.rbClasificacion);
             Typeface light=Typeface.createFromAsset(context.getAssets(),"fonts/Roboto-Light.ttf");
 
-            tvClasificacion.setTypeface(light);
+            tvCalificacion.setTypeface(light);
             tvDireccion.setTypeface(light);
             tvDistancia.setTypeface(light);
             tvHorario.setTypeface(light);
@@ -71,7 +71,7 @@ public class EstacionesAdapter  extends RecyclerView.Adapter<EstacionesAdapter.E
 
         holder.tvDireccion.setText(items.get(position).getDireccion());
         holder.tvHorario.setText(items.get(position).getHorario());
-        holder.tvClasificacion.setText(String.valueOf(items.get(position).getClasificacion()));
+        holder.tvCalificacion.setText(String.valueOf(items.get(position).getCalificacion()));
 //        holder.rbClasificacion.setRating(items.get(position).getClasificacion());
         holder.rbClasificacion.setRating(2.2F);
         holder.tvHorario.setText("Abierto 24 horas");

@@ -1,5 +1,5 @@
 #
-# generated on 2019/09/01 04:35:04
+# generated on 2019/09/22 10:28:36
 #
 # --table-start--
 dataClass=com.index.medidor.model.Estaciones
@@ -23,7 +23,7 @@ fieldName=direccion
 fieldName=horario
 # --field-end--
 # --field-start--
-fieldName=clasificacion
+fieldName=calificacion
 # --field-end--
 # --field-start--
 fieldName=latitud
@@ -163,6 +163,15 @@ fieldName=calificacion
 # --field-start--
 fieldName=comentarios
 # --field-end--
+# --field-start--
+fieldName=precioGalon
+# --field-end--
+# --field-start--
+fieldName=idEstacion
+# --field-end--
+# --field-start--
+fieldName=idUsuario
+# --field-end--
 # --table-fields-end--
 # --table-end--
 #################################
@@ -214,6 +223,12 @@ fieldName=bluetoothMac
 # --field-end--
 # --field-start--
 fieldName=valoresAdq
+# --field-end--
+# --field-start--
+fieldName=modeloCarros
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
 # --field-end--
 # --table-fields-end--
 # --table-end--
