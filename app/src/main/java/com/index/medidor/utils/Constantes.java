@@ -34,9 +34,9 @@ public class Constantes {
     public static final String POST_REGISTRAR_USUARIO_HAS_MODELO_CARRO =  "usuarioHasModeloCarros/";
     public static final String GET_USUARIO_HAS_MODELO_CARROS_BY_ID_USER =  "usuarioHasModeloCarros/getAllByUser/";
 
-    public static final String API_KEY_PLACES = "AIzaSyAyfqhsOG8cYzUEvLJqDpt54p9_vAN_mhs";
-    public static final String API_KEY = "AIzaSyBVYoTTWhM_JZAlbUpJuTKTI5xcTJq7NFY";
-//    public static final String API_KEY = "AIzaSyDqGc8jxOBTUju-yy_IfaaW1LUzn3Mbjf8";
+    //API KEY DE PONTON
+    public static final String API_KEY_PLACES = "AIzaSyBHLkx2pOIKyoiTYjw-c78ValF4iHktcjc";
+    //public static final String API_KEY = "AIzaSyBVYoTTWhM_JZAlbUpJuTKTI5xcTJq7NFY";
 
     public static final String URL_PLACES ="https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{long}&radius=1200&type=gas_station&key=";
     public static final String URL_HTTP = "https://maps.googleapis.com/maps/api/directions/json?origin=";

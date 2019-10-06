@@ -49,6 +49,7 @@
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="80dp"
         android:src="@drawable/ic_ruta"
-        app:backgroundTint="@color/white" />
+        app:backgroundTint="@color/white"
+        android:onClick="drawRouteToStation"/>
 
 </RelativeLayout>

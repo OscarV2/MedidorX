@@ -28,15 +28,6 @@ public class EstacionesPlaces {
     public EstacionesPlaces() {
     }
 
-    public void getEstacionesCercanas(Location location){
-
-        String link = Constantes.URL_PLACES;
-        link = link.replace("{lat}",String.valueOf(location.getLatitude()));
-        link = link.replace("{long}",String.valueOf(location.getLongitude()));
-        link = link + Constantes.API_KEY_PLACES;
-        new DownloadRawData().execute(link);
-    }
-
     public void dondeTanquear(){
 
     }

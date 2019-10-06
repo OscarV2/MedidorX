@@ -74,6 +74,7 @@ import com.index.medidor.fragments.InicioFragment;
 import com.index.medidor.mapsrutas.Punto;
 import com.index.medidor.model.Estaciones;
 import com.index.medidor.places.EstacionesPlaces;
+import com.index.medidor.rutas.DirectionFinder;
 import com.index.medidor.rutas.PasarUbicacion;
 import com.index.medidor.rutas.Route;
 import com.index.medidor.bluetooth.interfaces.BluetoothDataReceiver;
@@ -130,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private Integer tipoUsuario;
 
-    private Punto punto;
+    private Marker markerStation;
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @SuppressLint("ResourceType")
@@ -194,8 +195,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        punto = new Punto();
     }
 
     private void applyFontToMenuItem(MenuItem mi) {
@@ -411,9 +410,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public boolean onMarkerClick(Marker marker) {
 
-        punto.setLatitudInicial(marker.getPosition().latitude);
-        punto.setLongitudFinal(marker.getPosition().longitude);
-
+        markerStation = marker;
         return false;
     }
 
@@ -712,7 +709,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public void drawSationRoute(){
 
+        if(markerStation == null){
 
+            Toast.makeText(this, "DEBE SELECCIONAR UNA ESTACIÓN!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (myLocation != null){
+            LatLng latLng = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
+            LatLng destino = new LatLng(markerStation.getPosition().latitude, markerStation.getPosition().longitude);
+            //DirectionFinder buscador = new DirectionFinder(this, latLng, destino, getString(R.string.google_maps_key));
+            DirectionFinder buscador = new DirectionFinder(this, latLng, destino,
+                    Constantes.API_KEY_PLACES);
+            buscador.peticionRutas();
+        }else{
+            Log.e("UBICACION","NULA EN NEW RUTA");
+        }
     }
 
     public BluetoothHelper getBluetoothHelper() {

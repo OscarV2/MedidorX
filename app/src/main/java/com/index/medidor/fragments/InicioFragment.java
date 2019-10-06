@@ -62,6 +62,11 @@ public class InicioFragment extends Fragment {
 
     }
 
+    private void drawRouteToStation(){
+
+        mainActivity.drawSationRoute();
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -87,7 +92,7 @@ public class InicioFragment extends Fragment {
 
         fabRuta = v.findViewById(R.id.fabRuta);
 
-        //fabRuta.setOnClickListener(v -> {});
+        fabRuta.setOnClickListener(v1 -> this.drawRouteToStation());
 
         return v;
     }
