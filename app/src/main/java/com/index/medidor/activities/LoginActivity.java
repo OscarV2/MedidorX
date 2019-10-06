@@ -127,7 +127,6 @@ public class LoginActivity extends AppCompatActivity {
                     if (response.body() != null){
 
                         getAllUsuariosHasModelosCarros(response.body());
-                        Usuario user = response.body();
 
                         //irMain(response.body());
                     }else{
@@ -143,7 +142,6 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<Usuario> call, Throwable t) {
                 mCustomProgressDialog.dismiss("");
-                Log.e("2", t.getMessage());
 
                 Toast.makeText(LoginActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
@@ -158,6 +156,8 @@ public class LoginActivity extends AppCompatActivity {
         infoUsuario.putInt("idUsuario", user.getId());
         infoUsuario.putString("celular", user.getCelular());
         infoUsuario.putString("apellidos", user.getApellidos());
+        infoUsuario.putInt("tipoUsuario", user.getTipo());
+
         infoUsuario.apply();
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         startActivity(intent);
@@ -203,7 +203,6 @@ public class LoginActivity extends AppCompatActivity {
 
                             for (UsuarioHasModeloCarro uhmc: response.body()) {
 
-                                Log.e("res vadq", new Gson().toJson(uhmc.getModeloCarros().getValoresAdq()));
                                 if(uhmc.getModeloCarros().getValoresAdq() != null){
 
                                     Log.e("galones",String.valueOf((int)uhmc.getModeloCarros().getGalones()));

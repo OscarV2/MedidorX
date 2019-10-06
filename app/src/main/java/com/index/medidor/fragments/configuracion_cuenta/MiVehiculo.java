@@ -298,7 +298,8 @@ public class MiVehiculo extends Fragment {
         if(idUsuario != 0){
 
             nuevoUsuarioHasModeloCarro.setUsuariosId(idUsuario);
-            nuevoUsuarioHasModeloCarro.setBluetoothMac("00:21:13:00:BF:AD");
+            //nuevoUsuarioHasModeloCarro.setBluetoothMac("00:21:13:00:BF:AD");
+            nuevoUsuarioHasModeloCarro.setBluetoothMac(mainActivity.getMyPreferences().getString(Constantes.DEFAULT_BLUETOOTH_MAC,""));
             nuevoUsuarioHasModeloCarro.setBluetoothNombre("INNDEX");
 
             Call<ResponseBody> callRegisterUsuariosHasModeloCarro = MedidorApiAdapter.getApiService()

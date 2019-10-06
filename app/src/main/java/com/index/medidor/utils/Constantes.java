@@ -4,6 +4,7 @@ import android.location.Location;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.index.medidor.R;
 import com.index.medidor.database.DataBaseHelper;
 import com.index.medidor.model.MarcaCarros;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
@@ -119,4 +120,16 @@ public class Constantes {
             ".RESULT_DATA_KEY";
     public static final String LOCATION_DATA_EXTRA = PACKAGE_NAME +
             ".LOCATION_DATA_EXTRA";
+
+    public static String obtenerDireccionesURL(Double latitud_origen, Double longitud_origen, Double latitud_destino,
+                                                Double longitud_destino, String mapsApiKey) {
+
+        String str_key = "key=" + mapsApiKey;
+        String str_origin = "origin=" + latitud_origen + "," + longitud_origen;
+        String str_dest = "destination=" + latitud_destino + "," + longitud_destino;
+        String sensor = "sensor=false";
+        String parameters = str_key + "&" + str_origin + "&" + str_dest + "&" + sensor;
+        String url = "https://maps.googleapis.com/maps/api/directions/json?" + parameters;
+        return url;
+    }
 }

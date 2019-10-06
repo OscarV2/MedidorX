@@ -20,7 +20,8 @@ public class Usuario implements Serializable {
     private String apellidos;
     @DatabaseField
     private String celular;
-
+    @DatabaseField
+    private Integer tipo;
 
     public Usuario() {
     }
@@ -71,5 +72,13 @@ public class Usuario implements Serializable {
 
     public void setCelular(String celular) {
         this.celular = celular;
+    }
+
+    public Integer getTipo() {
+        return tipo;
+    }
+
+    public void setTipo(Integer tipo) {
+        this.tipo = tipo;
     }
 }

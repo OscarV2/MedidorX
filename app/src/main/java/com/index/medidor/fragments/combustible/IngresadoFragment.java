@@ -32,7 +32,6 @@ import com.index.medidor.model.Estaciones;
 import com.index.medidor.model.Tanqueadas;
 import com.index.medidor.retrofit.MedidorApiAdapter;
 import com.index.medidor.utils.Constantes;
-import com.index.medidor.utils.CustomProgressDialog;
 import com.index.medidor.utils.ResponseServices;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
@@ -40,10 +39,8 @@ import com.j256.ormlite.dao.Dao;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -73,7 +70,6 @@ public class IngresadoFragment extends Fragment {
     private Timer mTimer1;
     private Handler mHandler;
     private double galonesDeseados, cantDeseada;
-    private CustomProgressDialog mCustomProgressDialog;
     private AlertDialog dialogCal;
     private AlertDialog.Builder dialog;
     private RatingBar calRatingBar;
@@ -108,6 +104,10 @@ public class IngresadoFragment extends Fragment {
         combustibleInicial = mainActivity.getNivelCombustible();
         valor = edtValor.getCleanDoubleValue();
         cantDeseada = edtCantDeseadaNum.getCleanDoubleValue();
+
+        if(!flagCantidadDeseada)
+            galonesDeseados = edtCantDeseadaNum.getCleanDoubleValue();
+
         //validar precio galon
         if (valor <= 100){
 
@@ -118,9 +118,9 @@ public class IngresadoFragment extends Fragment {
             Toast.makeText(mainActivity, "Por favor ingrese una cantidad válida.", Toast.LENGTH_SHORT).show();
             edtCantDeseadaNum.requestFocus();
 
-        }else if(!flagCantidadDeseada && galonesDeseados <=0 ){
+        }else if(!flagCantidadDeseada && galonesDeseados <= 0 ){
             Toast.makeText(mainActivity, "Por favor ingrese una cantidad de galones válida.", Toast.LENGTH_SHORT).show();
-            edtValor.requestFocus();
+            edtCantDeseadaNum.requestFocus();
 
         }else if (mainActivity.getBtSocket() == null){        //validar bluetooth
 
@@ -455,7 +455,6 @@ public class IngresadoFragment extends Fragment {
 
         t.setIdEstacion(estacionTanquea.getId());
         //guardarMedicion(t);
-        Log.e("Tanq", new Gson().toJson(t));
         enviarTanqueada(t);
     }
 
@@ -463,8 +462,6 @@ public class IngresadoFragment extends Fragment {
 
         Call<ResponseServices> callRegisterStation = MedidorApiAdapter.getApiService()
                 .postRegisterStation(Constantes.CONTENT_TYPE_JSON, nuevaEstacion);
-        Log.e("lat", String.valueOf(nuevaEstacion.getLatitud()));
-        Log.e("long", String.valueOf(nuevaEstacion.getLongitud()));
 
         callRegisterStation.enqueue(new Callback<ResponseServices>() {
             @Override
@@ -500,8 +497,6 @@ public class IngresadoFragment extends Fragment {
 
             @Override
             public void onFailure(Call<ResponseServices> call, Throwable t) {
-
-                Log.e("FAILURE", "FALLOOOO");
 
                 Log.e("FAILURE", t.getMessage());
                 Toast.makeText(mainActivity, "NO SE PUDO REGISTRAR LA ESTACIÓN", Toast.LENGTH_SHORT).show();
@@ -542,7 +537,6 @@ public class IngresadoFragment extends Fragment {
 
         this.mainActivity.getMyPreferences().edit().putString("precioGalon", String.valueOf((int)this.valor)).apply();
         this.mainActivity.getMyPreferences().edit().putString("cantDeseada", String.valueOf((int)this.cantDeseada)).apply();
-
     }
 
     /**

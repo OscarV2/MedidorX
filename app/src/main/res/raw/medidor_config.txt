@@ -1,5 +1,5 @@
 #
-# generated on 2019/09/22 10:28:36
+# generated on 2019/09/22 02:37:20
 #
 # --table-start--
 dataClass=com.index.medidor.model.Estaciones
@@ -197,6 +197,9 @@ fieldName=apellidos
 # --field-end--
 # --field-start--
 fieldName=celular
+# --field-end--
+# --field-start--
+fieldName=tipo
 # --field-end--
 # --table-fields-end--
 # --table-end--

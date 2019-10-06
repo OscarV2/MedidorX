@@ -71,6 +71,7 @@ import com.index.medidor.fragments.dondetanquear.DondeTanquearTabs;
 import com.index.medidor.fragments.historial.HistorialTabs;
 import com.index.medidor.fragments.combustible.IngresadoFragment;
 import com.index.medidor.fragments.InicioFragment;
+import com.index.medidor.mapsrutas.Punto;
 import com.index.medidor.model.Estaciones;
 import com.index.medidor.places.EstacionesPlaces;
 import com.index.medidor.rutas.PasarUbicacion;
@@ -124,9 +125,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     Fragment miFragment;
 
     private Timer timerInndexDeviceListener;
-    private Handler handlerInndexDeviceListener;
 
     private BluetoothHelper bluetoothHelper;
+
+    private Integer tipoUsuario;
+
+    private Punto punto;
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @SuppressLint("ResourceType")
@@ -163,6 +167,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         String values = myPreferences.getString(Constantes.DEFAULT_BLUETOOTH_VALUE_ARRAY, "");
 
+        tipoUsuario = myPreferences.getInt("tipoUsuario", 8);
+
         if (values != null && !values.equals("")) {
             bluetoothHelper = new BluetoothHelper(MainActivity.this, values);
             bluetoothHelper.checkBTState();
@@ -189,6 +195,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             e.printStackTrace();
         }
 
+        punto = new Punto();
     }
 
     private void applyFontToMenuItem(MenuItem mi) {
@@ -403,7 +410,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-        LatLng marcadores = new LatLng(marker.getPosition().latitude, marker.getPosition().longitude);
+
+        punto.setLatitudInicial(marker.getPosition().latitude);
+        punto.setLongitudFinal(marker.getPosition().longitude);
+
         return false;
     }
 
@@ -449,19 +459,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
-    void newRuta() {
-        if (myLocation != null){
-            EstacionesPlaces estacionesPlaces = new EstacionesPlaces();
-            estacionesPlaces.getEstacionesCercanas(myLocation);
-            /*LatLng latLng = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
-            LatLng destino = new LatLng(4.657843, -74.099556);
-            DirectionFinder buscador = new DirectionFinder(this, latLng, destino);
-            buscador.peticionRutas();*/
-        }else{
-            Log.e("UBICACION","NULA EN NEW RUTA");
-        }
-    }
-
     private void logout() {
         drawer.closeDrawers(); // Cerrar drawer
         final AlertDialog.Builder dialog = new AlertDialog.Builder(this);
@@ -495,6 +492,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         tvUsuario.setText(myPreferences.getString("nombres", "") + myPreferences.getString("apellidos", ""));
         navigationView.setNavigationItemSelectedListener(this);
         Menu m = navigationView.getMenu();
+
         for (int i = 0; i < m.size(); i++) {
             MenuItem mi = m.getItem(i);
 
@@ -509,6 +507,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             //the method we have create in activity
             applyFontToMenuItem(mi);
+
+            if (tipoUsuario == 1){
+
+                if (mi.getItemId() == R.id.nav_adq_datos){
+
+                    mi.setVisible(false);
+                }
+            }
         }
 
         pbCombustible = findViewById(R.id.pbCombustible);
@@ -704,6 +710,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
+    public void drawSationRoute(){
+
+
+    }
+
     public BluetoothHelper getBluetoothHelper() {
         return bluetoothHelper;
     }
@@ -727,49 +738,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
-    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            Log.e("Main", "en on receive");
-            BluetoothDevice device = bluetoothHelper.getBluetoothDevice();
-
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                Log.e("MAIN", "ACTION_FOUND");
-            //Device found
-            }
-            else if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
-                Log.e("MAIN", "ACTION_ACL_CONNECTED");
-
-                //Device is now connected
-            }
-            else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-                Log.e("MAIN", "ACTION_DISCOVERY_FINISHED");
-
-                //Done searching
-            }
-            else if (BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED.equals(action)) {
-                Log.e("MAIN", "ACTION_ACL_DISCONNECT_REQUESTED");
-
-                //Device is about to disconnect
-            }
-            else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
-                Log.e("MAIN", "ACTION_ACL_DISCONNECTED");
-
-
-
-                //Device has disconnected
-            }
-        }
-    };
-
     public void addNewStationToMap(Estaciones estacion){
 
         estaciones.add(estacion);
 
         LatLng latLng = new LatLng(estacion.getLatitud(), estacion.getLongitud());
         mMap.addMarker(new MarkerOptions().position(latLng).title(estacion.getMarca()).snippet(estacion.getDireccion()).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker)));
-
     }
 
     @Override
@@ -786,7 +760,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 if (!btSocket.isConnected()){
 
                     bluetoothHelper.checkBTState();
-
                 }
 
             }
@@ -810,6 +783,5 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void couldNotConnectToDevice() {
 
         Toast.makeText(getApplicationContext(), "No se pudo establecer conexion con el dispositivo", Toast.LENGTH_LONG).show();
-
     }
 }
