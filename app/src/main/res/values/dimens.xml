@@ -13,5 +13,7 @@
 
     <dimen name="texto_info_personal">14sp</dimen>
     <dimen name="texto_edt_info_personal">18sp</dimen>
+    <!-- Iniciofragment -->
+    <dimen name="size_text_btn_iniciar">20sp</dimen>
 
 </resources>

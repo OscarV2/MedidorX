@@ -12,10 +12,8 @@ import androidx.fragment.app.Fragment;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -31,7 +29,6 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.text.Spannable;
@@ -71,7 +68,6 @@ import com.index.medidor.fragments.dondetanquear.DondeTanquearTabs;
 import com.index.medidor.fragments.historial.HistorialTabs;
 import com.index.medidor.fragments.combustible.IngresadoFragment;
 import com.index.medidor.fragments.InicioFragment;
-import com.index.medidor.mapsrutas.Punto;
 import com.index.medidor.model.Estaciones;
 import com.index.medidor.places.EstacionesPlaces;
 import com.index.medidor.rutas.DirectionFinder;
@@ -117,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private List<Polyline> polylinePaths = new ArrayList<>();
     private List<Estaciones> estaciones;
     private DataBaseHelper helper;
-    ImageButton btnBack;
+    private ImageButton btnBack, btnMenu;
     TextView tvTitulo;
     Typeface bold;
     View viewMap;
@@ -228,46 +224,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         if (id == R.id.nav_combustible) {
 
-            miFragment = new CombustibleTabs(this);
+            //miFragment = new CombustibleTabs(this);
+            miFragment = new IngresadoFragment(this);
             fragmentSeleccionado = true;
             tvTitulo.setText("Medir Combustible");
+            btnMenu.setVisibility(View.GONE);
 
-            // Handle the camera action
-            /*try {
-                if (btSocket != null && btSocket.isConnected()){
-
-                    btSocket.close();
-                    btSocket = null;
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }*/
-
-            //Intent intent = new Intent(getApplicationContext(), CombustibleActivity.class);
-            //startActivity(intent);
-            //finish();
         } else if (id == R.id.nav_historial) {
             miFragment = new HistorialTabs();
             fragmentSeleccionado = true;
             tvTitulo.setText("Historial");
             viewMap.setVisibility(View.GONE);
-            //Intent intent = new Intent(getApplicationContext(), HistorialActivity.class);
-            //startActivity(intent);
+            btnMenu.setVisibility(View.GONE);
 
         } else if (id == R.id.nav_config) {
-            //Intent intent = new Intent(getApplicationContext(), ConfigActivity.class);
-            //startActivity(intent);
             miFragment = new ConfiguracionTabs(MainActivity.this);
             fragmentSeleccionado = true;
             tvTitulo.setText("Configuración de cuenta");
             viewMap.setVisibility(View.GONE);
+            btnMenu.setVisibility(View.GONE);
+
         }else if (id == R.id.nav_adq_datos) {
             miFragment = new AdquisicionDatos(MainActivity.this);
             fragmentSeleccionado = true;
             tvTitulo.setText("Adquisición de datos");
             viewMap.setVisibility(View.GONE);
-            //logout();
+            btnMenu.setVisibility(View.GONE);
+
         }else if (id == R.id.logout) {
             //logout();
         }
@@ -276,7 +259,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             btnBack.setVisibility(View.VISIBLE);
             tvTitulo.setVisibility(View.VISIBLE);
             getSupportFragmentManager().beginTransaction().replace(R.id.content_main, miFragment).commit();
-
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -475,6 +457,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Typeface light = Typeface.createFromAsset(getAssets(), "fonts/Roboto-Light.ttf");
         Typeface thin = Typeface.createFromAsset(getAssets(), "fonts/Roboto-Thin.ttf");
 
+        btnMenu = findViewById(R.id.btnMenu);
+        btnMenu.setOnClickListener(view -> {
+            this.getDrawer().openDrawer(this.getNavigationView());
+        });
+
         myPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         drawer = findViewById(R.id.drawer_layout);
@@ -525,7 +512,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             btnBack.setVisibility(View.GONE);
             tvTitulo.setVisibility(View.GONE);
             viewMap.setVisibility(View.VISIBLE);
-
+            btnMenu.setVisibility(View.VISIBLE);
         });
         nivelCombustible = Double.valueOf(Objects.requireNonNull(myPreferences.getString("nivel", "0.0")));
         tvCombustible.setText(String.format(Locale.US,"%.1f",nivelCombustible)+" Gal.");
@@ -535,7 +522,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         tvTitulo = findViewById(R.id.tvTitulo2);
         tvTitulo.setTypeface(thin);
         tvTitulo.setVisibility(View.GONE);
-
     }
 
     @Override
@@ -751,7 +737,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public void addNewStationToMap(Estaciones estacion){
-
         estaciones.add(estacion);
 
         LatLng latLng = new LatLng(estacion.getLatitud(), estacion.getLongitud());
@@ -763,8 +748,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         timerInndexDeviceListener = new Timer();
         //handlerInndexDeviceListener = new Handler();
-        Log.e("Main", "Esa vaina se apagó");
-
         TimerTask tTInndexDeviceListener = new TimerTask() {
             @Override
             public void run() {
@@ -778,22 +761,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         };
 
         timerInndexDeviceListener.schedule(tTInndexDeviceListener, 1,3000);
-
     }
 
     public void cancelTimers(){
 
         if (timerInndexDeviceListener != null){
-
             timerInndexDeviceListener.cancel();
             timerInndexDeviceListener.purge();
         }
-
     }
 
     @Override
     public void couldNotConnectToDevice() {
 
         Toast.makeText(getApplicationContext(), "No se pudo establecer conexion con el dispositivo", Toast.LENGTH_LONG).show();
+    }
+
+    public ImageButton getBtnBack() {
+        return btnBack;
     }
 }

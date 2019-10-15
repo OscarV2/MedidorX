@@ -327,6 +327,8 @@ public class IngresadoFragment extends Fragment {
 
             saveOnPreferences();
 
+            mainActivity.getBtnBack().performClick();
+
             //mCustomProgressDialog.dismiss("");
             //Toast.makeText(mainActivity, "Medición registrada de forma exitosa.", Toast.LENGTH_SHORT).show();
         } catch (SQLException e) {

@@ -4,7 +4,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".fragments.adquisicion_datos.AdquisicionDatos"
-    android:layout_marginTop="120dp">
+    android:layout_marginTop="110dp">
+
+    <Spinner
+        android:id="@+id/sp_select_bluetooth_device"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="10dp"
+        android:padding="10dp"/>
 
     <ImageView
         android:id="@+id/img_mi_vehiculo_adq"
@@ -12,7 +20,9 @@
         android:layout_height="100dp"
         android:contentDescription="@string/aceptar"
         android:src="@drawable/carro"
-        android:layout_marginEnd="5dp"/>
+        android:layout_marginEnd="5dp"
+        android:layout_below="@+id/sp_select_bluetooth_device"
+        android:layout_marginTop="15dp"/>
 
     <LinearLayout
         android:id="@+id/lay_datos_adq_modelo"
@@ -20,7 +30,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_toEndOf="@id/img_mi_vehiculo_adq"
-        android:layout_marginEnd="10dp">
+        android:layout_marginEnd="10dp"
+        android:layout_below="@+id/sp_select_bluetooth_device">
 
         <Spinner
             android:id="@+id/sp_marca_adq_modelo"

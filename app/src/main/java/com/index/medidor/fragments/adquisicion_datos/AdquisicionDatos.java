@@ -1,5 +1,7 @@
 package com.index.medidor.fragments.adquisicion_datos;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
@@ -13,6 +15,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -23,7 +26,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.index.medidor.R;
 import com.index.medidor.activities.MainActivity;
+import com.index.medidor.adapter.BluetoothDeviceAdapter;
+import com.index.medidor.bluetooth.SpBluetoothDevice;
 import com.index.medidor.database.DataBaseHelper;
+import com.index.medidor.model.MarcaCarros;
 import com.index.medidor.model.ModeloCarros;
 import com.index.medidor.retrofit.MedidorApiAdapter;
 import com.index.medidor.bluetooth.BluetoothHelper;
@@ -33,7 +39,9 @@ import com.j256.ormlite.dao.Dao;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.Timer;
 
 import retrofit2.Call;
@@ -54,8 +62,13 @@ public class AdquisicionDatos extends Fragment {
     private EditText edtLinea;
     private Spinner spAnio;
     private Spinner spCombustible;
+    private Spinner spBluetoothDevices;
+
     private EditText edtGalIngresados;
     private int estadoAdquicision;
+    private int idMarca = 0;
+    private List<MarcaCarros> marcaCarrosList;
+    private DataBaseHelper helper;
     private boolean acquisitionStarted;
 
     private Button btnAdquisicion;
@@ -83,6 +96,8 @@ public class AdquisicionDatos extends Fragment {
         //this.bluetoothHelper = new BluetoothHelper();
         this.mainActivity = mainActivity;
         this.keyArraysAdq = new ArrayList<>();
+        this.helper = OpenHelperManager.getHelper(mainActivity, DataBaseHelper.class);
+
     }
 
     /**
@@ -117,15 +132,19 @@ public class AdquisicionDatos extends Fragment {
         edtGalIngresados = v.findViewById(R.id.edt_gal_ingresados_modelo);
         edtLinea = v.findViewById(R.id.edt_linea_adq_modelo);
         spMarca = v.findViewById(R.id.sp_marca_adq_modelo);
+        spBluetoothDevices = v.findViewById(R.id.sp_select_bluetooth_device);
 
         btnAdquisicion = v.findViewById(R.id.btn_datos_adq_correctamente);
         btnRegistrar = v.findViewById(R.id.btn_registrar_adq_correctamente);
         estadoAdquicision = 0;
         init();
+        initSpBluetoothDevices();
         acquisitionStarted = false;
 
         return v;
     }
+
+
 
     private void init() {
 
@@ -142,10 +161,25 @@ public class AdquisicionDatos extends Fragment {
                 R.array.tipos_combustibles, android.R.layout.simple_spinner_item));
 
         try {
-            DataBaseHelper helper = OpenHelperManager.getHelper(mainActivity, DataBaseHelper.class);
 
             spMarca.setAdapter(new ArrayAdapter<>(mainActivity, android.R.layout.simple_spinner_dropdown_item,
                     Constantes.getAllMarcasNames(helper)));
+
+            marcaCarrosList = helper.getDaoMarcas().queryForAll();
+            idMarca = 1;
+            spMarca.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+                    idMarca = marcaCarrosList.get(position).getId();
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+
+                }
+            });
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -210,12 +244,9 @@ public class AdquisicionDatos extends Fragment {
 
                     edtGalIngresados.requestFocus();
                 }else{
-
                         guardarAdq();
-
                 }
             }
-
         });
     }
 
@@ -227,7 +258,6 @@ public class AdquisicionDatos extends Fragment {
             mainActivity.getBluetoothHelper().setAdq(true);
 
         }else{
-
             Toast.makeText(mainActivity, "ASEGURESE DE QUE EL DISPOSITIVO INNDEX ESTA CONECTADO.", Toast.LENGTH_SHORT).show();
         }
 
@@ -247,8 +277,6 @@ public class AdquisicionDatos extends Fragment {
 
     private void guardarAdq() {
 
-        Log.e("guardar","Adq");
-
         Gson gson = new Gson();
 
         JsonObject jsonArrayKeys = new JsonObject();
@@ -258,7 +286,10 @@ public class AdquisicionDatos extends Fragment {
         modeloCarros.setMuestreo( gson.toJson(jsonArrayKeys));
         modeloCarros.setLinea(edtLinea.getText().toString());
         modeloCarros.setGalones(this.galIngresados);
-        modeloCarros.setIdMarca(1);
+        if (idMarca == 0){
+            idMarca = 1;
+        }
+        modeloCarros.setIdMarca(this.idMarca);
 
         Call<ModeloCarros> callRegistrarModelo = MedidorApiAdapter.getApiService()
                 .postRegisterModelo(Constantes.CONTENT_TYPE_JSON, modeloCarros);
@@ -285,7 +316,6 @@ public class AdquisicionDatos extends Fragment {
 
                     Toast.makeText(mainActivity, "NO SE PUDO REGISTRAR LA ADQUISICIÓN", Toast.LENGTH_SHORT).show();
                 }
-
             }
 
             @Override
@@ -305,6 +335,52 @@ public class AdquisicionDatos extends Fragment {
         btnRegistrar.setBackgroundColor(mainActivity.getResources().getColor(R.color.textSecond));
         btnAdquisicion.setBackgroundColor(mainActivity.getResources().getColor(R.color.textSecond));
 
+    }
+
+    private void initSpBluetoothDevices() {
+
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        ArrayList<SpBluetoothDevice> spBluetoothDevicesList = new ArrayList<>();
+        SpBluetoothDevice spBluetoothDevice = null;
+        if (bluetoothAdapter.isEnabled()){
+
+            Set<BluetoothDevice> devices = bluetoothAdapter.getBondedDevices();
+            for (BluetoothDevice device : devices) {
+                spBluetoothDevice = new SpBluetoothDevice(device.getName(), device.getAddress());
+
+                spBluetoothDevicesList.add(spBluetoothDevice);
+
+            }
+        }
+
+        if (spBluetoothDevicesList.size() > 0){
+
+            BluetoothDeviceAdapter adapter = new BluetoothDeviceAdapter(mainActivity, spBluetoothDevicesList);
+            spBluetoothDevices.setAdapter(adapter);
+
+            spBluetoothDevices.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    /*TODO: si ya se esta haciendo adquisicion no se puede escoger otro bluetooth
+                     */
+
+                    if(!acquisitionStarted) {
+
+                        Toast.makeText(mainActivity, "CONECTANDO...", Toast.LENGTH_SHORT).show();
+
+                        spBluetoothDevices.setEnabled(false);
+
+                    } else {
+
+
+                    }
+                }
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+
+                }
+            });
+        }
     }
 
     // TODO: Rename method, update argument and hook method into UI event
