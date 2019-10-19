@@ -75,6 +75,7 @@ import com.index.medidor.rutas.PasarUbicacion;
 import com.index.medidor.rutas.Route;
 import com.index.medidor.bluetooth.interfaces.BluetoothDataReceiver;
 import com.index.medidor.bluetooth.BluetoothHelper;
+import com.index.medidor.services.InndexLocationService;
 import com.index.medidor.services.MapService;
 import com.index.medidor.utils.Constantes;
 import com.index.medidor.utils.CustomProgressDialog;
@@ -92,18 +93,18 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, SetArrayValuesForInndex,
-        BluetoothDataReceiver, AdquisicionDatos.OnFragmentInteractionListener, IBluetoothState,
+        BluetoothDataReceiver, AdquisicionDatos.OnFragmentInteractionListener, IBluetoothState, DondeTanquearTabs.OnFragmentInteractionListener,
         InicioFragment.OnFragmentInteractionListener, HistorialTabs.OnFragmentInteractionListener, DondeTanquearFragment.OnFragmentInteractionListener,
-        CombustibleTabs.OnFragmentInteractionListener, ConfiguracionTabs.OnFragmentInteractionListener,LocationListener, IngresadoFragment.OnFragmentInteractionListener, DondeTanquearTabs.OnFragmentInteractionListener {
+        CombustibleTabs.OnFragmentInteractionListener, ConfiguracionTabs.OnFragmentInteractionListener, IngresadoFragment.OnFragmentInteractionListener {
 
     //private GoogleMap mMap;
-    private static final int LOCATION_REQUEST_CODE = 1;
+    //private static final int LOCATION_REQUEST_CODE = 1;
     private DrawerLayout drawer;
     NavigationView navigationView;
     //private LatLng newPosition;
 
     private BluetoothSocket btSocket;
-    private LocationManager locationManager;
+    //private LocationManager locationManager;
     private ProgressBar pbCombustible;
     private TextView tvCombustible;
     private AlertDialog alert = null;
@@ -128,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     //private Marker markerStation;
 
     private MapService mapService;
+    private InndexLocationService inndexLocationService;
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @SuppressLint("ResourceType")
@@ -153,7 +155,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mCustomProgressDialog.setCanceledOnTouchOutside(false);
         mCustomProgressDialog.setCancelable(false);
 
-        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        //locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        inndexLocationService = new InndexLocationService(this);
+        inndexLocationService.init();
         checkGPSState();
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -278,66 +282,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 mapService.getmMap().addMarker(new MarkerOptions().position(latLng).title(estacion.getMarca()).snippet(estacion.getDireccion()).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker)));
             }
         }
-
-        // Controles UI
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-            mapService.setMyLocation(locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER));
-            mapService.getmMap().setMyLocationEnabled(true);
-
-            if (mapService.getMyLocation() != null){
-                mapService.mostrarUbicacion();
-            }else{
-                Log.e("onMapReady","Dentro de segundo if, mulocation es NULL");
-            }
-
-        } else {
-            /*if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION)) {
-                // Mostrar diálogo explicativo
-            } else {
-                // Solicitar permiso
-              */  ActivityCompat.requestPermissions(
-                    MainActivity.this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    LOCATION_REQUEST_CODE);
-
-            //}
-        }
-
-
-
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-    }
 
-    @Override
-    public void onPause() {
-
-        /*if (btSocket != null ){
-
-            if (btSocket.isConnected()){
-                Log.e("MAIN","EL btSocket ESTA CONECTADO");
-
-                try {
-                    btSocket.close();
-                    Log.e("MAIN","BLUR¿E SOCKET CLOSED");
-                } catch (IOException e) { }
-            }else{
-                Log.e("MAIN","EL btSocket NOOOO ESTA CONECTADO");
-            }
-        }else{
-            Log.e("MAIN","EL btSocket ES NULO");
-
-        }*/
-        super.onPause();
-
-    }
 
     @Override
     protected void onStart() {
@@ -349,7 +296,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onDestroy();
         Log.e("MAIN","on RESUME");
 
-        locationManager = null;
+        inndexLocationService.setLocationManager(null);
         /*if (btSocket != null ){
 
             if (btSocket.isConnected()){
@@ -368,7 +315,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void checkGPSState() {
 
-        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+        if (!inndexLocationService.getLocationManager().isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             final AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setMessage("El GPS esta desactivado").setCancelable(false).setPositiveButton("Activar", new DialogInterface.OnClickListener() {
                 @Override
@@ -396,8 +343,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-
-
     private void logout() {
         drawer.closeDrawers(); // Cerrar drawer
         final AlertDialog.Builder dialog = new AlertDialog.Builder(this);
@@ -408,7 +353,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
         dialog.setNegativeButton("Cancelar", (dialogInterface, i) -> dialogInterface.cancel());
         dialog.show();
-
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -488,7 +432,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
         switch (requestCode) {
-            case LOCATION_REQUEST_CODE: {
+            case InndexLocationService.LOCATION_REQUEST_CODE: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -496,10 +440,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     Log.e("PERMISOS","FUERON HABILITADOS");
                     if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                             == PackageManager.PERMISSION_GRANTED) {
-                        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+                        inndexLocationService.setLocationManager((LocationManager) getSystemService(Context.LOCATION_SERVICE));
                         //locationManager.req
                         //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-                        mapService.setMyLocation(locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER));
+                        mapService.setMyLocation(inndexLocationService.getLocationManager().getLastKnownLocation(LocationManager.PASSIVE_PROVIDER));
                         if (mapService.getMyLocation() != null){
                             LatLng newPosition = new LatLng(mapService.getMyLocation().getLatitude(), mapService.getMyLocation().getLongitude());
                             SharedPreferences.Editor editor = myPreferences.edit();
@@ -527,7 +471,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         ActivityCompat.requestPermissions(
                                 MainActivity.this,
                                 new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                                LOCATION_REQUEST_CODE);
+                                InndexLocationService.LOCATION_REQUEST_CODE);
                     }
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
@@ -587,26 +531,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         editor.putString("latitud",String.valueOf(myLocation.getLatitude()));
         editor.putString("longitud",String.valueOf(myLocation.getLongitude()));
         editor.apply();*/
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-
     }
 
     public DrawerLayout getDrawer() {
