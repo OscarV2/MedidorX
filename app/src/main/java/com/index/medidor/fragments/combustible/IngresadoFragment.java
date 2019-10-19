@@ -426,16 +426,13 @@ public class IngresadoFragment extends Fragment {
             estacionTanquea.setCertificada(0);
             estacionTanquea.setMarca(spOtraEstacion.getSelectedItem().toString());
 
-            estacionTanquea.setLatitud(mainActivity.getMyLocation().getLatitude());
-            estacionTanquea.setLongitud(mainActivity.getMyLocation().getLongitude());
+            estacionTanquea.setLatitud(mainActivity.getMapService().getMyLocation().getLatitude());
+            estacionTanquea.setLongitud(mainActivity.getMapService().getMyLocation().getLongitude());
 
             guardarNuevaEstacion(estacionTanquea);
         }else{
-
             guardarTanqueada();
-
         }
-
     }
 
     private void guardarTanqueada(){

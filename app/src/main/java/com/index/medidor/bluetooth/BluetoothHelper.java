@@ -53,7 +53,7 @@ public class BluetoothHelper {
     private BluetoothDevice bluetoothDevice;
     private static int dato;
     private static List<Integer> dataToAverage;
-    private static boolean isAdq;
+    private static boolean adqProcess;
     private static JsonObject jsonValues;
     private static int[] arrayKeys;
     private SharedPreferences preferences;
@@ -93,6 +93,31 @@ public class BluetoothHelper {
         }*/
     }
 
+    public BluetoothHelper(Context context) {
+        recDataString = new StringBuilder();
+        handlerState = 0;
+        this.context = context;
+        adqProcess = true;
+        REQUEST_ENABLE_BT = 1;
+        btAdapter = BluetoothAdapter.getDefaultAdapter();
+        bluetoothDataReceiver = (BluetoothDataReceiver) context;
+        bluetoothIn = new MyVeryOwnHandler();
+        dataToAverage = new ArrayList<>();
+        btSocket = null;
+        iBluetoothState = (MainActivity)context;
+
+        preferences = PreferenceManager.getDefaultSharedPreferences(context);
+
+        List<Integer> listKeys = new ArrayList<>();
+
+        arrayKeys = new int[jsonValues.keySet().size()];
+        for (String key: jsonValues.keySet()) {
+
+            listKeys.add(Integer.parseInt(key));
+        }
+    }
+
+
     private static class MyVeryOwnHandler extends Handler{
 
         @SuppressLint("SetTextI18n")
@@ -114,7 +139,7 @@ public class BluetoothHelper {
                         dato = Integer.parseInt(recDataString.substring(1,endOfLineIndex ));     //get sensor value from string between indices 1-5
                         dataToAverage.add(dato);
 
-                        if (!isAdq){
+                        if (!adqProcess){
 
                             if (dataToAverage.size() == Constantes.ARRAY_DATA_SIZE){
 
@@ -309,12 +334,12 @@ public class BluetoothHelper {
         return dato;
     }
 
-    public boolean isAdq() {
-        return isAdq;
+    public static boolean isAdqProcess() {
+        return adqProcess;
     }
 
-    public void setAdq(boolean adq) {
-        isAdq = adq;
+    public static void setAdqProcess(boolean adqProcess) {
+        BluetoothHelper.adqProcess = adqProcess;
     }
 
     public BluetoothDevice getBluetoothDevice() {

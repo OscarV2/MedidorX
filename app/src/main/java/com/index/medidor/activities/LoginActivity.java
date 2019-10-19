@@ -23,6 +23,7 @@ import com.index.medidor.model.ModeloCarros;
 import com.index.medidor.model.Usuario;
 import com.index.medidor.model.UsuarioHasModeloCarro;
 import com.index.medidor.retrofit.MedidorApiAdapter;
+import com.index.medidor.threads.DownloadUsuarioHasModeloCarro;
 import com.index.medidor.utils.Constantes;
 import com.index.medidor.utils.CustomProgressDialog;
 import com.index.medidor.utils.SetArrayValuesForInndex;
@@ -159,6 +160,10 @@ public class LoginActivity extends AppCompatActivity {
         infoUsuario.putInt("tipoUsuario", user.getTipo());
 
         infoUsuario.apply();
+
+        DownloadUsuarioHasModeloCarro downloadUsuarioHasModeloCarro = new DownloadUsuarioHasModeloCarro(user.getId(), this.helper);
+        downloadUsuarioHasModeloCarro.start();
+
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         startActivity(intent);
         finish();

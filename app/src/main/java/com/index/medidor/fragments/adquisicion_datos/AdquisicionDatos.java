@@ -66,7 +66,7 @@ public class AdquisicionDatos extends Fragment {
 
     private EditText edtGalIngresados;
     private int estadoAdquicision;
-    private int idMarca = 0;
+    private int idMarca = 0, spBluetoothCheck = 0;
     private List<MarcaCarros> marcaCarrosList;
     private DataBaseHelper helper;
     private boolean acquisitionStarted;
@@ -97,7 +97,6 @@ public class AdquisicionDatos extends Fragment {
         this.mainActivity = mainActivity;
         this.keyArraysAdq = new ArrayList<>();
         this.helper = OpenHelperManager.getHelper(mainActivity, DataBaseHelper.class);
-
     }
 
     /**
@@ -143,8 +142,6 @@ public class AdquisicionDatos extends Fragment {
 
         return v;
     }
-
-
 
     private void init() {
 
@@ -255,7 +252,7 @@ public class AdquisicionDatos extends Fragment {
         if (mainActivity.getBtSocket() != null){
 
             acquisitionStarted = true;
-            mainActivity.getBluetoothHelper().setAdq(true);
+            BluetoothHelper.setAdqProcess(true);
 
         }else{
             Toast.makeText(mainActivity, "ASEGURESE DE QUE EL DISPOSITIVO INNDEX ESTA CONECTADO.", Toast.LENGTH_SHORT).show();
@@ -364,9 +361,12 @@ public class AdquisicionDatos extends Fragment {
                     /*TODO: si ya se esta haciendo adquisicion no se puede escoger otro bluetooth
                      */
 
-                    if(!acquisitionStarted) {
+                    spBluetoothCheck++;
+                    if(!acquisitionStarted && spBluetoothCheck > 1) {
 
                         Toast.makeText(mainActivity, "CONECTANDO...", Toast.LENGTH_SHORT).show();
+
+                        mainActivity.initAdq(spBluetoothDevicesList.get(position).getAddress());
 
                         spBluetoothDevices.setEnabled(false);
 

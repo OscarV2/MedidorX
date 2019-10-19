@@ -52,7 +52,6 @@ public class InicioFragment extends Fragment {
     private Button btnRecorrido;
     private TextView tvGalones,tvDistancia;
     boolean estado = false;
-    private CombustibleActivity combustibleActivity;
     private Timer mTimer1;
     private Handler mHandler;
     private double combustibleInicial, galonesPerdidos;
@@ -90,7 +89,7 @@ public class InicioFragment extends Fragment {
 
     private void drawRouteToStation(){
 
-        mainActivity.drawSationRoute();
+        mainActivity.getMapService().drawSationRoute();
     }
 
     @Override
@@ -141,7 +140,7 @@ public class InicioFragment extends Fragment {
         //    mainActivity.irDondeTanquear();
         //});
         FloatingActionButton fabUbicacion = v.findViewById(R.id.fabUbicacion);
-        fabUbicacion.setOnClickListener(v2 -> this.mainActivity.mostrarUbicacion());
+        fabUbicacion.setOnClickListener(v2 -> this.mainActivity.getMapService().mostrarUbicacion());
 
         fabRuta = v.findViewById(R.id.fabRuta);
 
@@ -208,15 +207,15 @@ public class InicioFragment extends Fragment {
 
             public void run() {
                 mHandler.post(() -> {
-                    Log.e("Cantidad", "Combustible " + combustibleActivity.getNivelCombustible());
-                    double combustibleActual = combustibleActivity.getNivelCombustible();
+                    Log.e("Cantidad", "Combustible " + mainActivity.getNivelCombustible());
+                    double combustibleActual = mainActivity.getNivelCombustible();
 
                     if (combustibleActual < combustibleInicial){
 
-                        galonesPerdidos = galonesPerdidos + (combustibleInicial - combustibleActivity.getNivelCombustible());
+                        galonesPerdidos = galonesPerdidos + (combustibleInicial - mainActivity.getNivelCombustible());
                         combustibleInicial = combustibleActual;
                         tvGalones.setText(getString(R.string.txt_galones, galonesPerdidos));
-                        tvDistancia.setText(getString(R.string.txt_distancia, combustibleActivity.getDistanciaRecorrida()));
+                        //tvDistancia.setText(getString(R.string.txt_distancia, mainActivity.getDistanciaRecorrida()));
                     }
                 });
             }
@@ -234,8 +233,8 @@ public class InicioFragment extends Fragment {
             mTimer1.purge();
         }
         recorrido.setGalonesPerdidos(galonesPerdidos);
-        recorrido.setRutas(combustibleActivity.getRutas());
-        recorrido.setIdUsuario(combustibleActivity.getIdUsuario());
+        //recorrido.setRutas(mainActivity.getRutas());
+        //recorrido.setIdUsuario(mainActivity.getIdUsuario());
         recorrido.setPosiciones();
         recorrido.setDistancia();
         Gson gson = new Gson();

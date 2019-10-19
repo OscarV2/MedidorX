@@ -75,6 +75,7 @@ import com.index.medidor.rutas.PasarUbicacion;
 import com.index.medidor.rutas.Route;
 import com.index.medidor.bluetooth.interfaces.BluetoothDataReceiver;
 import com.index.medidor.bluetooth.BluetoothHelper;
+import com.index.medidor.services.MapService;
 import com.index.medidor.utils.Constantes;
 import com.index.medidor.utils.CustomProgressDialog;
 import com.index.medidor.utils.NavTypeFace;
@@ -91,26 +92,26 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, SetArrayValuesForInndex,
-        GoogleMap.OnMarkerClickListener, PasarUbicacion, BluetoothDataReceiver, AdquisicionDatos.OnFragmentInteractionListener, IBluetoothState,
+        BluetoothDataReceiver, AdquisicionDatos.OnFragmentInteractionListener, IBluetoothState,
         InicioFragment.OnFragmentInteractionListener, HistorialTabs.OnFragmentInteractionListener, DondeTanquearFragment.OnFragmentInteractionListener,
         CombustibleTabs.OnFragmentInteractionListener, ConfiguracionTabs.OnFragmentInteractionListener,LocationListener, IngresadoFragment.OnFragmentInteractionListener, DondeTanquearTabs.OnFragmentInteractionListener {
 
-    private GoogleMap mMap;
+    //private GoogleMap mMap;
     private static final int LOCATION_REQUEST_CODE = 1;
     private DrawerLayout drawer;
     NavigationView navigationView;
-    private LatLng newPosition;
+    //private LatLng newPosition;
 
     private BluetoothSocket btSocket;
     private LocationManager locationManager;
     private ProgressBar pbCombustible;
     private TextView tvCombustible;
     private AlertDialog alert = null;
-    private Location myLocation;
+    //private Location myLocation;
     private CustomProgressDialog mCustomProgressDialog;
     private SharedPreferences myPreferences;
     private double nivelCombustible;
-    private List<Polyline> polylinePaths = new ArrayList<>();
+    //private List<Polyline> polylinePaths = new ArrayList<>();
     private List<Estaciones> estaciones;
     private DataBaseHelper helper;
     private ImageButton btnBack, btnMenu;
@@ -119,15 +120,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     View viewMap;
     private Estaciones estacionMasCercana;
     private EstacionesPlaces estacionesPlaces;
-    Fragment miFragment;
+    private Fragment miFragment;
 
     private Timer timerInndexDeviceListener;
-
     private BluetoothHelper bluetoothHelper;
-
     private Integer tipoUsuario;
+    //private Marker markerStation;
 
-    private Marker markerStation;
+    private MapService mapService;
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @SuppressLint("ResourceType")
@@ -268,14 +268,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
+
+        mapService = new MapService(googleMap, this);
 
         if (estaciones.size() > 0){
             for (Estaciones estacion:
                     estaciones) {
                 LatLng latLng = new LatLng(estacion.getLatitud(), estacion.getLongitud());
-                mMap.addMarker(new MarkerOptions().position(latLng).title(estacion.getMarca()).snippet(estacion.getDireccion()).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker)));
-
+                mapService.getmMap().addMarker(new MarkerOptions().position(latLng).title(estacion.getMarca()).snippet(estacion.getDireccion()).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker)));
             }
         }
 
@@ -284,14 +284,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 == PackageManager.PERMISSION_GRANTED) {
             locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-            myLocation = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
-            mMap.setMyLocationEnabled(true);
+            mapService.setMyLocation(locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER));
+            mapService.getmMap().setMyLocationEnabled(true);
 
-            if (myLocation != null){
-                mostrarUbicacion();
+            if (mapService.getMyLocation() != null){
+                mapService.mostrarUbicacion();
             }else{
                 Log.e("onMapReady","Dentro de segundo if, mulocation es NULL");
-
             }
 
         } else {
@@ -308,13 +307,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             //}
         }
 
-        UiSettings uiSettings = mMap.getUiSettings();
-        uiSettings.setAllGesturesEnabled(true);
-        uiSettings.setMapToolbarEnabled(false);
-        uiSettings.setMyLocationButtonEnabled(false);
-        //newMarker(10.468854, -73.257013);
-        //newMarker(8.60, -74.08);
-        mMap.setOnMarkerClickListener(this);
+
 
     }
 
@@ -390,29 +383,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     @Override
-    public boolean onMarkerClick(Marker marker) {
-
-        markerStation = marker;
-        return false;
-    }
-
-    @Override
-    public void trazarRutas(List<Route> rutas) {
-
-        Log.e("Trazar rutas","trazando rutas");
-        for (Route route : rutas) {
-            PolylineOptions polylineOptions = new PolylineOptions().
-                    geodesic(true).
-                    color(Color.BLUE).
-                    width(10);
-
-            for (int i = 0; i < route.points.size(); i++)
-                polylineOptions.add(route.points.get(i));
-            polylinePaths.add(mMap.addPolyline(polylineOptions));
-        }
-    }
-
-    @Override
     public void getBluetoothData(double dato) {
         nivelCombustible = dato;
         //pbCombustible.setProgress(this.myPreferences.getInt(Constantes.DEFAULT_GAL_CANT, 10));
@@ -426,17 +396,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    public void mostrarUbicacion() {
-        //initLocation();
-        if (myLocation != null){
 
-            newPosition = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(newPosition, 14));
-        }else{
-            Toast.makeText(this, "NO SE PUEDE MOSTRAR TU UBICACIÓN. INTENTALO MAS TARDE.", Toast.LENGTH_SHORT).show();
-        }
-
-    }
 
     private void logout() {
         drawer.closeDrawers(); // Cerrar drawer
@@ -539,17 +499,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
                         //locationManager.req
                         //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-                        myLocation = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
-                        if (myLocation != null){
-                            newPosition = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
+                        mapService.setMyLocation(locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER));
+                        if (mapService.getMyLocation() != null){
+                            LatLng newPosition = new LatLng(mapService.getMyLocation().getLatitude(), mapService.getMyLocation().getLongitude());
                             SharedPreferences.Editor editor = myPreferences.edit();
-                            editor.putString("latitud",String.valueOf(myLocation.getLatitude()));
-                            editor.putString("longitud",String.valueOf(myLocation.getLongitude()));
+                            editor.putString("latitud",String.valueOf(mapService.getMyLocation().getLatitude()));
+                            editor.putString("longitud",String.valueOf(mapService.getMyLocation().getLongitude()));
                             editor.apply();
-                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(newPosition, 14));
+                            mapService.getmMap().animateCamera(CameraUpdateFactory.newLatLngZoom(newPosition, 14));
                             //mMap.addMarker(new MarkerOptions().position(newPosition).flat(true).title("Mi ubicación"));
                             EstacionesPlaces places = new EstacionesPlaces();
-                            mMap.setMyLocationEnabled(true);
+                            mapService.getmMap().setMyLocationEnabled(true);
                             try {
                                 Estaciones estacionMasCercana = places.getEstacionMasCercana(newPosition, helper);
                                 Gson gson = new Gson();
@@ -622,11 +582,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void updateLocation(){
         //myLocation = location;
-        myLocation = null;
+        /*mapService.setMyLocation(null);
         SharedPreferences.Editor editor = myPreferences.edit();
         editor.putString("latitud",String.valueOf(myLocation.getLatitude()));
         editor.putString("longitud",String.valueOf(myLocation.getLongitude()));
-        editor.apply();
+        editor.apply();*/
     }
 
     @Override
@@ -693,26 +653,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
-    public void drawSationRoute(){
-
-        if(markerStation == null){
-
-            Toast.makeText(this, "DEBE SELECCIONAR UNA ESTACIÓN!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (myLocation != null){
-            LatLng latLng = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
-            LatLng destino = new LatLng(markerStation.getPosition().latitude, markerStation.getPosition().longitude);
-            //DirectionFinder buscador = new DirectionFinder(this, latLng, destino, getString(R.string.google_maps_key));
-            DirectionFinder buscador = new DirectionFinder(this, latLng, destino,
-                    Constantes.API_KEY_PLACES);
-            buscador.peticionRutas();
-        }else{
-            Log.e("UBICACION","NULA EN NEW RUTA");
-        }
-    }
-
     public BluetoothHelper getBluetoothHelper() {
         return bluetoothHelper;
     }
@@ -727,10 +667,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 Double.valueOf(myPreferences.getString("longitud", "0"))), helper);
     }
 
-    public Location getMyLocation() {
-        return myLocation;
-    }
-
     @Override
     public void setValues(String values) {
 
@@ -740,7 +676,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         estaciones.add(estacion);
 
         LatLng latLng = new LatLng(estacion.getLatitud(), estacion.getLongitud());
-        mMap.addMarker(new MarkerOptions().position(latLng).title(estacion.getMarca()).snippet(estacion.getDireccion()).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker)));
+        mapService.getmMap().addMarker(new MarkerOptions().position(latLng).title(estacion.getMarca()).snippet(estacion.getDireccion()).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker)));
     }
 
     @Override
@@ -771,13 +707,31 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    public void initAdq(String bluetoothMac){
+
+        myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_MAC, bluetoothMac).apply();
+        bluetoothHelper = new BluetoothHelper(MainActivity.this);
+        bluetoothHelper.checkBTState();
+        btSocket = bluetoothHelper.getBtSocket();
+    }
+
     @Override
     public void couldNotConnectToDevice() {
+
+        //if(miFragment instanceof AdquisicionDatos)
 
         Toast.makeText(getApplicationContext(), "No se pudo establecer conexion con el dispositivo", Toast.LENGTH_LONG).show();
     }
 
     public ImageButton getBtnBack() {
         return btnBack;
+    }
+
+    public MapService getMapService() {
+        return mapService;
+    }
+
+    public void setMapService(MapService mapService) {
+        this.mapService = mapService;
     }
 }
