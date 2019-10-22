@@ -24,6 +24,10 @@ public class ModeloCarros implements Serializable {
     private String modelo;
     @DatabaseField
     private String valoresAdq;
+    @DatabaseField
+    private String flujo;
+    @DatabaseField
+    private Boolean hasTwoTanks ;
 
     public ModeloCarros() {
     }
@@ -76,6 +80,14 @@ public class ModeloCarros implements Serializable {
         this.tipo_combustuble = tipo_combustuble;
     }
 
+    public Boolean getHasTwoTanks() {
+        return hasTwoTanks;
+    }
+
+    public void setHasTwoTanks(Boolean hasTwoTanks) {
+        this.hasTwoTanks = hasTwoTanks;
+    }
+
     public String getModelo() {
         return modelo;
     }
@@ -90,5 +102,13 @@ public class ModeloCarros implements Serializable {
 
     public void setValoresAdq(String valoresAdq) {
         this.valoresAdq = valoresAdq;
+    }
+
+    public String getFlujo() {
+        return flujo;
+    }
+
+    public void setFlujo(String flujo) {
+        this.flujo = flujo;
     }
 }

@@ -11,6 +11,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.index.medidor.rutas.DirectionFinder;
@@ -24,7 +25,7 @@ import java.util.List;
 public class MapService implements PasarUbicacion, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;
-    private Marker markerStation;
+    private Marker markerStation, markerMyPosition;
     private List<Polyline> polylinePaths = new ArrayList<>();
     private Location myLocation;
     private Context context;
@@ -32,12 +33,14 @@ public class MapService implements PasarUbicacion, GoogleMap.OnMarkerClickListen
     public MapService(GoogleMap mMap, Context context) {
         this.mMap = mMap;
         this.context = context;
-        UiSettings uiSettings = this.mMap.getUiSettings();
-        uiSettings.setAllGesturesEnabled(true);
-        uiSettings.setMapToolbarEnabled(false);
-        uiSettings.setMyLocationButtonEnabled(false);
-        this.mMap.setOnMarkerClickListener(this);
+
     }
+
+    public MapService(Context context) {
+        this.context = context;
+    }
+
+
 
     public void drawSationRoute(){
 
@@ -86,7 +89,10 @@ public class MapService implements PasarUbicacion, GoogleMap.OnMarkerClickListen
         if (myLocation != null){
 
             LatLng newPosition = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(newPosition, 14));
+            if (markerMyPosition == null)
+                markerMyPosition = mMap.addMarker(new MarkerOptions().position(newPosition));
+            if(mMap != null)
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(newPosition, 14));
         }else{
             Toast.makeText(context, "NO SE PUEDE MOSTRAR TU UBICACIÓN. INTENTALO MAS TARDE.", Toast.LENGTH_SHORT).show();
         }
@@ -98,6 +104,27 @@ public class MapService implements PasarUbicacion, GoogleMap.OnMarkerClickListen
 
     public void setmMap(GoogleMap mMap) {
         this.mMap = mMap;
+        initMap();
+    }
+
+    private void initMap() {
+        UiSettings uiSettings = this.mMap.getUiSettings();
+        uiSettings.setAllGesturesEnabled(true);
+        uiSettings.setMapToolbarEnabled(false);
+        uiSettings.setMyLocationButtonEnabled(false);
+        this.mMap.setOnMarkerClickListener(this);
+
+    }
+
+    public void updateMyPosition() {
+
+        LatLng newPosition = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
+
+        if (markerMyPosition == null) {
+            markerMyPosition = mMap.addMarker(new MarkerOptions().position(newPosition));
+        } else {
+            markerMyPosition.setPosition(newPosition);
+        }
     }
 
     public Marker getMarkerStation() {

@@ -50,7 +50,6 @@ import com.google.gson.Gson;
 import com.index.medidor.R;
 import com.index.medidor.adapter.TabPagerAdapter;
 import com.index.medidor.database.DataBaseHelper;
-import com.index.medidor.fragments.combustible.RendimientoFragment;
 import com.index.medidor.model.Estaciones;
 import com.index.medidor.places.EstacionesPlaces;
 import com.index.medidor.bluetooth.interfaces.BluetoothDataReceiver;
@@ -192,7 +191,7 @@ public class CombustibleActivity extends AppCompatActivity implements OnMapReady
     }
 
     @Override
-    public void getBluetoothData(double dato) {
+    public void getBluetoothData(double... dato) {
         pbCombustible.setProgress((int) nivelCombustible);
         tvCombustible.setText(getString(R.string.cant_gal, nivelCombustible));
     }
@@ -274,7 +273,6 @@ public class CombustibleActivity extends AppCompatActivity implements OnMapReady
 
         TabPagerAdapter adapter = new TabPagerAdapter(getSupportFragmentManager());
         //adapter.addFragment(new IngresadoFragment(), "Ingresado");
-        adapter.addFragment(new RendimientoFragment(), "Rendimiento");
 
         pager.setAdapter(adapter);
         tabs.setupWithViewPager(pager);

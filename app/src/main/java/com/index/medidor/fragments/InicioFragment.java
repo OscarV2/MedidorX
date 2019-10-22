@@ -110,25 +110,25 @@ public class InicioFragment extends Fragment {
         tvDistancia = v.findViewById(R.id.tvDistancia);
         tvDistancia.setTypeface(light);
         tvDistancia.setText(getString(R.string.txt_distancia, 0.0));
-
+/*
         btnRecorrido = v.findViewById(R.id.btnRecorrido);
         btnRecorrido.setTypeface(bold);
         btnRecorrido.setOnClickListener(view -> {
             estado = !estado;
             if(estado){
                 btnRecorrido.setText(R.string.detener2);
-                /*
+
                 combustibleActivity.initLocationSettings();
                 combustibleActivity.iniciarRecorrido();
-                iniciarMedicion();*/
+                iniciarMedicion();
             }else{
                 btnRecorrido.setText(R.string.iniciar2);
-                /*
+
                 combustibleActivity.detenerRecorrido();
-                detenerMedicion();*/
+                detenerMedicion();
             }
         });
-
+*/
         recorrido = new Recorridos();
 //        combustibleInicial = combustibleActivity.getNivelCombustible();
         galonesPerdidos = 0;

@@ -48,15 +48,15 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/lay_anio_modelo"
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginRight="15dp"
         android:layout_marginLeft="15dp"
-            android:layout_below="@id/lay_datos_adq_modelo"
-            android:layout_toEndOf="@id/img_mi_vehiculo_adq"
-            android:layout_marginEnd="10dp">
-
+        android:layout_below="@id/lay_datos_adq_modelo"
+        android:layout_toEndOf="@id/img_mi_vehiculo_adq"
+        android:layout_marginEnd="10dp">
 
         <Spinner
             android:id="@+id/sp_anio_adq_modelo"
@@ -72,6 +72,16 @@
 
     </LinearLayout>
 
+    <RadioButton
+        android:id="@+id/rb_tiene_2_tanques"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_below="@id/lay_anio_modelo"
+        android:layout_alignParentEnd="true"
+        android:text="@string/tiene_2_tanques"
+        android:layout_marginEnd="20dp"/>
+
     <Button
         android:id="@+id/btn_datos_adq_correctamente"
         android:layout_width="match_parent"
@@ -79,7 +89,7 @@
         android:text="@string/iniciarAdqModelo"
         android:layout_centerHorizontal="true"
         android:textColor="@color/white"
-        android:layout_below="@id/img_mi_vehiculo_adq"
+        android:layout_below="@id/rb_tiene_2_tanques"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="20dp"
         android:textSize="20sp"/>

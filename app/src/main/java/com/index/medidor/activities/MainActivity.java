@@ -20,11 +20,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
-import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
@@ -48,20 +45,15 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.navigation.NavigationView;
 import com.google.gson.Gson;
 import com.index.medidor.R;
 import com.index.medidor.bluetooth.interfaces.IBluetoothState;
 import com.index.medidor.database.DataBaseHelper;
 import com.index.medidor.fragments.adquisicion_datos.AdquisicionDatos;
-import com.index.medidor.fragments.combustible.CombustibleTabs;
 import com.index.medidor.fragments.DondeTanquearFragment;
 import com.index.medidor.fragments.configuracion_cuenta.ConfiguracionTabs;
 import com.index.medidor.fragments.dondetanquear.DondeTanquearTabs;
@@ -70,9 +62,6 @@ import com.index.medidor.fragments.combustible.IngresadoFragment;
 import com.index.medidor.fragments.InicioFragment;
 import com.index.medidor.model.Estaciones;
 import com.index.medidor.places.EstacionesPlaces;
-import com.index.medidor.rutas.DirectionFinder;
-import com.index.medidor.rutas.PasarUbicacion;
-import com.index.medidor.rutas.Route;
 import com.index.medidor.bluetooth.interfaces.BluetoothDataReceiver;
 import com.index.medidor.bluetooth.BluetoothHelper;
 import com.index.medidor.services.InndexLocationService;
@@ -85,7 +74,6 @@ import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -95,7 +83,7 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, SetArrayValuesForInndex,
         BluetoothDataReceiver, AdquisicionDatos.OnFragmentInteractionListener, IBluetoothState, DondeTanquearTabs.OnFragmentInteractionListener,
         InicioFragment.OnFragmentInteractionListener, HistorialTabs.OnFragmentInteractionListener, DondeTanquearFragment.OnFragmentInteractionListener,
-        CombustibleTabs.OnFragmentInteractionListener, ConfiguracionTabs.OnFragmentInteractionListener, IngresadoFragment.OnFragmentInteractionListener {
+        ConfiguracionTabs.OnFragmentInteractionListener, IngresadoFragment.OnFragmentInteractionListener {
 
     //private GoogleMap mMap;
     //private static final int LOCATION_REQUEST_CODE = 1;
@@ -150,6 +138,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        mapService = new MapService(this);
 
         mCustomProgressDialog = new CustomProgressDialog(this);
         mCustomProgressDialog.setCanceledOnTouchOutside(false);
@@ -228,7 +218,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         if (id == R.id.nav_combustible) {
 
-            //miFragment = new CombustibleTabs(this);
             miFragment = new IngresadoFragment(this);
             fragmentSeleccionado = true;
             tvTitulo.setText("Medir Combustible");
@@ -273,7 +262,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
-        mapService = new MapService(googleMap, this);
+        mapService.setmMap(googleMap);
+        mapService.getmMap().setMyLocationEnabled(true);
+
+        if(mapService.getMyLocation() != null) {
+
+            mapService.mostrarUbicacion();
+        }
 
         if (estaciones.size() > 0){
             for (Estaciones estacion:
@@ -284,8 +279,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-
-
     @Override
     protected void onStart() {
         super.onStart();
@@ -294,7 +287,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.e("MAIN","on RESUME");
 
         inndexLocationService.setLocationManager(null);
         /*if (btSocket != null ){
@@ -306,7 +298,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     e.printStackTrace();
                 }
             }
-
         }*/
         if (alert != null) {
             alert.dismiss();
@@ -330,16 +321,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     @Override
-    public void getBluetoothData(double dato) {
-        nivelCombustible = dato;
+    public void getBluetoothData(double... dato) {
+        nivelCombustible = dato[0];
         //pbCombustible.setProgress(this.myPreferences.getInt(Constantes.DEFAULT_GAL_CANT, 10));
-        pbCombustible.setProgress((int)dato);
+        pbCombustible.setProgress((int)dato[0]);
         tvCombustible.setText(getString(R.string.cant_gal,nivelCombustible));
         myPreferences.edit().putString("nivel", String.valueOf(nivelCombustible)).apply();
 
         if(miFragment instanceof AdquisicionDatos){
 
-            (((AdquisicionDatos) miFragment)).getBluetoothData((int)dato);
+            (((AdquisicionDatos) miFragment)).getBluetoothData((int)dato[0], (int)dato[1]);
         }
     }
 
@@ -492,7 +483,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void getAllStations() throws SQLException {
 
         final Dao<Estaciones, Integer> dao = helper.getDaoEstaciones();
-
         estaciones = dao.queryForAll();
     }
 
@@ -616,16 +606,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                     bluetoothHelper.checkBTState();
                 }
-
             }
         };
-
         timerInndexDeviceListener.schedule(tTInndexDeviceListener, 1,3000);
     }
 
     public void cancelTimers(){
-
-        if (timerInndexDeviceListener != null){
+        if (timerInndexDeviceListener != null) {
             timerInndexDeviceListener.cancel();
             timerInndexDeviceListener.purge();
         }
@@ -641,8 +628,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void couldNotConnectToDevice() {
-
         //if(miFragment instanceof AdquisicionDatos)
+        if(miFragment instanceof AdquisicionDatos)
+            ((AdquisicionDatos) miFragment).setDeviceConnected(false);
 
         Toast.makeText(getApplicationContext(), "No se pudo establecer conexion con el dispositivo", Toast.LENGTH_LONG).show();
     }

@@ -1,11 +1,20 @@
 package com.index.medidor.model;
 
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+
+@DatabaseTable(tableName = "unidad_recorrido")
 public class UnidadRecorrido {
 
+    @DatabaseField
     private double latitud;
+    @DatabaseField
     private double longitud;
+    @DatabaseField
     private long tiempo;
+    @DatabaseField
     private int galones;
+    @DatabaseField
     private int valorBluetooh;
 
     public UnidadRecorrido() {

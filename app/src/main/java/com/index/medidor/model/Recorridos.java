@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.index.medidor.utils.Constantes;
 import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
 
 import java.io.Serializable;
@@ -28,7 +29,11 @@ public class Recorridos implements Serializable {
     private String horaInicio;
     @DatabaseField
     private int distancia;
+
     private transient List<LatLng> posiciones;
+
+    @ForeignCollectionField
+    private List<UnidadRecorrido> unidadRecorridos;
 
     public String getRutas() {
         return rutas;
@@ -101,5 +106,13 @@ public class Recorridos implements Serializable {
 
             }
         }
+    }
+
+    public List<UnidadRecorrido> getUnidadRecorridos() {
+        return unidadRecorridos;
+    }
+
+    public void setUnidadRecorridos(List<UnidadRecorrido> unidadRecorridos) {
+        this.unidadRecorridos = unidadRecorridos;
     }
 }

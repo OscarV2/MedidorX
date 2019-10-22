@@ -22,10 +22,12 @@
         android:layout_height="wrap_content"
         android:background="@android:color/white"
         android:layout_marginTop="15dp"
-        android:layout_gravity="center_horizontal"
         android:layout_marginLeft="@dimen/margin_box"
         android:layout_marginRight="@dimen/margin_box"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:layout_alignParentBottom="true"
+        android:layout_alignEnd="@id/fabRuta"
+        android:layout_marginBottom="15dp">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -52,20 +54,11 @@
                 android:text="@string/txt_distancia"
                 />
 
-            <ImageButton
-                android:id="@+id/btnRefresh"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/margin_left_imag_btn_refresh"
-                android:layout_gravity="center_vertical"
-                android:background="@android:color/transparent"
-                android:src="@drawable/ic_refresh"
-                android:contentDescription="@string/content_image_btn_refresh" />
         </LinearLayout>
 
     </LinearLayout>
 
-    <!--Button
+    <Button
         android:id="@+id/btnTanquear"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -76,7 +69,7 @@
         android:textSize="18sp"
         android:textColor="@color/white"
         android:paddingHorizontal="20dp"
-        android:background="@drawable/redondeado"/-->
+        android:background="@drawable/redondeado"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabUbicacion"
@@ -85,7 +78,7 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_marginEnd="10dp"
-        android:layout_marginBottom="13dp"
+        android:layout_marginBottom="90dp"
         app:backgroundTint="@color/white"
         android:src="@drawable/ic_ubicacion"/>
 
@@ -95,11 +88,11 @@
         android:layout_height="wrap_content"
         android:layout_alignStart="@+id/fabUbicacion"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="80dp"
+        android:layout_marginBottom="150dp"
         android:src="@drawable/ic_ruta"
         app:backgroundTint="@color/white"/>
 
-    <Button
+    <!--Button
         android:id="@+id/btnRecorrido"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -117,6 +110,6 @@
         android:text="@string/iniciar2"
         android:paddingEnd="20dp"
         android:paddingStart="20dp"
-        android:layout_alignEnd="@id/fabRuta"/>
+        android:layout_alignEnd="@id/fabRuta"-->
 
 </RelativeLayout>

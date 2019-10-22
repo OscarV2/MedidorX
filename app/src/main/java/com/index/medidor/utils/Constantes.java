@@ -60,6 +60,7 @@ public class Constantes {
     public static final String DEFAULT_BLUETOOTH_MAC = "defaultBluetoothMac";
     public static final String CONTENT_TYPE_JSON = "application/json";
     public static final String DEFAULT_GAL_CANT = "defaultGalCant";
+    public static final String MODEL_HAS_TWO_TANKS = "modelHasTwoTanks";
 
     public static final String SESION_ACTIVE = "sesionMedidor";
 

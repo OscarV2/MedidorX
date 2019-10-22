@@ -19,6 +19,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -59,20 +60,22 @@ import retrofit2.Response;
 public class AdquisicionDatos extends Fragment {
 
     private Spinner spMarca;
-    private EditText edtLinea;
     private Spinner spAnio;
     private Spinner spCombustible;
     private Spinner spBluetoothDevices;
 
+    private Button btnAdquisicion;
+    private Button btnRegistrar;
     private EditText edtGalIngresados;
+    private EditText edtLinea;
+    private RadioButton rbTieneDosTanques;
+
     private int estadoAdquicision;
     private int idMarca = 0, spBluetoothCheck = 0;
     private List<MarcaCarros> marcaCarrosList;
     private DataBaseHelper helper;
     private boolean acquisitionStarted;
-
-    private Button btnAdquisicion;
-    private Button btnRegistrar;
+    private boolean deviceConnected;
 
     private MainActivity mainActivity;
 
@@ -86,6 +89,7 @@ public class AdquisicionDatos extends Fragment {
     private BluetoothHelper bluetoothHelper;
     private double galIngresados;
     private List<Integer> keyArraysAdq;
+    private List<Integer> keyArraysFlux;
 
     public AdquisicionDatos() {
         // Required empty public constructor
@@ -118,7 +122,6 @@ public class AdquisicionDatos extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
     }
 
     @Override
@@ -132,10 +135,12 @@ public class AdquisicionDatos extends Fragment {
         edtLinea = v.findViewById(R.id.edt_linea_adq_modelo);
         spMarca = v.findViewById(R.id.sp_marca_adq_modelo);
         spBluetoothDevices = v.findViewById(R.id.sp_select_bluetooth_device);
+        rbTieneDosTanques = v.findViewById(R.id.rb_tiene_2_tanques);
 
         btnAdquisicion = v.findViewById(R.id.btn_datos_adq_correctamente);
         btnRegistrar = v.findViewById(R.id.btn_registrar_adq_correctamente);
         estadoAdquicision = 0;
+        keyArraysFlux = new ArrayList<>();
         init();
         initSpBluetoothDevices();
         acquisitionStarted = false;
@@ -209,6 +214,12 @@ public class AdquisicionDatos extends Fragment {
         });
         btnAdquisicion.setOnClickListener(v -> {
 
+            if (!deviceConnected)
+            {
+                Toast.makeText(mainActivity, "NO EXISTE DISPOSITIVO CONECTADO.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             if (!acquisitionStarted){
 
                 iniciarAdq();
@@ -277,12 +288,20 @@ public class AdquisicionDatos extends Fragment {
         Gson gson = new Gson();
 
         JsonObject jsonArrayKeys = new JsonObject();
+        JsonObject jsonArrayFlux = new JsonObject();
 
         jsonArrayKeys.add("galones", gson.toJsonTree(keyArraysAdq));
+        jsonArrayFlux.add("flujo", gson.toJsonTree(keyArraysFlux));
 
         modeloCarros.setMuestreo( gson.toJson(jsonArrayKeys));
+        modeloCarros.setFlujo( gson.toJson(jsonArrayFlux));
+        if(this.rbTieneDosTanques.isChecked()) {
+            modeloCarros.setHasTwoTanks(true);
+        }
         modeloCarros.setLinea(edtLinea.getText().toString());
         modeloCarros.setGalones(this.galIngresados);
+        modeloCarros.setHasTwoTanks(rbTieneDosTanques.isChecked());
+
         if (idMarca == 0){
             idMarca = 1;
         }
@@ -346,7 +365,6 @@ public class AdquisicionDatos extends Fragment {
                 spBluetoothDevice = new SpBluetoothDevice(device.getName(), device.getAddress());
 
                 spBluetoothDevicesList.add(spBluetoothDevice);
-
             }
         }
 
@@ -361,6 +379,7 @@ public class AdquisicionDatos extends Fragment {
                     /*TODO: si ya se esta haciendo adquisicion no se puede escoger otro bluetooth
                      */
 
+                    Log.e("item","selected");
                     spBluetoothCheck++;
                     if(!acquisitionStarted && spBluetoothCheck > 1) {
 
@@ -368,16 +387,16 @@ public class AdquisicionDatos extends Fragment {
 
                         mainActivity.initAdq(spBluetoothDevicesList.get(position).getAddress());
 
-                        spBluetoothDevices.setEnabled(false);
+                        deviceConnected = true;
 
                     } else {
-
-
+                        Log.e("item","selected else");
                     }
                 }
                 @Override
                 public void onNothingSelected(AdapterView<?> parent) {
 
+                    Log.e("Bluetooth","Nothing selected");
                 }
             });
         }
@@ -407,17 +426,27 @@ public class AdquisicionDatos extends Fragment {
         mListener = null;
     }
 
+    public void getBluetoothData(int... dato) {
 
-    public void getBluetoothData(int dato) {
-
-        if (acquisitionStarted){
-
+        if (acquisitionStarted) {
             Log.e("tu adqDato", String.valueOf(dato));
-            keyArraysAdq.add(dato);
-
+            keyArraysAdq.add(dato[0]);
+            keyArraysFlux.add(dato[1]);
         }
     }
 
+    public boolean isDeviceConnected() {
+        return deviceConnected;
+    }
+
+    public void setDeviceConnected(boolean deviceConnected) {
+
+        if (!deviceConnected) {
+            spBluetoothDevices.setEnabled(true);
+            Toast.makeText(mainActivity, "NO SE PUDO CONECTAR CON EL DISPOSITIVO.", Toast.LENGTH_SHORT).show();
+        }
+        this.deviceConnected = deviceConnected;
+    }
 
     /**
      * This interface must be implemented by activities that contain this

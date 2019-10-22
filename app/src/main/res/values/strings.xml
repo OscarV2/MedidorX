@@ -93,6 +93,7 @@
     <string name="guardar_cambios">Guardar Cambios</string>
     <string name="hint_placa">PLACA</string>
     <string name="hint_password">********</string>
+    <string name="tiene_2_tanques">Tiene 2 tanques?</string>
 
     <string-array name="tipos_combustibles">
         <item>ACPM</item>

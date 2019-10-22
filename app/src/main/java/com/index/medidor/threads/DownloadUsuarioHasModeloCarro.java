@@ -37,11 +37,7 @@ public class DownloadUsuarioHasModeloCarro extends Thread {
 
                     if(response.body() != null && response.body().size() > 0) {
 
-                        for (UsuarioHasModeloCarro uhmd: response.body()
-                        ) {
-
-                            dao.create(uhmd);
-                        }
+                        dao.create(response.body());
                     }
                 } catch (SQLException e) {
                     e.printStackTrace();

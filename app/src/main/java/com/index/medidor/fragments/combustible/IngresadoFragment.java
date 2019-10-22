@@ -52,8 +52,6 @@ import retrofit2.Response;
 
 public class IngresadoFragment extends Fragment {
 
-    private CombustibleTabs.OnFragmentInteractionListener mListener;
-
     private Button btnMedicion;
     private TextView tvGalones;
     private TextView tvTotal, tvSignoPeso;
