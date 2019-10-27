@@ -6,6 +6,8 @@ import com.j256.ormlite.table.DatabaseTable;
 @DatabaseTable(tableName = "unidad_recorrido")
 public class UnidadRecorrido {
 
+    @DatabaseField(generatedId = true, columnName = "id")
+    private Long id;
     @DatabaseField
     private double latitud;
     @DatabaseField
@@ -13,11 +15,26 @@ public class UnidadRecorrido {
     @DatabaseField
     private long tiempo;
     @DatabaseField
-    private int galones;
+    private Integer galones;
     @DatabaseField
-    private int valorBluetooh;
+    private Integer galonesT2;
+    @DatabaseField
+    private Integer valorBluetooh;
+    @DatabaseField
+    private Integer valorBluetoohT2;
+
+    @DatabaseField(foreign = true, foreignAutoRefresh = true)
+    private Recorrido recorrido;
 
     public UnidadRecorrido() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public double getLatitud() {
@@ -44,19 +61,43 @@ public class UnidadRecorrido {
         this.tiempo = tiempo;
     }
 
-    public int getGalones() {
+    public Integer getGalones() {
         return galones;
     }
 
-    public void setGalones(int galones) {
+    public void setGalones(Integer galones) {
         this.galones = galones;
     }
 
-    public int getValorBluetooh() {
+    public Integer getGalonesT2() {
+        return galonesT2;
+    }
+
+    public void setGalonesT2(Integer galonesT2) {
+        this.galonesT2 = galonesT2;
+    }
+
+    public Integer getValorBluetooh() {
         return valorBluetooh;
     }
 
-    public void setValorBluetooh(int valorBluetooh) {
+    public void setValorBluetooh(Integer valorBluetooh) {
         this.valorBluetooh = valorBluetooh;
+    }
+
+    public Integer getValorBluetoohT2() {
+        return valorBluetoohT2;
+    }
+
+    public void setValorBluetoohT2(Integer valorBluetoohT2) {
+        this.valorBluetoohT2 = valorBluetoohT2;
+    }
+
+    public Recorrido getRecorrido() {
+        return recorrido;
+    }
+
+    public void setRecorrido(Recorrido recorrido) {
+        this.recorrido = recorrido;
     }
 }

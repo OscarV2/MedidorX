@@ -1,5 +1,5 @@
 #
-# generated on 2019/09/22 02:37:20
+# generated on 2019/10/26 06:08:08
 #
 # --table-start--
 dataClass=com.index.medidor.model.Estaciones
@@ -92,33 +92,36 @@ fieldName=modelo
 # --field-start--
 fieldName=valoresAdq
 # --field-end--
+# --field-start--
+fieldName=flujo
+# --field-end--
+# --field-start--
+fieldName=hasTwoTanks
+# --field-end--
 # --table-fields-end--
 # --table-end--
 #################################
 # --table-start--
-dataClass=com.index.medidor.model.Recorridos
-tableName=recorridos
+dataClass=com.index.medidor.model.Recorrido
+tableName=recorrido
 # --table-fields-start--
 # --field-start--
 fieldName=id
+columnName=id
 generatedId=true
 # --field-end--
 # --field-start--
-fieldName=rutas
-canBeNull=false
-# --field-end--
-# --field-start--
 fieldName=idUsuario
-canBeNull=false
 # --field-end--
 # --field-start--
-fieldName=galonesPerdidos
+fieldName=fecha
 # --field-end--
 # --field-start--
-fieldName=horaInicio
+fieldName=uploaded
 # --field-end--
 # --field-start--
-fieldName=distancia
+fieldName=listUnidadRecorrido
+foreignCollection=true
 # --field-end--
 # --table-fields-end--
 # --table-end--
@@ -171,6 +174,45 @@ fieldName=idEstacion
 # --field-end--
 # --field-start--
 fieldName=idUsuario
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.index.medidor.model.UnidadRecorrido
+tableName=unidad_recorrido
+# --table-fields-start--
+# --field-start--
+fieldName=id
+columnName=id
+generatedId=true
+# --field-end--
+# --field-start--
+fieldName=latitud
+# --field-end--
+# --field-start--
+fieldName=longitud
+# --field-end--
+# --field-start--
+fieldName=tiempo
+# --field-end--
+# --field-start--
+fieldName=galones
+# --field-end--
+# --field-start--
+fieldName=galonesT2
+# --field-end--
+# --field-start--
+fieldName=valorBluetooh
+# --field-end--
+# --field-start--
+fieldName=valorBluetoohT2
+# --field-end--
+# --field-start--
+fieldName=recorrido
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
 # --field-end--
 # --table-fields-end--
 # --table-end--

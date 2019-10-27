@@ -8,8 +8,9 @@ import com.index.medidor.R;
 import com.index.medidor.model.Estaciones;
 import com.index.medidor.model.MarcaCarros;
 import com.index.medidor.model.ModeloCarros;
-import com.index.medidor.model.Recorridos;
+import com.index.medidor.model.Recorrido;
 import com.index.medidor.model.Tanqueadas;
+import com.index.medidor.model.UnidadRecorrido;
 import com.index.medidor.model.Usuario;
 import com.index.medidor.model.UsuarioHasModeloCarro;
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
@@ -34,8 +35,8 @@ public class DataBaseHelper extends OrmLiteSqliteOpenHelper {
     private Dao<Estaciones, Integer> daoEstaciones = null;
     private RuntimeExceptionDao<Estaciones, Integer> estacionesRuntimeDao = null;
 
-    private Dao<Recorridos, Integer> daoRecorridos = null;
-    private RuntimeExceptionDao<Recorridos, Integer> recorridosRuntimeDao = null;
+    private Dao<Recorrido, Integer> daoRecorrido = null;
+    private RuntimeExceptionDao<Recorrido, Integer> recorridoRuntimeDao = null;
 
     private Dao<MarcaCarros, Integer> daoMarcas = null;
     private RuntimeExceptionDao<MarcaCarros, Integer> marcasRuntimeDao = null;
@@ -46,9 +47,12 @@ public class DataBaseHelper extends OrmLiteSqliteOpenHelper {
     private Dao<UsuarioHasModeloCarro, Integer> daoUsuarioHasModeloCarros = null;
     private RuntimeExceptionDao<UsuarioHasModeloCarro, Integer> usuarioHasModeloCarroRuntimeDao = null;
 
+    private Dao<UnidadRecorrido, Integer> daoUnidadRecorrido = null;
+    private RuntimeExceptionDao<UnidadRecorrido, Integer> unidadRecorridoRuntimeDao = null;
+
+
     public DataBaseHelper(Context context) {
         super(context, DATABASE_NAME, null, VERSION, R.raw.medidor_config);
- //       super(context, DATABASE_NAME, null, VERSION, 0);
     }
 
     @Override
@@ -58,10 +62,12 @@ public class DataBaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.createTable(connectionSource, Usuario.class);
             TableUtils.createTable(connectionSource, Estaciones.class);
             TableUtils.createTable(connectionSource, Tanqueadas.class);
-            TableUtils.createTable(connectionSource, Recorridos.class);
+            TableUtils.createTable(connectionSource, Recorrido.class);
             TableUtils.createTable(connectionSource, MarcaCarros.class);
             TableUtils.createTable(connectionSource, ModeloCarros.class);
             TableUtils.createTable(connectionSource, UsuarioHasModeloCarro.class);
+            TableUtils.createTable(connectionSource, UnidadRecorrido.class);
+
             Log.e("creating ","tables");
         } catch (SQLException e) {
             Log.e("Error ","Creating tables");
@@ -77,9 +83,10 @@ public class DataBaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.dropTable(connection, Usuario.class, true);
             TableUtils.dropTable(connection, Estaciones.class, true);
             TableUtils.dropTable(connection, Tanqueadas.class, true);
-            TableUtils.dropTable(connection, Recorridos.class, true);
+            TableUtils.dropTable(connection, Recorrido.class, true);
             TableUtils.dropTable(connection, MarcaCarros.class,true);
             TableUtils.dropTable(connection, ModeloCarros.class,true);
+            TableUtils.dropTable(connection, UnidadRecorrido.class,true);
             TableUtils.dropTable(connection, UsuarioHasModeloCarro.class,true);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -118,14 +125,14 @@ public class DataBaseHelper extends OrmLiteSqliteOpenHelper {
         return estacionesRuntimeDao;
     }
 
-    public Dao<Recorridos, Integer> getDaoRecorridos() throws SQLException {
-        if (daoRecorridos == null) daoRecorridos = getDao(Recorridos.class);
-        return daoRecorridos;
+    public Dao<Recorrido, Integer> getDaoRecorridos() throws SQLException {
+        if (daoRecorrido == null) daoRecorrido = getDao(Recorrido.class);
+        return daoRecorrido;
     }
 
-    public RuntimeExceptionDao<Recorridos, Integer> getRecorridosRuntimeDao() {
-        if(recorridosRuntimeDao == null) recorridosRuntimeDao = getRuntimeExceptionDao(Recorridos.class);
-        return recorridosRuntimeDao;
+    public RuntimeExceptionDao<Recorrido, Integer> getRecorridosRuntimeDao() {
+        if(recorridoRuntimeDao == null) recorridoRuntimeDao = getRuntimeExceptionDao(Recorrido.class);
+        return recorridoRuntimeDao;
     }
 
     public Dao<MarcaCarros, Integer> getDaoMarcas() throws SQLException {
@@ -159,19 +166,31 @@ public class DataBaseHelper extends OrmLiteSqliteOpenHelper {
         return usuarioHasModeloCarroRuntimeDao;
     }
 
+    public Dao<UnidadRecorrido, Integer> getDaoUnidadRecorrido() throws SQLException {
+        if (daoUnidadRecorrido == null) daoUnidadRecorrido = getDao(UnidadRecorrido.class);
+
+        return daoUnidadRecorrido;
+    }
+
+    public RuntimeExceptionDao<UnidadRecorrido, Integer> getUnidadRecorridoRuntimeDao() {
+        if(unidadRecorridoRuntimeDao == null) unidadRecorridoRuntimeDao = getRuntimeExceptionDao(UnidadRecorrido.class);
+
+        return unidadRecorridoRuntimeDao;
+    }
+
     @Override
     public void close() {
         super.close();
         daoUsuario = null;
         daoEstaciones = null;
         daoTanqueadas = null;
-        daoRecorridos = null;
+        daoRecorrido = null;
         daoMarcas = null;
         daoModelos = null;
         daoUsuarioHasModeloCarros = null;
         tanqueadasRuntimeDao = null;
         estacionesRuntimeDao = null;
-        recorridosRuntimeDao = null;
+        recorridoRuntimeDao = null;
         usuarioRuntimeDao = null;
         marcasRuntimeDao = null;
         modelosRuntimeDao = null;

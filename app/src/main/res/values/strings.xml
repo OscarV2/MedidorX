@@ -94,6 +94,7 @@
     <string name="hint_placa">PLACA</string>
     <string name="hint_password">********</string>
     <string name="tiene_2_tanques">Tiene 2 tanques?</string>
+    <string name="recorrido">Recorrido</string>
 
     <string-array name="tipos_combustibles">
         <item>ACPM</item>

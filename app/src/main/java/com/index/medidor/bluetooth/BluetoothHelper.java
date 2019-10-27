@@ -42,7 +42,7 @@ import java.util.UUID;
 public class BluetoothHelper {
 
     private MyVeryOwnHandler bluetoothIn;
-    private static StringBuilder recDataString;
+    private static StringBuilder recDataString = new StringBuilder();
     private static int handlerState;
     private static BluetoothDataReceiver bluetoothDataReceiver;
     private Context context;
@@ -53,7 +53,7 @@ public class BluetoothHelper {
     private BluetoothDevice bluetoothDevice;
     private static int dato, datoTanque2, datoFlujo;
     private static List<Integer> dataToAverage;
-    private static boolean adqProcess;
+    public static boolean adqProcess;
     private static JsonObject jsonValues;
     private static int[] arrayKeys;
     private SharedPreferences preferences;
@@ -125,79 +125,70 @@ public class BluetoothHelper {
         @SuppressLint("SetTextI18n")
         public void handleMessage(Message msg) {
 
-            if (msg.what == handlerState) {          //if message is what we want
-                String readMessage = (String) msg.obj;  // msg.arg1 = bytes from connect thread
-
-                if (!readMessage.contains("~"))
-                    return;
+            if (msg.what == handlerState) {             //if message is what we want
+                String readMessage = (String) msg.obj;      // msg.arg1 = bytes from connect thread
                 readMessage = readMessage.replaceAll(" ","");
-                Log.e("readMessage", readMessage);
+                recDataString.append(readMessage);              //keep appending to string until A
+                Log.e("message", readMessage);
+                int endOfLineIndex = recDataString.indexOf("A");                    // determine the end-of-line
 
-                String example = readMessage.replaceAll("#","");
-                String[] datos = example.split("~");
+                if(endOfLineIndex > 0) {
+                    if (recDataString.charAt(0) == '#') {
 
-                /*if(datos.length > 0) {
-                    Log.e("datoOK", datos[0]);
-                    Log.e("datolength", String.valueOf(datos[0].length()));
-                    int dato = Integer.valueOf(datos[0]);
-                }*/
+                        String dataInPrint = recDataString.substring(1, endOfLineIndex);    // extract string
 
-                if(datos.length > 0) {
-                    Log.e("datoOK",datos[0]);
+                        Log.e("data",dataInPrint);
 
-                    if(!modelHasTwoTanks) {
+                        String[] datos = dataInPrint.split("~");
 
-                        dato = Integer.parseInt(datos[0]);     //get sensor value from string between indices 1-5
-                        dataToAverage.add(dato);
+                        if(datos.length > 0) {
 
-                        if (!adqProcess) {
+                            if(!modelHasTwoTanks) {
 
-                            if (dataToAverage.size() == Constantes.ARRAY_DATA_SIZE) {
+                                dato = Integer.parseInt(datos[0]);     //get sensor value from string between indices 1-5
+                                dataToAverage.add(dato);
+                                if (!adqProcess) {
+                                    if (dataToAverage.size() == Constantes.ARRAY_DATA_SIZE) {
 
-                                int sum = 0;
+                                        int sum = 0;
 
-                                for (int i = 0; i < dataToAverage.size(); i++) {
-                                    sum += dataToAverage.get(i);
-                                }
-                                sum = (sum / dataToAverage.size());
+                                        for (int i = 0; i < dataToAverage.size(); i++) {
+                                            sum += dataToAverage.get(i);
+                                        }
+                                        sum = (sum / dataToAverage.size());
 
-                                dataToAverage = new ArrayList<>();
+                                        dataToAverage = new ArrayList<>();
+                                        JsonElement element = jsonValues.get(String.valueOf(sum));
 
-                                JsonElement element = jsonValues.get(String.valueOf(sum));
+                                        if (element != null) {
+                                            //buscar el mas cercano
+                                            //Log.e("1KEY", String.valueOf(sum));
+                                            //Log.e("1Value", String.valueOf(element.getAsDouble()));
+                                            bluetoothDataReceiver.getBluetoothData(element.getAsDouble());
 
-                                if (element != null) {
-                                    //buscar el mas cercano
-                                    //Log.e("1KEY", String.valueOf(sum));
-                                    //Log.e("1Value", String.valueOf(element.getAsDouble()));
-                                    bluetoothDataReceiver.getBluetoothData(element.getAsDouble());
+                                        } else {  // no esta en la lista, buscar el mas cercanp
 
-                                } else {  // no esta en la lista, buscar el mas cercanp
+                                            element = jsonValues.get(String.valueOf(sum));
+                                            try {
+                                                bluetoothDataReceiver.getBluetoothData(element.getAsDouble());
+                                            } catch (NullPointerException ex) {
 
-                                    element = jsonValues.get(String.valueOf(sum));
-                                    try {
-
-                                        bluetoothDataReceiver.getBluetoothData(element.getAsDouble());
-                                    } catch (NullPointerException ex) {
-
-                                        Log.e("EX", "EXcepcion");
+                                                Log.e("EX", "EXcepcion");
+                                            }
+                                        }
+                                    }else {
+                                        Log.e("IF","1");
+                                        bluetoothDataReceiver.getBluetoothData(dato);
                                     }
+                                }else {
+                                    datoFlujo = Integer.valueOf(datos[1]);
+                                    bluetoothDataReceiver.getBluetoothData(dato, datoFlujo);
                                 }
-                            } else {
-                                Log.e("IF","1");
-                                bluetoothDataReceiver.getBluetoothData(dato);
                             }
-                        }else{          //se esta realizando la adquisición de datos
-                            Log.e("IF","2");
-                            datoFlujo = Integer.valueOf(datos[1]);
-                            bluetoothDataReceiver.getBluetoothData(dato, datoFlujo);
                         }
-                    } else {                // El modelo tiene dos tanques
-
-                        datoTanque2 = Integer.valueOf(datos[1]);
                     }
+                    recDataString.delete(0, recDataString.length());      //clear all string data
                 }
-                //recDataString.delete(0, recDataString.length());      //clear all string data
-                recDataString.delete(0, readMessage.length());      //clear all string data
             }
         }
     }
@@ -219,7 +210,6 @@ public class BluetoothHelper {
 
                 e.printStackTrace();
             }
-
             mmInStream = tmpIn;
             mmOutStream = tmpOut;
         }
@@ -415,6 +405,7 @@ public class BluetoothHelper {
                     recDataString.delete(0, recDataString.length());      //clear all string data
                 }
      */
+
 
 }
 

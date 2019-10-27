@@ -95,7 +95,6 @@ public class LoginActivity extends AppCompatActivity {
                     //Toast.makeText(LoginActivity.this, "OK", Toast.LENGTH_SHORT).show();
                 }else{
                     Toast.makeText(getBaseContext(),"No hay conexion a internet", Toast.LENGTH_LONG).show();
-
                 }
             }else{
                 Toast.makeText(getBaseContext(),"Por favor ingrese Correo y Contraseña válidos.", Toast.LENGTH_LONG).show();
@@ -137,7 +136,6 @@ public class LoginActivity extends AppCompatActivity {
                 }else{
                     Toast.makeText(LoginActivity.this, "Error", Toast.LENGTH_SHORT).show();
                 }
-
             }
 
             @Override
@@ -190,7 +188,6 @@ public class LoginActivity extends AppCompatActivity {
 
         helper = OpenHelperManager.getHelper(LoginActivity.this, DataBaseHelper.class);
 
-
         Call<List<UsuarioHasModeloCarro>> callGetAllUhmc = MedidorApiAdapter.getApiService()
                 .getUsuarioHasModeloCarros(String.valueOf(user.getId()));
 
@@ -209,14 +206,10 @@ public class LoginActivity extends AppCompatActivity {
                             for (UsuarioHasModeloCarro uhmc: response.body()) {
 
                                 if(uhmc.getModeloCarros().getValoresAdq() != null){
-
-                                    Log.e("galones",String.valueOf((int)uhmc.getModeloCarros().getGalones()));
-
                                     myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_VALUE_ARRAY, uhmc.getModeloCarros().getValoresAdq()).apply();
                                     //ModeloCarros modeloCarros = daoModeloCarros.queryForId(uhmc.getModelosCarrosId());
                                     myPreferences.edit().putInt(Constantes.DEFAULT_GAL_CANT, (int)uhmc.getModeloCarros().getGalones()).apply();
                                     myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_MAC, uhmc.getBluetoothMac()).apply();
-
                                 }
 
                                 daoUsuarioModeloCarros.create(uhmc);
@@ -228,22 +221,15 @@ public class LoginActivity extends AppCompatActivity {
                         }
 
                     }else  {
-
                         Toast.makeText(LoginActivity.this, "NO SE PUDO DESCARGAR LOS VEHICULOS PARA SU USUARIO.", Toast.LENGTH_SHORT).show();
-
                     }
-
                 }else {
-
                     Toast.makeText(LoginActivity.this, "NO SE PUDO DESCARGAR LOS VEHICULOS PARA SU USUARIO.", Toast.LENGTH_SHORT).show();
-
                 }
-
             }
 
             @Override
             public void onFailure(Call<List<UsuarioHasModeloCarro>> call, Throwable t) {
-
                 Toast.makeText(LoginActivity.this, "NO SE PUDO DESCARGAR LOS VEHICULOS PARA SU USUARIO.", Toast.LENGTH_SHORT).show();
                 Log.e("ERROR", t.getMessage());
             }

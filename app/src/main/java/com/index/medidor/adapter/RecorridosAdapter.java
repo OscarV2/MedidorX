@@ -20,7 +20,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.index.medidor.R;
-import com.index.medidor.model.Recorridos;
+import com.index.medidor.model.Recorrido;
 
 import java.util.List;
 
@@ -28,9 +28,9 @@ import java.util.List;
 public class RecorridosAdapter extends RecyclerView.Adapter<RecorridosAdapter.RecorridosViewHolder>{
 
     private Context context;
-    private List<Recorridos> recorridosList;
+    private List<Recorrido> recorridosList;
 
-    public RecorridosAdapter(Context context, List<Recorridos> recorridosList) {
+    public RecorridosAdapter(Context context, List<Recorrido> recorridosList) {
         this.context = context;
         this.recorridosList = recorridosList;
     }
@@ -48,7 +48,7 @@ public class RecorridosAdapter extends RecyclerView.Adapter<RecorridosAdapter.Re
 
         if (recorridosList != null){
 
-            Recorridos recorrido = recorridosList.get(i);
+            Recorrido recorrido = recorridosList.get(i);
             recorridosViewHolder.bindView(recorrido);
         }
 
@@ -103,15 +103,16 @@ public class RecorridosAdapter extends RecyclerView.Adapter<RecorridosAdapter.Re
 
             if (map == null) return;
 
-            Recorridos recorrido = (Recorridos)mapView.getTag();
+            Recorrido recorrido = (Recorrido)mapView.getTag();
 
             if (recorrido == null) return;
 
-            recorrido.setPosiciones();
+            //recorrido.setPosiciones();
             PolylineOptions options = new PolylineOptions();
             options.color(Color.BLACK);
             options.width(3f);
 
+            /*
             if (recorrido.getPosiciones().size() >= 2){
 
                 int rSize = recorrido.getPosiciones().size();
@@ -143,20 +144,21 @@ public class RecorridosAdapter extends RecyclerView.Adapter<RecorridosAdapter.Re
 
                 }
                 map.moveCamera(CameraUpdateFactory.newLatLngZoom(recorrido.getPosiciones().get(r - 1), 12f));
-
-
             }
             map.addPolyline(options);
             map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+            */
         }
 
-        public void bindView(Recorridos recorrido){
+        public void bindView(Recorrido recorrido){
 
+            /*
             mapView.setTag(recorrido);
             initMap();
             tvDistancia.setText(recorrido.getDistancia());
             tvGalRecorrido.setText(String.valueOf(recorrido.getGalonesPerdidos()));
             tvFechaRecorrido.setText(recorrido.getHoraInicio());
+            */
         }
 
     }

@@ -13,16 +13,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 import com.index.medidor.R;
-import com.index.medidor.activities.CombustibleActivity;
 import com.index.medidor.activities.MainActivity;
 import com.index.medidor.database.DataBaseHelper;
-import com.index.medidor.model.Recorridos;
+import com.index.medidor.model.Recorrido;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
 
@@ -55,7 +53,7 @@ public class InicioFragment extends Fragment {
     private Timer mTimer1;
     private Handler mHandler;
     private double combustibleInicial, galonesPerdidos;
-    private Recorridos recorrido;
+    private Recorrido recorrido;
 
     public InicioFragment() {
         // Required empty public constructor
@@ -129,7 +127,7 @@ public class InicioFragment extends Fragment {
             }
         });
 */
-        recorrido = new Recorridos();
+        recorrido = new Recorrido();
 //        combustibleInicial = combustibleActivity.getNivelCombustible();
         galonesPerdidos = 0;
         mHandler = new Handler();
@@ -223,7 +221,7 @@ public class InicioFragment extends Fragment {
 
         mTimer1.schedule(mTt1, 1, 1000);
         SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.US);
-        recorrido.setHoraInicio(df.format(new Date()));
+        //recorrido.setHoraInicio(df.format(new Date()));
     }
 
     private void detenerMedicion(){
@@ -232,11 +230,11 @@ public class InicioFragment extends Fragment {
             mTimer1.cancel();
             mTimer1.purge();
         }
-        recorrido.setGalonesPerdidos(galonesPerdidos);
+        //recorrido.setGalonesPerdidos(galonesPerdidos);
         //recorrido.setRutas(mainActivity.getRutas());
         //recorrido.setIdUsuario(mainActivity.getIdUsuario());
-        recorrido.setPosiciones();
-        recorrido.setDistancia();
+        //recorrido.setPosiciones();
+        //recorrido.setDistancia();
         Gson gson = new Gson();
         Log.e("Rendimi", gson.toJson(gson.toJsonTree(recorrido)));
         guardarRecorrido();
@@ -246,9 +244,9 @@ public class InicioFragment extends Fragment {
         DataBaseHelper helper = OpenHelperManager.getHelper(getActivity(), DataBaseHelper.class);
 
         try {
-            Dao<Recorridos, Integer> daoRecorridos = helper.getDaoRecorridos();
-            daoRecorridos.create(recorrido);
-            recorrido = new Recorridos();
+            Dao<Recorrido, Integer> daoRecorrido = helper.getDaoRecorridos();
+            daoRecorrido.create(recorrido);
+            //recorrido = new Recorridos();
             //Toast.makeText(combustibleActivity, "Recorrido registrado de manera exitosa.", Toast.LENGTH_SHORT).show();
         } catch (SQLException e) {
             e.printStackTrace();

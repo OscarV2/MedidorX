@@ -66,6 +66,7 @@ import com.index.medidor.bluetooth.interfaces.BluetoothDataReceiver;
 import com.index.medidor.bluetooth.BluetoothHelper;
 import com.index.medidor.services.InndexLocationService;
 import com.index.medidor.services.MapService;
+import com.index.medidor.services.RecorridoService;
 import com.index.medidor.utils.Constantes;
 import com.index.medidor.utils.CustomProgressDialog;
 import com.index.medidor.utils.NavTypeFace;
@@ -244,6 +245,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             viewMap.setVisibility(View.GONE);
             btnMenu.setVisibility(View.GONE);
 
+        }else if (id == R.id.nav_recorrido) {
+
+            if(this.inndexLocationService.getMyLocation() == null) {
+                Toast.makeText(this, "Ubicación actual desconocida.", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+
+            if(bluetoothHelper == null ) {
+                Toast.makeText(this, "No se pudo conectar con el dispositivo.", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+
+
+
+            RecorridoService recorridoService = new RecorridoService();
+
         }else if (id == R.id.logout) {
             //logout();
         }
@@ -328,8 +345,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         tvCombustible.setText(getString(R.string.cant_gal,nivelCombustible));
         myPreferences.edit().putString("nivel", String.valueOf(nivelCombustible)).apply();
 
-        if(miFragment instanceof AdquisicionDatos){
-
+        if(miFragment instanceof AdquisicionDatos && BluetoothHelper.isAdqProcess()){
             (((AdquisicionDatos) miFragment)).getBluetoothData((int)dato[0], (int)dato[1]);
         }
     }
@@ -582,9 +598,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     @Override
-    public void setValues(String values) {
-
-    }
+    public void setValues(String values) { }
 
     public void addNewStationToMap(Estaciones estacion){
         estaciones.add(estacion);
@@ -619,7 +633,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public void initAdq(String bluetoothMac){
-
         myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_MAC, bluetoothMac).apply();
         bluetoothHelper = new BluetoothHelper(MainActivity.this);
         bluetoothHelper.checkBTState();
