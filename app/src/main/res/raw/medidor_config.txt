@@ -1,5 +1,5 @@
 #
-# generated on 2019/10/26 06:08:08
+# generated on 2019/11/02 10:47:36
 #
 # --table-start--
 dataClass=com.index.medidor.model.Estaciones
@@ -84,9 +84,6 @@ fieldName=idMarca
 fieldName=galones
 # --field-end--
 # --field-start--
-fieldName=tipo_combustuble
-# --field-end--
-# --field-start--
 fieldName=modelo
 # --field-end--
 # --field-start--
@@ -97,6 +94,9 @@ fieldName=flujo
 # --field-end--
 # --field-start--
 fieldName=hasTwoTanks
+# --field-end--
+# --field-start--
+fieldName=tipoCombustible
 # --field-end--
 # --table-fields-end--
 # --table-end--
@@ -114,13 +114,26 @@ generatedId=true
 fieldName=idUsuario
 # --field-end--
 # --field-start--
-fieldName=fecha
+fieldName=fechaInicio
+# --field-end--
+# --field-start--
+fieldName=fechaFin
+# --field-end--
+# --field-start--
+fieldName=distanciaRecorrida
+# --field-end--
+# --field-start--
+fieldName=galonesPerdidos
 # --field-end--
 # --field-start--
 fieldName=uploaded
 # --field-end--
 # --field-start--
 fieldName=listUnidadRecorrido
+foreignCollection=true
+# --field-end--
+# --field-start--
+fieldName=listTanqueadas
 foreignCollection=true
 # --field-end--
 # --table-fields-end--
@@ -174,6 +187,12 @@ fieldName=idEstacion
 # --field-end--
 # --field-start--
 fieldName=idUsuario
+# --field-end--
+# --field-start--
+fieldName=recorrido
+foreign=true
+foreignAutoRefresh=true
+maxForeignAutoRefreshLevel=2
 # --field-end--
 # --table-fields-end--
 # --table-end--

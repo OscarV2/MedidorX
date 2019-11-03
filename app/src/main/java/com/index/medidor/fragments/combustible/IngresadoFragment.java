@@ -111,15 +111,6 @@ public class IngresadoFragment extends Fragment {
 
             Toast.makeText(mainActivity, "Por favor ingrese un precio de galón válido.", Toast.LENGTH_SHORT).show();
             edtValor.requestFocus();
-        }else if(flagCantidadDeseada && cantDeseada <= 0){
-
-            Toast.makeText(mainActivity, "Por favor ingrese una cantidad válida.", Toast.LENGTH_SHORT).show();
-            edtCantDeseadaNum.requestFocus();
-
-        }else if(!flagCantidadDeseada && galonesDeseados <= 0 ){
-            Toast.makeText(mainActivity, "Por favor ingrese una cantidad de galones válida.", Toast.LENGTH_SHORT).show();
-            edtCantDeseadaNum.requestFocus();
-
         }else if (mainActivity.getBtSocket() == null){        //validar bluetooth
 
             Toast.makeText(mainActivity, "Por favor asegurese de que su conexión con el dispositivo es óptima", Toast.LENGTH_SHORT).show();

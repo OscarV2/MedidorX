@@ -42,6 +42,9 @@ public class Tanqueadas implements Serializable {
     @DatabaseField
     private int idUsuario;
 
+    @DatabaseField(foreign = true, foreignAutoRefresh = true)
+    private Recorrido recorrido;
+
     public Tanqueadas() {
     }
 

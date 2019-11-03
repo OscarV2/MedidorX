@@ -38,6 +38,9 @@ public class Constantes {
     public static final String API_KEY_PLACES = "AIzaSyBHLkx2pOIKyoiTYjw-c78ValF4iHktcjc";
     //public static final String API_KEY = "AIzaSyBVYoTTWhM_JZAlbUpJuTKTI5xcTJq7NFY";
 
+    public static final String POST_REGISTRAR_RECORRIDO = "recorridos/register";
+    public static final String GET_RECORRIDOS_BY_USER= "recorridos/idUsuario";
+
     public static final String URL_PLACES ="https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{long}&radius=1200&type=gas_station&key=";
     public static final String URL_HTTP = "https://maps.googleapis.com/maps/api/directions/json?origin=";
 
@@ -65,6 +68,8 @@ public class Constantes {
     public static final String SESION_ACTIVE = "sesionMedidor";
 
     public static final double LAT_LNG_TOLERANCE = 0.002;
+
+    public static final long DELAY_RECORRIDO = 5000;
 
     public static final SimpleDateFormat SDF_FOR_BACKEND = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
 

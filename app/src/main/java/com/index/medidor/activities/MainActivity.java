@@ -89,25 +89,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     //private GoogleMap mMap;
     //private static final int LOCATION_REQUEST_CODE = 1;
     private DrawerLayout drawer;
-    NavigationView navigationView;
-    //private LatLng newPosition;
+    private NavigationView navigationView;
 
     private BluetoothSocket btSocket;
-    //private LocationManager locationManager;
     private ProgressBar pbCombustible;
     private TextView tvCombustible;
     private AlertDialog alert = null;
-    //private Location myLocation;
     private CustomProgressDialog mCustomProgressDialog;
     private SharedPreferences myPreferences;
     private double nivelCombustible;
-    //private List<Polyline> polylinePaths = new ArrayList<>();
     private List<Estaciones> estaciones;
     private DataBaseHelper helper;
     private ImageButton btnBack, btnMenu;
-    TextView tvTitulo;
-    Typeface bold;
-    View viewMap;
+    private TextView tvTitulo;
+    private Typeface bold;
+    private View viewMap;
     private Estaciones estacionMasCercana;
     private EstacionesPlaces estacionesPlaces;
     private Fragment miFragment;
@@ -115,7 +111,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private Timer timerInndexDeviceListener;
     private BluetoothHelper bluetoothHelper;
     private Integer tipoUsuario;
-    //private Marker markerStation;
+    private RecorridoService recorridoService;
 
     private MapService mapService;
     private InndexLocationService inndexLocationService;
@@ -257,11 +253,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 return true;
             }
 
+            recorridoService = new RecorridoService(MainActivity.this, true, this.helper);
+            recorridoService.iniciarRecorrido();
 
+        }
+        else if (id == R.id.nav_recorrido_stop) {
 
-            RecorridoService recorridoService = new RecorridoService();
-
-        }else if (id == R.id.logout) {
+            recorridoService.pararRecorrido();
+        }
+        else if (id == R.id.logout) {
             //logout();
         }
 
@@ -321,33 +321,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    private void checkGPSState() {
 
-        if (!inndexLocationService.getLocationManager().isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage("El GPS esta desactivado").setCancelable(false).setPositiveButton("Activar", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    Intent enableGPSIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                    startActivity(enableGPSIntent);
-                }
-            });
-            alert = builder.create();
-            alert.show();
-        }
-    }
 
     @Override
     public void getBluetoothData(double... dato) {
+
+        if(miFragment instanceof AdquisicionDatos && BluetoothHelper.isAdqProcess()){
+            (((AdquisicionDatos) miFragment)).getBluetoothData((int)dato[0], (int)dato[1]);
+            return;
+        }
         nivelCombustible = dato[0];
         //pbCombustible.setProgress(this.myPreferences.getInt(Constantes.DEFAULT_GAL_CANT, 10));
         pbCombustible.setProgress((int)dato[0]);
         tvCombustible.setText(getString(R.string.cant_gal,nivelCombustible));
         myPreferences.edit().putString("nivel", String.valueOf(nivelCombustible)).apply();
-
-        if(miFragment instanceof AdquisicionDatos && BluetoothHelper.isAdqProcess()){
-            (((AdquisicionDatos) miFragment)).getBluetoothData((int)dato[0], (int)dato[1]);
-        }
     }
 
     private void logout() {
@@ -659,4 +646,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void setMapService(MapService mapService) {
         this.mapService = mapService;
     }
+
+    public InndexLocationService getInndexLocationService() {
+        return inndexLocationService;
+    }
+
+    private void checkGPSState() {
+
+        if (!inndexLocationService.getLocationManager().isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage("El GPS esta desactivado").setCancelable(false).setPositiveButton("Activar", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    Intent enableGPSIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                    startActivity(enableGPSIntent);
+                }
+            });
+            alert = builder.create();
+            alert.show();
+        }
+    }
+
 }

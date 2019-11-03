@@ -3,6 +3,7 @@ package com.index.medidor.retrofit;
 import com.index.medidor.model.Estaciones;
 import com.index.medidor.model.MarcaCarros;
 import com.index.medidor.model.ModeloCarros;
+import com.index.medidor.model.Recorrido;
 import com.index.medidor.model.Tanqueadas;
 import com.index.medidor.model.Usuario;
 import com.index.medidor.model.UsuarioHasModeloCarro;
@@ -18,6 +19,7 @@ import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface SmartBillApiServices {
 
@@ -72,5 +74,13 @@ public interface SmartBillApiServices {
      */
     @GET(Constantes.GET_MARCAS_CARROS)
     Call<List<MarcaCarros>> getMarcasCarros();
+
+    /**
+     * RECORRIDOS
+     */
+    @POST(Constantes.POST_REGISTRAR_RECORRIDO)
+    Call<String> postRegisterRecorrido(@Header("Content-Type") String headerContentType,
+                                             @Query("idUsuario") Long idUsuario,
+                                             @Body Recorrido recorrido);
 
 }

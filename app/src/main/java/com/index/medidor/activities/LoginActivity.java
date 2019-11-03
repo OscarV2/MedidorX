@@ -1,20 +1,28 @@
 package com.index.medidor.activities;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Typeface;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.google.gson.Gson;
 import com.index.medidor.R;
@@ -23,6 +31,7 @@ import com.index.medidor.model.ModeloCarros;
 import com.index.medidor.model.Usuario;
 import com.index.medidor.model.UsuarioHasModeloCarro;
 import com.index.medidor.retrofit.MedidorApiAdapter;
+import com.index.medidor.services.InndexLocationService;
 import com.index.medidor.threads.DownloadUsuarioHasModeloCarro;
 import com.index.medidor.utils.Constantes;
 import com.index.medidor.utils.CustomProgressDialog;
@@ -45,6 +54,7 @@ public class LoginActivity extends AppCompatActivity {
     private TextView tvRecordar;
     private Button btnIngresar, btnRegistrar;
     private String email ;
+    public static final int LOCATION_REQUEST_CODE = 1;
 
     private CustomProgressDialog mCustomProgressDialog;
     private SharedPreferences.Editor infoUsuario;
@@ -56,20 +66,22 @@ public class LoginActivity extends AppCompatActivity {
 
     private SetArrayValuesForInndex setArrayValuesForInndex;
     private SharedPreferences myPreferences;
+    private InndexLocationService inndexLocationService;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        checkGPSState();
+
         Typeface light=Typeface.createFromAsset(getAssets(),"fonts/Roboto-Light.ttf");
-        Typeface thin=Typeface.createFromAsset(getAssets(),"fonts/Roboto-Thin.ttf");
         Typeface bold=Typeface.createFromAsset(getAssets(),"fonts/Roboto-Bold.ttf");
         mCustomProgressDialog = new CustomProgressDialog(this);
         mCustomProgressDialog.setCanceledOnTouchOutside(false);
         mCustomProgressDialog.setCancelable(false);
 
-        //setArrayValuesForInndex;
         etEmail =  findViewById(R.id.etEmail);
         etEmail.setTypeface(light);
         etPassword =  findViewById(R.id.etPassword);
@@ -111,7 +123,6 @@ public class LoginActivity extends AppCompatActivity {
         tvRecordar.setTypeface(bold);
         tvRecordar.setOnClickListener(view -> {
         });
-
         myPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
     }
 
@@ -121,17 +132,14 @@ public class LoginActivity extends AppCompatActivity {
         login.enqueue(new Callback<Usuario>() {
             @Override
             public void onResponse(Call<Usuario> call, Response<Usuario> response) {
-                mCustomProgressDialog.dismiss("");
                 if (response.isSuccessful()){
 
                     if (response.body() != null){
 
                         getAllUsuariosHasModelosCarros(response.body());
-
-                        //irMain(response.body());
                     }else{
+                        mCustomProgressDialog.dismiss("");
                         Toast.makeText(LoginActivity.this, "Error: ESTE USUARIO NO EXISTE.", Toast.LENGTH_SHORT).show();
-
                     }
                 }else{
                     Toast.makeText(LoginActivity.this, "Error", Toast.LENGTH_SHORT).show();
@@ -195,6 +203,8 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<List<UsuarioHasModeloCarro>> call, Response<List<UsuarioHasModeloCarro>> response) {
 
+                mCustomProgressDialog.dismiss("");
+
                 if (response.isSuccessful()){
 
                     if (response.body() != null && response.body().size() > 0){
@@ -230,9 +240,23 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<UsuarioHasModeloCarro>> call, Throwable t) {
+                mCustomProgressDialog.dismiss("");
+
                 Toast.makeText(LoginActivity.this, "NO SE PUDO DESCARGAR LOS VEHICULOS PARA SU USUARIO.", Toast.LENGTH_SHORT).show();
                 Log.e("ERROR", t.getMessage());
             }
         });
+    }
+
+    private void checkGPSState() {
+
+        if ( !(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) ) {
+
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    LOCATION_REQUEST_CODE);
+        }
     }
 }

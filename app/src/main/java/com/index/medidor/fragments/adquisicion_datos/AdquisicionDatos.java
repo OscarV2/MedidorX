@@ -162,6 +162,9 @@ public class AdquisicionDatos extends Fragment {
         spCombustible.setAdapter( ArrayAdapter.createFromResource(mainActivity,
                 R.array.tipos_combustibles, android.R.layout.simple_spinner_item));
 
+        modeloCarros.setModelo(Constantes.getYearsModelsCars()[0]);
+        modeloCarros.setTipoCombustible(spCombustible.getSelectedItem().toString());
+
         try {
 
             spMarca.setAdapter(new ArrayAdapter<>(mainActivity, android.R.layout.simple_spinner_dropdown_item,
@@ -177,9 +180,7 @@ public class AdquisicionDatos extends Fragment {
                 }
 
                 @Override
-                public void onNothingSelected(AdapterView<?> parent) {
-
-                }
+                public void onNothingSelected(AdapterView<?> parent) {   }
             });
 
         } catch (SQLException e) {
@@ -187,9 +188,7 @@ public class AdquisicionDatos extends Fragment {
         }
         edtLinea.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {   }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -208,9 +207,7 @@ public class AdquisicionDatos extends Fragment {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {
-
-            }
+            public void afterTextChanged(Editable s) {  }
         });
         btnAdquisicion.setOnClickListener(v -> {
 
@@ -219,20 +216,14 @@ public class AdquisicionDatos extends Fragment {
                 Toast.makeText(mainActivity, "NO EXISTE DISPOSITIVO CONECTADO.", Toast.LENGTH_SHORT).show();
                 return;
             }
-
             if (!acquisitionStarted){
-
                 iniciarAdq();
-
                 btnAdquisicion.setText(R.string.finalizarAdqModelo);
                 estadoAdquicision = 1;
 
             }else if(estadoAdquicision == 1 && acquisitionStarted) {
-
                 finalizarAdq();
-
             }
-
         });
         btnRegistrar.setOnClickListener(v -> {
 
@@ -256,19 +247,40 @@ public class AdquisicionDatos extends Fragment {
                 }
             }
         });
+
+        spAnio.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                modeloCarros.setModelo(Constantes.getYearsModelsCars()[position]);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                modeloCarros.setModelo(Constantes.getYearsModelsCars()[0]);
+            }
+        });
+
+        spCombustible.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                modeloCarros.setTipoCombustible(spCombustible.getSelectedItem().toString());
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
     }
 
     private void iniciarAdq(){
 
         if (mainActivity.getBtSocket() != null){
-
             acquisitionStarted = true;
             BluetoothHelper.setAdqProcess(true);
-
         }else{
             Toast.makeText(mainActivity, "ASEGURESE DE QUE EL DISPOSITIVO INNDEX ESTA CONECTADO.", Toast.LENGTH_SHORT).show();
         }
-
     }
 
     private void finalizarAdq(){
@@ -280,7 +292,6 @@ public class AdquisicionDatos extends Fragment {
         btnRegistrar.setVisibility(View.VISIBLE);
         estadoAdquicision = 0;
         acquisitionStarted = false;
-
     }
 
     private void guardarAdq() {
@@ -307,6 +318,9 @@ public class AdquisicionDatos extends Fragment {
         }
         modeloCarros.setIdMarca(this.idMarca);
 
+        Log.e("Objeto","Adq");
+        Log.e("Adq", gson.toJson(modeloCarros));
+
         Call<ModeloCarros> callRegistrarModelo = MedidorApiAdapter.getApiService()
                 .postRegisterModelo(Constantes.CONTENT_TYPE_JSON, modeloCarros);
 
@@ -329,7 +343,6 @@ public class AdquisicionDatos extends Fragment {
                         e.printStackTrace();
                     }
                 }else{
-
                     Toast.makeText(mainActivity, "NO SE PUDO REGISTRAR LA ADQUISICIÓN", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -340,11 +353,9 @@ public class AdquisicionDatos extends Fragment {
                 Toast.makeText(mainActivity, "ERROR " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-
     }
 
     private void resetAdq(){
-
         btnAdquisicion.setEnabled(false);
         btnRegistrar.setEnabled(false);
         //btnRegistrar.setVisibility(View.GONE);
@@ -395,7 +406,6 @@ public class AdquisicionDatos extends Fragment {
                 }
                 @Override
                 public void onNothingSelected(AdapterView<?> parent) {
-
                     Log.e("Bluetooth","Nothing selected");
                 }
             });
@@ -429,7 +439,9 @@ public class AdquisicionDatos extends Fragment {
     public void getBluetoothData(int... dato) {
 
         if (acquisitionStarted) {
-            Log.e("tu adqDato", String.valueOf(dato));
+            Log.e("tu adqDato", String.valueOf(dato[0]));
+            Log.e("tu adqDato2", String.valueOf(dato[1]));
+
             keyArraysAdq.add(dato[0]);
             keyArraysFlux.add(dato[1]);
         }

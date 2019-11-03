@@ -39,29 +39,14 @@ public class InndexLocationService implements LocationListener {
         if (ContextCompat.checkSelfPermission(mainActivity, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             if(locationManager == null) {
-
                 locationManager = (LocationManager) mainActivity.getSystemService(LOCATION_SERVICE);
-                //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5, 0, InndexLocationService.this);
-                mainActivity.getMapService().setMyLocation(locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER));
-                /*if (mainActivity.getMapService().getMyLocation() != null){
-                    mainActivity.getMapService().mostrarUbicacion();
-                }else{
-                    Log.e("onMapReady","Dentro de segundo if, mylocation es NULL");
-                }*/
             }
 
         } else {
-            /*if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION)) {
-                // Mostrar diálogo explicativo
-            } else {
-                // Solicitar permiso
-              */  ActivityCompat.requestPermissions(
+             ActivityCompat.requestPermissions(
                     mainActivity,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     LOCATION_REQUEST_CODE);
-
-            //}
         }
     }
 

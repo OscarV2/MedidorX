@@ -19,8 +19,6 @@ public class ModeloCarros implements Serializable {
     @DatabaseField
     private double galones;
     @DatabaseField
-    private String tipo_combustuble;
-    @DatabaseField
     private String modelo;
     @DatabaseField
     private String valoresAdq;
@@ -28,6 +26,8 @@ public class ModeloCarros implements Serializable {
     private String flujo;
     @DatabaseField
     private Boolean hasTwoTanks ;
+    @DatabaseField
+    private String tipoCombustible;
 
     public ModeloCarros() {
     }
@@ -72,14 +72,6 @@ public class ModeloCarros implements Serializable {
         this.galones = galones;
     }
 
-    public String getTipo_combustuble() {
-        return tipo_combustuble;
-    }
-
-    public void setTipo_combustuble(String tipo_combustuble) {
-        this.tipo_combustuble = tipo_combustuble;
-    }
-
     public Boolean getHasTwoTanks() {
         return hasTwoTanks;
     }
@@ -110,5 +102,13 @@ public class ModeloCarros implements Serializable {
 
     public void setFlujo(String flujo) {
         this.flujo = flujo;
+    }
+
+    public String getTipoCombustible() {
+        return tipoCombustible;
+    }
+
+    public void setTipoCombustible(String tipoCombustible) {
+        this.tipoCombustible = tipoCombustible;
     }
 }

@@ -33,8 +33,7 @@ public class HistorialTabs extends Fragment {
     private OnFragmentInteractionListener mListener;
     private AppBarLayout appBar;
     private TabLayout tabs;
-    public HistorialTabs() {
-        // Required empty public constructor
+    public HistorialTabs() {        // Required empty public constructor
     }
 
     /**
