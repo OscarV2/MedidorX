@@ -57,9 +57,8 @@ public class RecorridosAdapter extends RecyclerView.Adapter<RecorridosAdapter.Re
     @Override
     public int getItemCount() {
 
-        //return recorridosList.size();
-        return 3;
-
+        return recorridosList.size();
+        //return 3;
     }
 
     public class RecorridosViewHolder extends RecyclerView.ViewHolder implements OnMapReadyCallback {
@@ -76,19 +75,19 @@ public class RecorridosAdapter extends RecyclerView.Adapter<RecorridosAdapter.Re
             tvDistancia = itemView.findViewById(R.id.tv_distancia_recorrido);
             tvFechaRecorrido = itemView.findViewById(R.id.tv_fecha_recorrido);
             tvGalRecorrido = itemView.findViewById(R.id.tv_gal_recorrido);
-            mapView = itemView.findViewById(R.id.mapView);
+            //mapView = itemView.findViewById(R.id.mapView);
 
             Typeface light=Typeface.createFromAsset(context.getAssets(),"fonts/Roboto-Light.ttf");
 
             tvDistancia.setTypeface(light);
             tvGalRecorrido.setTypeface(light);
             tvFechaRecorrido.setTypeface(light);
-            if (mapView != null) {
+            /*if (mapView != null) {
                 // Initialise the MapView
                 mapView.onCreate(null);
                 // Set the map ready callback to receive the GoogleMap object
                 mapView.getMapAsync(this);
-            }
+            }*/
 
         }
 
@@ -152,12 +151,12 @@ public class RecorridosAdapter extends RecyclerView.Adapter<RecorridosAdapter.Re
 
         public void bindView(Recorrido recorrido){
 
+            tvDistancia.setText(String.valueOf(recorrido.getDistanciaRecorrida()));
+            tvGalRecorrido.setText(String.valueOf(recorrido.getGalonesPerdidos()));
+            tvFechaRecorrido.setText(recorrido.getFechaInicio());
             /*
             mapView.setTag(recorrido);
             initMap();
-            tvDistancia.setText(recorrido.getDistancia());
-            tvGalRecorrido.setText(String.valueOf(recorrido.getGalonesPerdidos()));
-            tvFechaRecorrido.setText(recorrido.getHoraInicio());
             */
         }
 

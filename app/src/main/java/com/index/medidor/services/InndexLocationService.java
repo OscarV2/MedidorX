@@ -28,7 +28,7 @@ public class InndexLocationService implements LocationListener {
     private Location myLocation;
     private double distancia_temp = 0;
 
-    private double distancia = 0;
+    private double distancia;
 
     public InndexLocationService(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
@@ -37,13 +37,28 @@ public class InndexLocationService implements LocationListener {
     public void init() {
 
         if (ContextCompat.checkSelfPermission(mainActivity, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(mainActivity, Manifest.permission.ACCESS_COARSE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
+            //Manifest.permission.ACCESS_COARSE_LOCATION == PackageManager.PERMISSION_GRANTED
             if(locationManager == null) {
-                locationManager = (LocationManager) mainActivity.getSystemService(LOCATION_SERVICE);
-            }
+                Log.e("LOC","InitLocationUpdates");
+                locationManager = (LocationManager) mainActivity.getSystemService(Context.LOCATION_SERVICE);
+                Log.e("PRO","enabled " + locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER));
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+                Location lastKnownLocationGPS = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
+                if(lastKnownLocationGPS != null) {
+
+                    Log.e("LOC1", "AWESOME NO T NULL");
+                    myLocation = lastKnownLocationGPS;
+
+                } else {
+                    Log.e("LOC2","SORRY TRY IT NEXT TIME");
+                }
+            }
         } else {
-             ActivityCompat.requestPermissions(
+            Log.e("NOO","FALTAN PERMISOS HAY QUE HACER ALGO.");
+            ActivityCompat.requestPermissions(
                     mainActivity,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     LOCATION_REQUEST_CODE);
@@ -54,22 +69,19 @@ public class InndexLocationService implements LocationListener {
     public void onLocationChanged(Location location) {
 
         if (myLocation != null) {
-            Log.e("location", "NOT NULL");
+            //Log.e("location", "NOT NULL");
 
             distancia_temp = myLocation.distanceTo(location);
 
             if(distancia_temp > 15) {
 
-                Log.e("location", "distance greater than 10");
+                Log.e("location", "distance greater than 15");
 
                 mainActivity.getMapService().updateMyPosition();
                 myLocation = location;
                 distancia += distancia_temp;
-            }else {
-
-                Log.e("location", "distance less than 10");
-
             }
+
 
         } else {
             myLocation = location;
@@ -77,9 +89,6 @@ public class InndexLocationService implements LocationListener {
             //coordenada = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
             mainActivity.getMapService().updateMyPosition();
         }
-
-        String ubi = "distancia recorrida " + distancia;
-        Toast.makeText(mainActivity,ubi,Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -104,6 +113,7 @@ public class InndexLocationService implements LocationListener {
 
     @Override
     public void onProviderDisabled(String provider) {
+        Log.e("PRO", "DISABLED");
     }
 
     public MainActivity getMainActivity() {
@@ -136,5 +146,13 @@ public class InndexLocationService implements LocationListener {
 
     public void setDistancia_temp(double distancia_temp) {
         this.distancia_temp = distancia_temp;
+    }
+
+    public double getDistancia() {
+        return distancia;
+    }
+
+    public void setDistancia(double distancia) {
+        this.distancia = distancia;
     }
 }

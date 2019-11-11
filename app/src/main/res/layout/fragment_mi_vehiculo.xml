@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -97,8 +97,50 @@
             android:src="@drawable/ic_delete_black_24dp"
             android:layout_alignParentRight="true"
             android:layout_marginRight="20dp"/>
-    </RelativeLayout>
+
+        <ImageView
+                android:id="@+id/img_edit_buetooth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_edit"
+                android:baselineAlignBottom="true"
+                android:layout_below="@+id/img_borrar_vehiculo"
+            android:layout_marginTop="15dp"/>
+
+            <TextView
+                android:id="@+id/tv_edit_bluetooh"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Actualizar bluetooth"
+                android:layout_toRightOf="@id/img_edit_buetooth"
+                android:textColor="@color/colorPrimary"
+                android:layout_below="@+id/tv_agregar_vehiculo"
+                android:layout_marginTop="20dp"/>
+
+            <Spinner
+                android:id="@+id/sp_edit_bluetooth_device"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_marginStart="10dp"
+                android:padding="10dp"
+                android:layout_below="@+id/tv_edit_bluetooh"/>
+
+            <Button
+                android:id="@+id/btn_edit_bluetooth_aceptar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/cal_aceptar"
+                android:layout_centerHorizontal="true"
+                android:textColor="@color/white"
+                android:layout_below="@id/sp_edit_bluetooth_device"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:textSize="20sp"
+                android:background="@color/colorPrimary"
+                android:layout_marginBottom="20dp"/>
+        </RelativeLayout>
 
     </LinearLayout>
 
-</FrameLayout>
+</ScrollView>

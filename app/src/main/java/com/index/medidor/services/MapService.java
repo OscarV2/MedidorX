@@ -40,8 +40,6 @@ public class MapService implements PasarUbicacion, GoogleMap.OnMarkerClickListen
         this.context = context;
     }
 
-
-
     public void drawSationRoute(){
 
         if(markerStation == null){
@@ -117,6 +115,10 @@ public class MapService implements PasarUbicacion, GoogleMap.OnMarkerClickListen
     }
 
     public void updateMyPosition() {
+
+        if(myLocation == null) {
+            return;
+        }
 
         LatLng newPosition = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
 

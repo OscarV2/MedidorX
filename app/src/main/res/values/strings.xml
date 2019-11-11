@@ -22,7 +22,7 @@
     <string name="title_activity_tanquear">TanquearActivity</string>
     <string name="title_activity_historial">HistorialActivity</string>
     <string name="back">back</string>
-    <string name="cero_galon">0.0 Gal.</string>
+    <string name="cero_galon">0.0 Gl</string>
     <string name="title_activity_inicio">InicioActivity</string>
     <string name="title_activity_login">LoginActivity</string>
     <string name="email">Email</string>
@@ -49,12 +49,12 @@
     <string name="password_actual">Contraseña actual</string>
     <string name="password_nueva">Contraseña nueva</string>
     <string name="password_nueva_confir">Confirmar contraseña nueva</string>
-    <string name="txt_galones">%1$.2f Gal. /</string>
+    <string name="txt_galones">%1$.2f Gl /</string>
     <string name="txt_distancia">%1$.2f Km</string>
     <string name="content_image_btn_refresh">TODO</string>
     <string name="title_activity_maps">Map</string>
     <string name="cant_deseada">Cantidad deseada</string>
-    <string name="gal">Gal. /</string>
+    <string name="gal">Gl /</string>
     <string name="historial">Historial</string>
 
     <string name="iniciarAdqModelo">Iniciar adquicisión de datos</string>
@@ -69,7 +69,7 @@
     <string name="cal_aceptar">Aceptar</string>
     <string name="cal_cancelar">Cancelar</string>
 
-    <string name="cant_gal">%1$.2f Gal. </string>
+    <string name="cant_gal">%1$.1f Gl</string>
     <string name="title_activity_detalle_recorrido">Map</string>
     <string name="btn_menu_content_desc">menu</string>
 

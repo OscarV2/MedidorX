@@ -51,7 +51,7 @@ public class BluetoothHelper {
     private BluetoothAdapter btAdapter;
     private BluetoothSocket btSocket;
     private BluetoothDevice bluetoothDevice;
-    private static int dato, datoFlujo, datoTanque2;
+    private int dato, datoFlujo, datoTanque2;
     private static List<Integer> dataToAverage;
     private static List<Integer> dataToAverageTank2;
     public static boolean adqProcess;
@@ -60,6 +60,7 @@ public class BluetoothHelper {
     private ConnectedThread mConnectedThread;
     private IBluetoothState iBluetoothState;
     private static boolean modelHasTwoTanks;
+
 
     /**
      * Constructor for any car model, even those with two tanks
@@ -95,7 +96,7 @@ public class BluetoothHelper {
         init();
     }
 
-    private static class MyVeryOwnHandler extends Handler{
+    private class MyVeryOwnHandler extends Handler{
 
         @SuppressLint("SetTextI18n")
         public void handleMessage(Message msg) {
@@ -103,8 +104,12 @@ public class BluetoothHelper {
             if (msg.what == handlerState) {             //if message is what we want
                 String readMessage = (String) msg.obj;      // msg.arg1 = bytes from connect thread
                 readMessage = readMessage.replaceAll(" ","");
+                if(readMessage.length() > 20){
+                    readMessage = "";
+                }
                 recDataString.append(readMessage);              //keep appending to string until A
-                Log.e("message", readMessage);
+                //Log.e("message", readMessage);
+
                 int endOfLineIndex = recDataString.indexOf("A");                    // determine the end-of-line
 
                 if(endOfLineIndex > 0) {
@@ -116,8 +121,11 @@ public class BluetoothHelper {
 
                         if(datos.length > 0) {
 
-                            dato = Integer.parseInt(datos[0]);
-
+                            try {
+                                dato = Integer.parseInt(datos[0]);
+                            } catch (NumberFormatException ex) {
+                                ex.getStackTrace();
+                            }
                             if(adqProcess && datos.length > 1) {  // en proceso de adquisición
                                 datoFlujo = Integer.valueOf(datos[1]);
                                 bluetoothDataReceiver.getBluetoothData(dato, datoFlujo);
@@ -136,14 +144,26 @@ public class BluetoothHelper {
                                     bluetoothDataReceiver.getBluetoothData(dato);
                                 }
                             }else {                     //This model has two tanks
-                                datoTanque2 = Integer.valueOf(datos[1]);
-                                dataToAverageTank2.add(datoTanque2);
 
+                                try {
+                                    datoTanque2 = Integer.valueOf(datos[1]);
+                                } catch (NumberFormatException ex) {
+
+                                    ex.getStackTrace();
+                                }
+
+                                dataToAverageTank2.add(datoTanque2);
                                 sendDataForTwoTanksModel();
                             }
                         }
                     }
                     recDataString.delete(0, recDataString.length());      //clear all string data
+                } else {
+
+                    //Log.e("redcata",recDataString.toString());
+                    if (recDataString.length() > 30) {
+                        recDataString.delete(0, recDataString.length());      //clear all string data
+                    }
                 }
             }
         }
@@ -278,7 +298,7 @@ public class BluetoothHelper {
         return btSocket;
     }
 
-    public static int getDato() {
+    public int getDato() {
         return dato;
     }
 
@@ -313,7 +333,7 @@ public class BluetoothHelper {
         preferences = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
-    public static int getDatoTanque2() {
+    public int getDatoTanque2() {
         return datoTanque2;
     }
 
@@ -368,19 +388,19 @@ public class BluetoothHelper {
         if (elementTank1 != null && elementTank2 != null) {
             //buscar el mas cercano
             bluetoothDataReceiver.getBluetoothData(elementTank1.getAsDouble(), elementTank2.getAsDouble());
+            bluetoothDataReceiver.getArrayBlueToothValues(sumTank1, sumTank2);
 
         } else {  // no están en la lista, buscar el mas cercano
 
             elementTank1 = jsonValues.get(String.valueOf(sumTank1));
             elementTank2 = jsonValues.get(String.valueOf(sumTank2));
-
+            bluetoothDataReceiver.getArrayBlueToothValues(sumTank1, sumTank2);
             try {
                 bluetoothDataReceiver.getBluetoothData(elementTank1.getAsDouble(), elementTank2.getAsDouble());
             } catch (NullPointerException ex) {
                 Log.e("EX", ex.getMessage());
             }
         }
-
     }
 
 }

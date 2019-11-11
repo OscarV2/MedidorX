@@ -1,5 +1,7 @@
 package com.index.medidor.fragments.configuracion_cuenta;
 
+        import android.bluetooth.BluetoothAdapter;
+        import android.bluetooth.BluetoothDevice;
         import android.net.Uri;
         import android.os.Build;
         import android.os.Bundle;
@@ -13,6 +15,7 @@ package com.index.medidor.fragments.configuracion_cuenta;
         import android.view.ViewGroup;
         import android.widget.AdapterView;
         import android.widget.ArrayAdapter;
+        import android.widget.Button;
         import android.widget.EditText;
         import android.widget.Spinner;
         import android.widget.TextView;
@@ -21,6 +24,8 @@ package com.index.medidor.fragments.configuracion_cuenta;
         import com.google.gson.Gson;
         import com.index.medidor.R;
         import com.index.medidor.activities.MainActivity;
+        import com.index.medidor.adapter.BluetoothDeviceAdapter;
+        import com.index.medidor.bluetooth.SpBluetoothDevice;
         import com.index.medidor.database.DataBaseHelper;
         import com.index.medidor.model.MarcaCarros;
         import com.index.medidor.model.ModeloCarros;
@@ -34,6 +39,7 @@ package com.index.medidor.fragments.configuracion_cuenta;
         import java.sql.SQLException;
         import java.util.ArrayList;
         import java.util.List;
+        import java.util.Set;
 
         import okhttp3.ResponseBody;
         import retrofit2.Call;
@@ -56,13 +62,17 @@ public class MiVehiculo extends Fragment {
     private Spinner spMarca;
     private Spinner spLinea;
     private Spinner spAnio;
+    private Spinner spBluetoothDevices;
     private EditText edtPlaca;
     private List<MarcaCarros> listMarcas;
     private List<ModeloCarros> listModeloCarros;
     private DataBaseHelper helper;
     private String[] marcas;
     private UsuarioHasModeloCarro nuevoUsuarioHasModeloCarro;
+    private UsuarioHasModeloCarro usuarioHasModeloCarroUpdate;
     private TextView tvAgregarVehiculo;
+    private TextView tvEditarBluetooth;
+    private Button btnUpdateUhmc;
     private ModeloCarros modeloCarros;
 
     int idMarca;
@@ -92,6 +102,7 @@ public class MiVehiculo extends Fragment {
             e.printStackTrace();
         }
         nuevoUsuarioHasModeloCarro = new UsuarioHasModeloCarro();
+        usuarioHasModeloCarroUpdate = new UsuarioHasModeloCarro();
 
     }
 
@@ -130,17 +141,28 @@ public class MiVehiculo extends Fragment {
         spLinea = v.findViewById(R.id.sp_linea_mi_vehiculo_nuevo);
         spMarca = v.findViewById(R.id.sp_marca_mi_vehiculo_nuevo);
         tvAgregarVehiculo = v.findViewById(R.id.tv_agregar_vehiculo);
+        tvEditarBluetooth = v.findViewById(R.id.tv_edit_bluetooh);
+        spBluetoothDevices = v.findViewById(R.id.sp_edit_bluetooth_device);
+        btnUpdateUhmc = v.findViewById(R.id.btn_edit_bluetooth_aceptar);
+        initSpBluetoothDevices();
 
-        tvAgregarVehiculo.setOnClickListener(v1 -> {
+        tvAgregarVehiculo.setOnClickListener(v1 -> guardarVehiculo() );
 
-            guardarVehiculo();
+        tvEditarBluetooth.setOnClickListener(v2 ->    {
+            spBluetoothDevices.setVisibility(View.VISIBLE);
+            btnUpdateUhmc.setVisibility(View.VISIBLE);
         });
 
         spAnio.setAdapter(new ArrayAdapter<>(mainActivity, android.R.layout.simple_spinner_dropdown_item,
                 Constantes.getYearsModelsCars()));
 
+        btnUpdateUhmc.setOnClickListener(v12 -> updateVehiculo());
+
+        spBluetoothDevices.setVisibility(View.GONE);
+        btnUpdateUhmc.setVisibility(View.GONE);
+
         try {
-            spMarca.setAdapter(new ArrayAdapter<>(mainActivity, android.R.layout.simple_spinner_dropdown_item,
+            spMarca.setAdapter(new ArrayAdapter<>(mainActivity, android.R.layout.simple_spinner_item,
                     getAllMarcasNames()));
         } catch (SQLException e) {
             e.printStackTrace();
@@ -298,7 +320,6 @@ public class MiVehiculo extends Fragment {
         if(idUsuario != 0){
 
             nuevoUsuarioHasModeloCarro.setUsuariosId(idUsuario);
-            //nuevoUsuarioHasModeloCarro.setBluetoothMac("00:21:13:00:BF:AD");
             nuevoUsuarioHasModeloCarro.setBluetoothMac(mainActivity.getMyPreferences().getString(Constantes.DEFAULT_BLUETOOTH_MAC,""));
             nuevoUsuarioHasModeloCarro.setBluetoothNombre("INNDEX");
 
@@ -342,10 +363,91 @@ public class MiVehiculo extends Fragment {
 
     }
 
-    private void checkForInndexDevice(){
 
+    private void updateVehiculo() {
+
+        try {
+            Integer id = (int)(mainActivity.getMyPreferences().getLong(Constantes.DEFAULT_UHMC_ID, 0));
+            Dao<UsuarioHasModeloCarro, Integer> dao = helper.getDaoUsuarioHasModeloCarros();
+            UsuarioHasModeloCarro uhmc = dao.queryForId(id);
+            //uhmc.setId(mainActivity.getMyPreferences().getLong(Constantes.DEFAULT_UHMC_ID, 0));
+
+            ModeloCarros modeloCarros = new ModeloCarros();
+            modeloCarros.setId((int)mainActivity.getMyPreferences().getLong("defaultModeloCarroId",0));
+            Gson gson = new Gson();
+            usuarioHasModeloCarroUpdate.setId(uhmc.getId());
+            usuarioHasModeloCarroUpdate.setBluetoothNombre(uhmc.getBluetoothNombre());
+            usuarioHasModeloCarroUpdate.setModeloCarros(modeloCarros);
+            usuarioHasModeloCarroUpdate.setUsuariosId(uhmc.getUsuariosId());
+            Log.e("UHMC", gson.toJson(usuarioHasModeloCarroUpdate));
+
+            Call<UsuarioHasModeloCarro> callUpdateUsuariosHasModeloCarro = MedidorApiAdapter.getApiService()
+                    .putUpdateUsuarioHasModeloCarro(Constantes.CONTENT_TYPE_JSON ,
+                            usuarioHasModeloCarroUpdate);
+
+            callUpdateUsuariosHasModeloCarro.enqueue(new Callback<UsuarioHasModeloCarro>() {
+                @Override
+                public void onResponse(Call<UsuarioHasModeloCarro> call, Response<UsuarioHasModeloCarro> response) {
+
+                    if(response.isSuccessful()) {
+
+                        mainActivity.resetAll();
+                        Toast.makeText(mainActivity, "VEHÍCULO ACTUALIZADO DE MANERA EXITOSA.", Toast.LENGTH_SHORT).show();
+                        spBluetoothDevices.setVisibility(View.GONE);
+                        btnUpdateUhmc.setVisibility(View.GONE);
+                        mainActivity.getMyPreferences().edit().putString(Constantes.DEFAULT_BLUETOOTH_MAC, usuarioHasModeloCarroUpdate.getBluetoothMac()).apply();
+                    }
+
+                }
+
+                @Override
+                public void onFailure(Call<UsuarioHasModeloCarro> call, Throwable t) {
+                    Log.e("ERR", t.getLocalizedMessage());
+                }
+            });
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
     }
+
+    private void initSpBluetoothDevices() {
+
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        ArrayList<SpBluetoothDevice> spBluetoothDevicesList = new ArrayList<>();
+        SpBluetoothDevice spBluetoothDevice;
+        if (bluetoothAdapter.isEnabled()){
+
+            Set<BluetoothDevice> devices = bluetoothAdapter.getBondedDevices();
+            for (BluetoothDevice device : devices) {
+                spBluetoothDevice = new SpBluetoothDevice(device.getName(), device.getAddress());
+
+                spBluetoothDevicesList.add(spBluetoothDevice);
+            }
+        }
+
+        if (spBluetoothDevicesList.size() > 0){
+
+            BluetoothDeviceAdapter adapter = new BluetoothDeviceAdapter(mainActivity, spBluetoothDevicesList);
+            spBluetoothDevices.setAdapter(adapter);
+
+            spBluetoothDevices.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+                    usuarioHasModeloCarroUpdate.setBluetoothMac(spBluetoothDevicesList.get(position).getAddress());
+
+                }
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+
+                    usuarioHasModeloCarroUpdate.setBluetoothMac(spBluetoothDevicesList.get(0).getAddress());
+                }
+            });
+        }
+    }
+
 
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name

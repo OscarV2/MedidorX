@@ -13,6 +13,8 @@ public class UnidadRecorrido {
     @DatabaseField
     private double longitud;
     @DatabaseField
+    private double altitud;
+    @DatabaseField
     private long tiempo;
     @DatabaseField
     private Integer galones;
@@ -22,7 +24,10 @@ public class UnidadRecorrido {
     private Integer valorBluetooh;
     @DatabaseField
     private Integer valorBluetoohT2;
-
+    @DatabaseField
+    private Double distancia;
+    @DatabaseField
+    private String hora;
     @DatabaseField(foreign = true, foreignAutoRefresh = true)
     private Recorrido recorrido;
 
@@ -93,11 +98,30 @@ public class UnidadRecorrido {
         this.valorBluetoohT2 = valorBluetoohT2;
     }
 
+    public double getAltitud() {
+        return altitud;
+    }
+
+    public void setAltitud(double altitud) {
+        this.altitud = altitud;
+    }
+
     public Recorrido getRecorrido() {
         return recorrido;
     }
-
     public void setRecorrido(Recorrido recorrido) {
         this.recorrido = recorrido;
+    }
+    public Double getDistancia() {
+        return distancia;
+    }
+    public void setDistancia(Double distancia) {
+        this.distancia = distancia;
+    }
+    public String getHora() {
+        return hora;
+    }
+    public void setHora(String hora) {
+        this.hora = hora;
     }
 }

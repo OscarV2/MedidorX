@@ -12,8 +12,11 @@ import androidx.fragment.app.Fragment;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -50,6 +53,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.navigation.NavigationView;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import com.index.medidor.R;
 import com.index.medidor.bluetooth.interfaces.IBluetoothState;
 import com.index.medidor.database.DataBaseHelper;
@@ -67,6 +73,7 @@ import com.index.medidor.bluetooth.BluetoothHelper;
 import com.index.medidor.services.InndexLocationService;
 import com.index.medidor.services.MapService;
 import com.index.medidor.services.RecorridoService;
+import com.index.medidor.services.UploadRecorridoReceiver;
 import com.index.medidor.utils.Constantes;
 import com.index.medidor.utils.CustomProgressDialog;
 import com.index.medidor.utils.NavTypeFace;
@@ -74,7 +81,11 @@ import com.index.medidor.utils.SetArrayValuesForInndex;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
 
+import java.lang.reflect.Type;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -92,12 +103,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private NavigationView navigationView;
 
     private BluetoothSocket btSocket;
-    private ProgressBar pbCombustible;
-    private TextView tvCombustible;
+    private ProgressBar pbCombustible, pbTanque2;
+    private TextView tvCombustible, tvCombustibleTank2;
     private AlertDialog alert = null;
     private CustomProgressDialog mCustomProgressDialog;
     private SharedPreferences myPreferences;
-    private double nivelCombustible;
+    private double nivelCombustible, nivelCombustibleTank2;
     private List<Estaciones> estaciones;
     private DataBaseHelper helper;
     private ImageButton btnBack, btnMenu;
@@ -115,6 +126,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private MapService mapService;
     private InndexLocationService inndexLocationService;
+    private boolean modelHasTwoTanks;
+    private String values;
+
+    private Integer valorBluetooh;
+    private Integer valorBluetoohT2;
+
+    private Timer mTimer;
+
+    BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            Log.e("MESS", "MESSAGE RECEIVED");
+            resetRecorrido();
+            Toast.makeText(context, "MESSAGE RECEIVED", Toast.LENGTH_SHORT).show();
+        }
+    };
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @SuppressLint("ResourceType")
@@ -151,16 +179,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 .findFragmentById(R.id.map);
         assert mapFragment != null;
         mapFragment.getMapAsync(this);
-        SharedPreferences myPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        myPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-        String values = myPreferences.getString(Constantes.DEFAULT_BLUETOOTH_VALUE_ARRAY, "");
+        values = myPreferences.getString(Constantes.DEFAULT_BLUETOOTH_VALUE_ARRAY, "");
+        modelHasTwoTanks = myPreferences.getBoolean( Constantes.MODEL_HAS_TWO_TANKS, false);
 
         tipoUsuario = myPreferences.getInt("tipoUsuario", 8);
+
+        pbCombustible = findViewById(R.id.pbCombustible);
+        tvCombustible = findViewById(R.id.tvCombustible);
+        pbTanque2 = findViewById(R.id.pbCombustibleTank2);
+        tvCombustibleTank2 = findViewById(R.id.tvCombustibleTank2);
+        pbCombustible.getProgressDrawable().setColorFilter(getResources().getColor(R.color.white), PorterDuff.Mode.SRC_IN);
+        pbTanque2.getProgressDrawable().setColorFilter(getResources().getColor(R.color.white), PorterDuff.Mode.SRC_IN);
 
         if (values != null && !values.equals("")) {
             bluetoothHelper = new BluetoothHelper(MainActivity.this, values);
             bluetoothHelper.checkBTState();
             btSocket = bluetoothHelper.getBtSocket();
+
+            initCombustibleProgresBars();
 
             IntentFilter filter = new IntentFilter();
             filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
@@ -181,6 +219,68 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.SECOND, 0);
+
+        AlarmManager mAlarmManger = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(MainActivity.this, UploadRecorridoReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+        //mAlarmManger.setRepeating(AlarmManager.RTC, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY,pendingIntent);
+        mAlarmManger.setRepeating(AlarmManager.RTC,  calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY,pendingIntent);
+        registerReceiver(broadcastReceiver, new IntentFilter(Constantes.RECORRIDO_INTENT_FILTER));
+
+        initRecorrido();
+
+        mTimer = new Timer();
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                updateCurrentRecorrido();
+            }
+        };
+        mTimer.schedule(task, 100000, Constantes.UPLOAD_RECORRIDO_INTERVAL);
+    }
+
+    private void initCombustibleProgresBars() {
+
+        Integer maxValue = getMaxValueFromAdquisitionArray();
+
+        pbCombustible.setMax(maxValue);
+        pbTanque2.setMax(maxValue);
+
+        nivelCombustible = Double.valueOf(Objects.requireNonNull(myPreferences.getString("nivel", "0.0")));
+        nivelCombustibleTank2 = Double.valueOf(Objects.requireNonNull(myPreferences.getString("nivelTank2", "0.0")));
+        tvCombustible.setText(String.format(Locale.US,"%.1f", nivelCombustible)+" Gal.");
+        tvCombustibleTank2.setText(String.format(Locale.US,"%.1f", nivelCombustibleTank2)+" Gal.");
+        pbCombustible.setProgress((int)nivelCombustible);
+
+        if(!modelHasTwoTanks) {
+            pbTanque2.setVisibility(View.GONE);
+            tvCombustibleTank2.setVisibility(View.GONE);
+        }
+    }
+
+    private Integer getMaxValueFromAdquisitionArray() {
+
+        Gson gson = new Gson();
+        JsonArray jsonArray = gson.fromJson(values, JsonArray.class);
+
+        JsonObject jsonValues = jsonArray.get(0).getAsJsonObject();
+        List<Integer> listValues = new ArrayList<>();
+
+        for (String key: jsonValues.keySet()) {
+            listValues.add((int)jsonValues.get(key).getAsDouble());
+        }
+
+        if(listValues.size() > 0) {
+
+            return Collections.max(listValues);
+        } else {
+            return 10;
         }
     }
 
@@ -254,12 +354,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
 
             recorridoService = new RecorridoService(MainActivity.this, true, this.helper);
+            inndexLocationService.setDistancia(0);
             recorridoService.iniciarRecorrido();
-
+            Toast.makeText(this, "RECORRIDO INICIADO", Toast.LENGTH_SHORT).show();
         }
         else if (id == R.id.nav_recorrido_stop) {
 
-            recorridoService.pararRecorrido();
+            if(recorridoService != null) {
+                recorridoService = null;
+            }
+
+            if(mTimer != null){
+                mTimer.cancel();
+                mTimer.purge();
+            }
+
+            unregisterReceiver(broadcastReceiver);
         }
         else if (id == R.id.logout) {
             //logout();
@@ -321,8 +431,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-
-
     @Override
     public void getBluetoothData(double... dato) {
 
@@ -330,11 +438,34 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             (((AdquisicionDatos) miFragment)).getBluetoothData((int)dato[0], (int)dato[1]);
             return;
         }
-        nivelCombustible = dato[0];
-        //pbCombustible.setProgress(this.myPreferences.getInt(Constantes.DEFAULT_GAL_CANT, 10));
-        pbCombustible.setProgress((int)dato[0]);
-        tvCombustible.setText(getString(R.string.cant_gal,nivelCombustible));
-        myPreferences.edit().putString("nivel", String.valueOf(nivelCombustible)).apply();
+
+        if (dato.length == 1) {
+            nivelCombustible = dato[0];
+            pbCombustible.setProgress((int)dato[0]);
+            tvCombustible.setText(getString(R.string.cant_gal, nivelCombustible));
+            myPreferences.edit().putString("nivel", String.valueOf(nivelCombustible)).apply();
+        } else if (dato.length > 1) {
+
+            nivelCombustible = dato[0];
+            nivelCombustibleTank2 = dato[1];
+            pbCombustible.setProgress((int)dato[0]);
+            pbTanque2.setProgress((int)dato[1]);
+            tvCombustible.setText(getString(R.string.cant_gal, nivelCombustible));
+            tvCombustibleTank2.setText(getString(R.string.cant_gal, nivelCombustibleTank2));
+            myPreferences.edit().putString("nivel", String.valueOf(nivelCombustible)).apply();
+            myPreferences.edit().putString("nivelTank2", String.valueOf(nivelCombustibleTank2)).apply();
+        }
+    }
+
+    @Override
+    public void getArrayBlueToothValues(Integer... data) {
+
+        if(data.length > 1) {
+            valorBluetooh = data[0];
+            valorBluetoohT2 = data[1];
+        } else {
+            valorBluetooh = data[0];
+        }
     }
 
     private void logout() {
@@ -360,17 +491,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             this.getDrawer().openDrawer(this.getNavigationView());
         });
 
-        myPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-
         drawer = findViewById(R.id.drawer_layout);
 
         navigationView = findViewById(R.id.nav_view);
 
         View headerLayout = navigationView.getHeaderView(0);
 
-        //TextView tvEmail = headerLayout.findViewById(R.id.tvEmail);
         TextView tvUsuario = headerLayout.findViewById(R.id.tvUsuario);
-        //tvEmail.setText(myPreferences.getString("email", ""));
         tvUsuario.setText(myPreferences.getString("nombres", "") + myPreferences.getString("apellidos", ""));
         navigationView.setNavigationItemSelectedListener(this);
         Menu m = navigationView.getMenu();
@@ -399,9 +526,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         }
 
-        pbCombustible = findViewById(R.id.pbCombustible);
-        pbCombustible.setMax(this.myPreferences.getInt(Constantes.DEFAULT_GAL_CANT, 10));
-        tvCombustible = findViewById(R.id.tvCombustible);
         btnBack = findViewById(R.id.btnBack2);
         btnBack.setVisibility(View.GONE);
         btnBack.setOnClickListener(v -> {
@@ -412,11 +536,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             viewMap.setVisibility(View.VISIBLE);
             btnMenu.setVisibility(View.VISIBLE);
         });
-        nivelCombustible = Double.valueOf(Objects.requireNonNull(myPreferences.getString("nivel", "0.0")));
-        tvCombustible.setText(String.format(Locale.US,"%.1f",nivelCombustible)+" Gal.");
-        tvCombustible.setTypeface(light);
-        pbCombustible.setProgress((int)nivelCombustible);
-        pbCombustible.getProgressDrawable().setColorFilter(getResources().getColor(R.color.white), PorterDuff.Mode.SRC_IN);
         tvTitulo = findViewById(R.id.tvTitulo2);
         tvTitulo.setTypeface(thin);
         tvTitulo.setVisibility(View.GONE);
@@ -667,4 +786,76 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    public Integer getValorBluetooh() {
+        return valorBluetooh;
+    }
+
+    public Integer getValorBluetoohT2() {
+        return valorBluetoohT2;
+    }
+
+    //Método que detiene el recorrido actual, lo sube al servidor y empieza un nuevo recorrido
+    private void resetRecorrido() {
+
+        Log.e("ERR","RESETING RECORRIDO");
+        if(this.inndexLocationService.getMyLocation() == null) {
+            Toast.makeText(this, "Ubicación actual desconocida.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if(bluetoothHelper == null ) {
+            Toast.makeText(this, "No se pudo conectar con el dispositivo.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (recorridoService != null) {
+
+            recorridoService.pararRecorrido();
+            inndexLocationService.setDistancia(0);
+            recorridoService = new RecorridoService(MainActivity.this, true,
+                    this.helper);
+            recorridoService.iniciarRecorrido();
+            Toast.makeText(this, "RECORRIDO INICIADO", Toast.LENGTH_SHORT).show();
+
+            return;
+        }
+
+        recorridoService = new RecorridoService(MainActivity.this, true, this.helper);
+        inndexLocationService.setDistancia(0);
+        recorridoService.iniciarRecorrido();
+        Toast.makeText(this, "RECORRIDO INICIADO", Toast.LENGTH_SHORT).show();
+    }
+
+    private void initRecorrido() {
+
+        if(this.inndexLocationService.getMyLocation() == null) {
+            Toast.makeText(this, "Ubicación actual desconocida.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if(bluetoothHelper == null ) {
+            Toast.makeText(this, "No se pudo conectar con el dispositivo.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        recorridoService = new RecorridoService(MainActivity.this, true, this.helper);
+        inndexLocationService.setDistancia(0);
+        recorridoService.iniciarRecorrido();
+        Toast.makeText(this, "RECORRIDO INICIADO", Toast.LENGTH_SHORT).show();
+    }
+
+    private void updateCurrentRecorrido() {
+
+        if(recorridoService != null && recorridoService.getRecorrido() != null)
+            recorridoService.uploadRecorrido();
+    }
+
+    public void resetAll() {
+
+//        recorridoService.stopTimmers();
+//        recorridoService = null;
+//        bluetoothHelper = null;
+
+
+    }
 }

@@ -32,6 +32,7 @@ public class Constantes {
 
     //USUARIO HAS MODELO CARROS
     public static final String POST_REGISTRAR_USUARIO_HAS_MODELO_CARRO =  "usuarioHasModeloCarros/";
+    public static final String PUT_UPDATE_USUARIO_HAS_MODELO_CARRO =  "usuarioHasModeloCarros/update";
     public static final String GET_USUARIO_HAS_MODELO_CARROS_BY_ID_USER =  "usuarioHasModeloCarros/getAllByUser/";
 
     //API KEY DE PONTON
@@ -64,6 +65,8 @@ public class Constantes {
     public static final String CONTENT_TYPE_JSON = "application/json";
     public static final String DEFAULT_GAL_CANT = "defaultGalCant";
     public static final String MODEL_HAS_TWO_TANKS = "modelHasTwoTanks";
+    public static final String RECORRIDO_INTENT_FILTER = "RECORRIDO_INTENT_FILTER";
+    public static final String DEFAULT_UHMC_ID = "defaultUhmcId";
 
     public static final String SESION_ACTIVE = "sesionMedidor";
 
@@ -71,7 +74,13 @@ public class Constantes {
 
     public static final long DELAY_RECORRIDO = 5000;
 
+    public static final long UPLOAD_RECORRIDO_INTERVAL = 900000;
+
     public static final SimpleDateFormat SDF_FOR_BACKEND = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+
+    public static final SimpleDateFormat SDF_DATE_RECORRIDO = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+
+    public static final SimpleDateFormat SDF_HOUR_RECORRIDO = new SimpleDateFormat("HH:mm:ss", Locale.US);
 
     public static float getDistance(LatLng myPosition, LatLng estacionLatLng){
 

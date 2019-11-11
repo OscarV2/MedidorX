@@ -34,9 +34,7 @@ public class DownloadUsuarioHasModeloCarro extends Thread {
 
                 try {
                     Dao<UsuarioHasModeloCarro, Integer> dao = helper.getDaoUsuarioHasModeloCarros();
-
                     if(response.body() != null && response.body().size() > 0) {
-
                         dao.create(response.body());
                     }
                 } catch (SQLException e) {

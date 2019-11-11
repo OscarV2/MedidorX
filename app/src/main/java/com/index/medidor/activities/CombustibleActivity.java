@@ -196,6 +196,11 @@ public class CombustibleActivity extends AppCompatActivity implements OnMapReady
         tvCombustible.setText(getString(R.string.cant_gal, nivelCombustible));
     }
 
+    @Override
+    public void getArrayBlueToothValues(Integer... data) {
+
+    }
+
     public double getNivelCombustible() {
         return nivelCombustible;
     }

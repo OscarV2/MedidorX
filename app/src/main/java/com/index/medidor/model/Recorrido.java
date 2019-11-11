@@ -13,14 +13,12 @@ import java.util.Date;
 @DatabaseTable(tableName = "recorrido")
 public class Recorrido implements Serializable {
 
-    @DatabaseField(generatedId = true, columnName = "id")
+    @DatabaseField(columnName = "id", id = true)
     private Long id;
     @DatabaseField
-    private int idUsuario;
+    private String fechaInicio;
     @DatabaseField
-    private Date fechaInicio;
-    @DatabaseField
-    private Date fechaFin;
+    private String fechaFin;
     @DatabaseField
     private Double distanciaRecorrida;
     @DatabaseField
@@ -28,17 +26,20 @@ public class Recorrido implements Serializable {
     @DatabaseField
     private transient boolean uploaded;
     @ForeignCollectionField
-    private transient Collection<UnidadRecorrido> listUnidadRecorrido;
+    private Collection<UnidadRecorrido> listUnidadRecorrido;
     @ForeignCollectionField
     private Collection<Tanqueadas> listTanqueadas;
+
+    private Usuario usuario;
 
     private String jsonListUnidadRecorrido;
 
     public Recorrido() { }
 
     public Recorrido(int idUsuario,  Double galonesPerdidos) {
-        this.idUsuario = idUsuario;
-        this.fechaInicio = new Date();
+        Usuario user = new Usuario();
+        user.setId(idUsuario);
+        //this.fechaInicio = new Date();
         this.distanciaRecorrida = 0.0;
         this.galonesPerdidos = galonesPerdidos;
         this.uploaded = false;
@@ -54,27 +55,19 @@ public class Recorrido implements Serializable {
         this.id = id;
     }
 
-    public int getIdUsuario() {
-        return idUsuario;
-    }
-
-    public void setIdUsuario(int idUsuario) {
-        this.idUsuario = idUsuario;
-    }
-
-    public Date getFechaInicio() {
+    public String getFechaInicio() {
         return fechaInicio;
     }
 
-    public void setFechaInicio(Date fechaInicio) {
+    public void setFechaInicio(String fechaInicio) {
         this.fechaInicio = fechaInicio;
     }
 
-    public Date getFechaFin() {
+    public String getFechaFin() {
         return fechaFin;
     }
 
-    public void setFechaFin(Date fechaFin) {
+    public void setFechaFin(String fechaFin) {
         this.fechaFin = fechaFin;
     }
 
@@ -125,5 +118,13 @@ public class Recorrido implements Serializable {
     public void setJsonListUnidadRecorrido() {
         Gson gson = new Gson();
         this.jsonListUnidadRecorrido = gson.toJson(listUnidadRecorrido);
+    }
+
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
     }
 }

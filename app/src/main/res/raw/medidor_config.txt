@@ -1,5 +1,5 @@
 #
-# generated on 2019/11/02 10:47:36
+# generated on 2019/11/11 05:12:43
 #
 # --table-start--
 dataClass=com.index.medidor.model.Estaciones
@@ -108,10 +108,7 @@ tableName=recorrido
 # --field-start--
 fieldName=id
 columnName=id
-generatedId=true
-# --field-end--
-# --field-start--
-fieldName=idUsuario
+id=true
 # --field-end--
 # --field-start--
 fieldName=fechaInicio
@@ -213,6 +210,9 @@ fieldName=latitud
 fieldName=longitud
 # --field-end--
 # --field-start--
+fieldName=altitud
+# --field-end--
+# --field-start--
 fieldName=tiempo
 # --field-end--
 # --field-start--
@@ -226,6 +226,12 @@ fieldName=valorBluetooh
 # --field-end--
 # --field-start--
 fieldName=valorBluetoohT2
+# --field-end--
+# --field-start--
+fieldName=distancia
+# --field-end--
+# --field-start--
+fieldName=hora
 # --field-end--
 # --field-start--
 fieldName=recorrido

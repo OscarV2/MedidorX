@@ -18,6 +18,7 @@ import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
@@ -56,6 +57,10 @@ public interface SmartBillApiServices {
                                                          @Path("linea") String linea,
                                           @Body UsuarioHasModeloCarro uhmc);
 
+    @PUT(Constantes.PUT_UPDATE_USUARIO_HAS_MODELO_CARRO)
+    Call<UsuarioHasModeloCarro> putUpdateUsuarioHasModeloCarro(@Header("Content-Type") String headerContentType,
+                                                         @Body UsuarioHasModeloCarro uhmc);
+
     @GET(Constantes.GET_USUARIO_HAS_MODELO_CARROS_BY_ID_USER + "{idUsuario}")
     Call<List<UsuarioHasModeloCarro>> getUsuarioHasModeloCarros(@Path("idUsuario") String idUsuario);
 
@@ -80,7 +85,6 @@ public interface SmartBillApiServices {
      */
     @POST(Constantes.POST_REGISTRAR_RECORRIDO)
     Call<String> postRegisterRecorrido(@Header("Content-Type") String headerContentType,
-                                             @Query("idUsuario") Long idUsuario,
                                              @Body Recorrido recorrido);
 
 }

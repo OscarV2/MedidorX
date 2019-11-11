@@ -160,7 +160,7 @@ public class AdquisicionDatos extends Fragment {
                 Constantes.getYearsModelsCars()));
 
         spCombustible.setAdapter( ArrayAdapter.createFromResource(mainActivity,
-                R.array.tipos_combustibles, android.R.layout.simple_spinner_item));
+                R.array.tipos_combustibles, android.R.layout.simple_spinner_dropdown_item));
 
         modeloCarros.setModelo(Constantes.getYearsModelsCars()[0]);
         modeloCarros.setTipoCombustible(spCombustible.getSelectedItem().toString());

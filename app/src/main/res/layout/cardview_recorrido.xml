@@ -3,12 +3,12 @@
     android:layout_width="match_parent" android:layout_height="wrap_content"
     android:layout_marginTop="5dp">
 
-    <com.google.android.gms.maps.MapView
+    <!--com.google.android.gms.maps.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="120dp">
 
-    </com.google.android.gms.maps.MapView>
+    </com.google.android.gms.maps.MapView -->
     <!--ImageView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
@@ -21,8 +21,6 @@
         /-->
 
     <TextView
-        android:layout_below="@id/mapView"
-        android:text="11/11/2018, 18:25"
         android:id="@+id/tv_fecha_recorrido"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -33,20 +31,17 @@
         android:id="@+id/lay_recorrido"
         android:layout_marginRight="30dp"
         android:layout_alignParentRight="true"
-        android:layout_below="@id/mapView"
         android:orientation="horizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
 
         <TextView
-            android:text="7.02 Gal /"
             android:id="@+id/tv_gal_recorrido"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="18sp"/>
 
         <TextView
-            android:text="525.7 km"
             android:id="@+id/tv_distancia_recorrido"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

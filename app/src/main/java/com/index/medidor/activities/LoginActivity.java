@@ -204,7 +204,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onResponse(Call<List<UsuarioHasModeloCarro>> call, Response<List<UsuarioHasModeloCarro>> response) {
 
                 mCustomProgressDialog.dismiss("");
-
+                Gson gson = new Gson();
                 if (response.isSuccessful()){
 
                     if (response.body() != null && response.body().size() > 0){
@@ -220,9 +220,16 @@ public class LoginActivity extends AppCompatActivity {
                                     //ModeloCarros modeloCarros = daoModeloCarros.queryForId(uhmc.getModelosCarrosId());
                                     myPreferences.edit().putInt(Constantes.DEFAULT_GAL_CANT, (int)uhmc.getModeloCarros().getGalones()).apply();
                                     myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_MAC, uhmc.getBluetoothMac()).apply();
-                                }
+                                    myPreferences.edit().putBoolean(Constantes.MODEL_HAS_TWO_TANKS, uhmc.getModeloCarros().getHasTwoTanks()).apply();
+                                    myPreferences.edit().putLong(Constantes.DEFAULT_UHMC_ID, uhmc.getId()).apply();
+                                    myPreferences.edit().putLong("defaultModeloCarroId", uhmc.getModeloCarros().getId()).apply();
 
+                                    Log.e("ID MC", gson.toJson(uhmc.getModeloCarros().getId()));
+                                }
+                                uhmc.setModelosCarrosId(uhmc.getModeloCarros().getId());
+                                //Log.e("ID","del modelo carro " + uhmc.getModeloCarros().getId());
                                 daoUsuarioModeloCarros.create(uhmc);
+                                //daoModeloCarros.create(uhmc.getModeloCarros());
                             }
                             irMain(user);
 
@@ -255,7 +262,7 @@ public class LoginActivity extends AppCompatActivity {
 
             ActivityCompat.requestPermissions(
                     this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
                     LOCATION_REQUEST_CODE);
         }
     }
