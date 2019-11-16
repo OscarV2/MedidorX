@@ -29,14 +29,16 @@
         android:textColor="@color/white"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
         android:layout_centerVertical="true"
-        android:layout_toRightOf="@id/imageView"
-        android:layout_marginLeft="15dp"/>
+        android:layout_toEndOf="@id/imageView"
+        android:layout_marginStart="15dp"/>
 
-    <!--TextView
-        android:id="@+id/tvEmail"
+    <TextView
+        android:id="@+id/tvDefaultPlaca"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="15sp"
-        android:textColor="@color/white" /-->
+        android:textColor="@color/white"
+        android:layout_below="@id/tvUsuario"
+        android:layout_toEndOf="@id/imageView"/>
 
 </RelativeLayout>

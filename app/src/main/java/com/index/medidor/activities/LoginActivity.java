@@ -223,6 +223,7 @@ public class LoginActivity extends AppCompatActivity {
                                     myPreferences.edit().putBoolean(Constantes.MODEL_HAS_TWO_TANKS, uhmc.getModeloCarros().getHasTwoTanks()).apply();
                                     myPreferences.edit().putLong(Constantes.DEFAULT_UHMC_ID, uhmc.getId()).apply();
                                     myPreferences.edit().putLong("defaultModeloCarroId", uhmc.getModeloCarros().getId()).apply();
+                                    myPreferences.edit().putString(Constantes.DEFAULT_PLACA, uhmc.getPlaca()).apply();
 
                                     Log.e("ID MC", gson.toJson(uhmc.getModeloCarros().getId()));
                                 }

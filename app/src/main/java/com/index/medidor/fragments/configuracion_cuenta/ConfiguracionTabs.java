@@ -124,7 +124,8 @@ public class ConfiguracionTabs extends Fragment {
 
         SeccionesCombustibleAdapter adapter = new SeccionesCombustibleAdapter(getFragmentManager());
         adapter.addFragment(new InfoPersonal(mainActivity), "Info. Personal");
-        adapter.addFragment(new MiVehiculo(mainActivity), "Mi vehículo");
+        adapter.addFragment(new MiVehiculo(mainActivity), "Mis vehículos");
+        adapter.addFragment(new NuevoVehiculo(mainActivity), "Nuevo Vehículo");
 
         viewPager.setAdapter(adapter);
 

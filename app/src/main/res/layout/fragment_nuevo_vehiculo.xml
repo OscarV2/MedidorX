@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".fragments.configuracion_cuenta.NuevoVehiculo">
+
+
+    <LinearLayout
+        android:background="@color/yellow_soft"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/img_mi_vehiculo_nuevo"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:contentDescription="@string/aceptar"
+            android:src="@drawable/carro"
+            android:layout_marginEnd="20dp"/>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp">
+
+            <Spinner
+                android:id="@+id/sp_marca_mi_vehiculo_nuevo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_marca"/>
+            <Spinner
+                android:id="@+id/sp_anio_mi_vehiculo_nuevo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_modelo"
+                android:layout_marginTop="25dp"/>
+
+            <Spinner
+                android:id="@+id/sp_linea_mi_vehiculo_nuevo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_linea"/>
+            <EditText
+                android:id="@+id/edt_placa_mi_vehiculo_nuevo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_placa"
+                android:layout_marginTop="25dp"
+                android:inputType="text"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/img_plus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_add_black_24dp"
+            android:contentDescription="@string/cal_aceptar" />
+
+        <TextView
+            android:id="@+id/tv_agregar_vehiculo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/txt_agregar_vc"
+            android:layout_toEndOf="@id/img_plus"
+            android:textColor="@color/colorPrimary"/>
+
+        <ImageView
+            android:id="@+id/img_borrar_vehiculo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_delete_black_24dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="20dp"
+            android:contentDescription="@string/cal_aceptar"/>
+
+        <ImageView
+            android:id="@+id/img_edit_buetooth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_edit"
+            android:baselineAlignBottom="true"
+            android:layout_below="@+id/img_borrar_vehiculo"
+            android:layout_marginTop="15dp"
+            android:contentDescription="@string/cal_aceptar"/>
+
+        <TextView
+            android:id="@+id/tv_edit_bluetooh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/actualizar_bluetooth"
+            android:layout_toEndOf="@id/img_edit_buetooth"
+            android:textColor="@color/colorPrimary"
+            android:layout_below="@+id/tv_agregar_vehiculo"
+            android:layout_marginTop="20dp"/>
+
+        <Spinner
+            android:id="@+id/sp_edit_bluetooth_device"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginStart="10dp"
+            android:padding="10dp"
+            android:layout_below="@+id/tv_edit_bluetooh"/>
+
+        <Button
+            android:id="@+id/btn_edit_bluetooth_aceptar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/cal_aceptar"
+            android:layout_centerHorizontal="true"
+            android:textColor="@color/white"
+            android:layout_below="@id/sp_edit_bluetooth_device"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:textSize="20sp"
+            android:background="@color/colorPrimary"
+            android:layout_marginBottom="20dp"/>
+    </RelativeLayout>
+
+</FrameLayout>

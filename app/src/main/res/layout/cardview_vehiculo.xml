@@ -27,6 +27,11 @@
             android:id="@+id/tv_anio_mi_vehiculo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"  />
+
+        <TextView
+            android:id="@+id/tv_bluetooh_vehiculo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
     </LinearLayout>
 
     <LinearLayout
@@ -44,6 +49,13 @@
             android:id="@+id/tv_placa_mi_vehiculo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
+
+        <ImageButton
+            android:id="@+id/img_change_bluetooth"
+            android:contentDescription="@string/cal_aceptar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_bluetooth_black"/>
     </LinearLayout>
 
 </LinearLayout>

@@ -18,9 +18,20 @@ public class UsuarioHasModeloCarro {
     private String bluetoothMac;
     @DatabaseField
     private String valoresAdq;
-
+    @DatabaseField
+    private String placa;
     @DatabaseField(foreign = true, foreignAutoRefresh = true)
     private ModeloCarros modeloCarros;
+    @DatabaseField
+    private Boolean hasTwoTanks ;
+    @DatabaseField
+    private String tipoCombustible;
+    @DatabaseField
+    private String marca;
+    @DatabaseField
+    private String linea;
+    @DatabaseField
+    private String anio;
 
     public UsuarioHasModeloCarro() {
 
@@ -80,5 +91,53 @@ public class UsuarioHasModeloCarro {
 
     public void setModeloCarros(ModeloCarros modeloCarros) {
         this.modeloCarros = modeloCarros;
+    }
+
+    public String getPlaca() {
+        return placa;
+    }
+
+    public void setPlaca(String placa) {
+        this.placa = placa;
+    }
+
+    public Boolean getHasTwoTanks() {
+        return hasTwoTanks;
+    }
+
+    public void setHasTwoTanks(Boolean hasTwoTanks) {
+        this.hasTwoTanks = hasTwoTanks;
+    }
+
+    public String getTipoCombustible() {
+        return tipoCombustible;
+    }
+
+    public void setTipoCombustible(String tipoCombustible) {
+        this.tipoCombustible = tipoCombustible;
+    }
+
+    public String getMarca() {
+        return marca;
+    }
+
+    public void setMarca(String marca) {
+        this.marca = marca;
+    }
+
+    public String getLinea() {
+        return linea;
+    }
+
+    public void setLinea(String linea) {
+        this.linea = linea;
+    }
+
+    public String getAnio() {
+        return anio;
+    }
+
+    public void setAnio(String anio) {
+        this.anio = anio;
     }
 }

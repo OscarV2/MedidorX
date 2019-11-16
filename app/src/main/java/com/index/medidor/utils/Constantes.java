@@ -67,12 +67,12 @@ public class Constantes {
     public static final String MODEL_HAS_TWO_TANKS = "modelHasTwoTanks";
     public static final String RECORRIDO_INTENT_FILTER = "RECORRIDO_INTENT_FILTER";
     public static final String DEFAULT_UHMC_ID = "defaultUhmcId";
-
+    public static final String DEFAULT_PLACA = "defaultPlaca";
     public static final String SESION_ACTIVE = "sesionMedidor";
 
     public static final double LAT_LNG_TOLERANCE = 0.002;
 
-    public static final long DELAY_RECORRIDO = 5000;
+    public static final long DELAY_RECORRIDO = 1000;
 
     public static final long UPLOAD_RECORRIDO_INTERVAL = 900000;
 

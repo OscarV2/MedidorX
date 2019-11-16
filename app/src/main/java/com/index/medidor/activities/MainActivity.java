@@ -25,6 +25,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
+import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
@@ -67,6 +68,7 @@ import com.index.medidor.fragments.historial.HistorialTabs;
 import com.index.medidor.fragments.combustible.IngresadoFragment;
 import com.index.medidor.fragments.InicioFragment;
 import com.index.medidor.model.Estaciones;
+import com.index.medidor.model.UsuarioHasModeloCarro;
 import com.index.medidor.places.EstacionesPlaces;
 import com.index.medidor.bluetooth.interfaces.BluetoothDataReceiver;
 import com.index.medidor.bluetooth.BluetoothHelper;
@@ -105,6 +107,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private BluetoothSocket btSocket;
     private ProgressBar pbCombustible, pbTanque2;
     private TextView tvCombustible, tvCombustibleTank2;
+    private TextView tvDefaultPlaca;
     private AlertDialog alert = null;
     private CustomProgressDialog mCustomProgressDialog;
     private SharedPreferences myPreferences;
@@ -158,7 +161,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         viewMap = findViewById(R.id.map);
 
         try {
-
             getAllStations();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -392,8 +394,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mapService.setmMap(googleMap);
         mapService.getmMap().setMyLocationEnabled(true);
 
-        if(mapService.getMyLocation() != null) {
+        if(inndexLocationService.getMyLocation() != null) {
 
+            mapService.setMyLocation(inndexLocationService.getMyLocation());
             mapService.mostrarUbicacion();
         }
 
@@ -403,6 +406,42 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 LatLng latLng = new LatLng(estacion.getLatitud(), estacion.getLongitud());
                 mapService.getmMap().addMarker(new MarkerOptions().position(latLng).title(estacion.getMarca()).snippet(estacion.getDireccion()).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker)));
             }
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            inndexLocationService.setLocationManager((LocationManager) getSystemService(Context.LOCATION_SERVICE));
+            //locationManager.req
+            //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+            mapService.setMyLocation(inndexLocationService.getLocationManager().getLastKnownLocation(LocationManager.PASSIVE_PROVIDER));
+            if (mapService.getMyLocation() != null){
+                LatLng newPosition = new LatLng(mapService.getMyLocation().getLatitude(), mapService.getMyLocation().getLongitude());
+                SharedPreferences.Editor editor = myPreferences.edit();
+                editor.putString("latitud",String.valueOf(mapService.getMyLocation().getLatitude()));
+                editor.putString("longitud",String.valueOf(mapService.getMyLocation().getLongitude()));
+                editor.apply();
+                mapService.getmMap().animateCamera(CameraUpdateFactory.newLatLngZoom(newPosition, 14));
+                //mMap.addMarker(new MarkerOptions().position(newPosition).flat(true).title("Mi ubicación"));
+                EstacionesPlaces places = new EstacionesPlaces();
+                mapService.getmMap().setMyLocationEnabled(true);
+                try {
+                    Estaciones estacionMasCercana = places.getEstacionMasCercana(newPosition, helper);
+                    Gson gson = new Gson();
+                    Log.e("Estacion","MAS CERCANA");
+                    Log.e("Estacion",gson.toJson(estacionMasCercana));
+
+                } catch (SQLException e) {
+                    Log.e("EXCEPCION","No se pudo obtener la estacion mas cercana");
+                    e.printStackTrace();
+                }
+
+            }
+        }else{
+            Log.e("PERMISOS","HACE FALTA ALGUN PERMISO");
+            ActivityCompat.requestPermissions(
+                    MainActivity.this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    InndexLocationService.LOCATION_REQUEST_CODE);
         }
     }
 
@@ -416,16 +455,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onDestroy();
 
         inndexLocationService.setLocationManager(null);
-        /*if (btSocket != null ){
 
-            if (btSocket.isConnected()){
-                try {
-                    btSocket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }*/
         if (alert != null) {
             alert.dismiss();
         }
@@ -498,6 +528,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         View headerLayout = navigationView.getHeaderView(0);
 
         TextView tvUsuario = headerLayout.findViewById(R.id.tvUsuario);
+        tvDefaultPlaca = headerLayout.findViewById(R.id.tvDefaultPlaca);
+        tvDefaultPlaca.setText(myPreferences.getString(Constantes.DEFAULT_PLACA, ""));
         tvUsuario.setText(myPreferences.getString("nombres", "") + myPreferences.getString("apellidos", ""));
         navigationView.setNavigationItemSelectedListener(this);
         Menu m = navigationView.getMenu();
@@ -551,41 +583,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
                     Log.e("PERMISOS","FUERON HABILITADOS");
-                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                            == PackageManager.PERMISSION_GRANTED) {
-                        inndexLocationService.setLocationManager((LocationManager) getSystemService(Context.LOCATION_SERVICE));
-                        //locationManager.req
-                        //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-                        mapService.setMyLocation(inndexLocationService.getLocationManager().getLastKnownLocation(LocationManager.PASSIVE_PROVIDER));
-                        if (mapService.getMyLocation() != null){
-                            LatLng newPosition = new LatLng(mapService.getMyLocation().getLatitude(), mapService.getMyLocation().getLongitude());
-                            SharedPreferences.Editor editor = myPreferences.edit();
-                            editor.putString("latitud",String.valueOf(mapService.getMyLocation().getLatitude()));
-                            editor.putString("longitud",String.valueOf(mapService.getMyLocation().getLongitude()));
-                            editor.apply();
-                            mapService.getmMap().animateCamera(CameraUpdateFactory.newLatLngZoom(newPosition, 14));
-                            //mMap.addMarker(new MarkerOptions().position(newPosition).flat(true).title("Mi ubicación"));
-                            EstacionesPlaces places = new EstacionesPlaces();
-                            mapService.getmMap().setMyLocationEnabled(true);
-                            try {
-                                Estaciones estacionMasCercana = places.getEstacionMasCercana(newPosition, helper);
-                                Gson gson = new Gson();
-                                Log.e("Estacion","MAS CERCANA");
-                                Log.e("Estacion",gson.toJson(estacionMasCercana));
 
-                            } catch (SQLException e) {
-                                Log.e("EXCEPCION","No se pudo obtener la estacion mas cercana");
-                                e.printStackTrace();
-                            }
-
-                        }
-                    }else{
-                        Log.e("PERMISOS","HACE FALTA ALGUN PERMISO");
-                        ActivityCompat.requestPermissions(
-                                MainActivity.this,
-                                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                                InndexLocationService.LOCATION_REQUEST_CODE);
-                    }
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
 
@@ -603,7 +601,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void getAllStations() throws SQLException {
-
         final Dao<Estaciones, Integer> dao = helper.getDaoEstaciones();
         estaciones = dao.queryForAll();
     }
@@ -636,13 +633,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
-    private void updateLocation(){
+    public void updateLocation(Location myLocation){
         //myLocation = location;
-        /*mapService.setMyLocation(null);
+        mapService.setMyLocation(null);
         SharedPreferences.Editor editor = myPreferences.edit();
         editor.putString("latitud",String.valueOf(myLocation.getLatitude()));
         editor.putString("longitud",String.valueOf(myLocation.getLongitude()));
-        editor.apply();*/
+        editor.apply();
     }
 
     public DrawerLayout getDrawer() {
@@ -686,7 +683,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public void irCambiarContrasena(){
-
     }
 
     public BluetoothHelper getBluetoothHelper() {
@@ -774,12 +770,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         if (!inndexLocationService.getLocationManager().isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage("El GPS esta desactivado").setCancelable(false).setPositiveButton("Activar", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    Intent enableGPSIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                    startActivity(enableGPSIntent);
-                }
+            builder.setMessage("El GPS esta desactivado").setCancelable(false).setPositiveButton("Activar", (dialog, which) -> {
+                Intent enableGPSIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                startActivity(enableGPSIntent);
             });
             alert = builder.create();
             alert.show();
@@ -850,12 +843,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             recorridoService.uploadRecorrido();
     }
 
+    public void udateDefaultVehicle(UsuarioHasModeloCarro uhmc) {
+        myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_VALUE_ARRAY, uhmc.getValoresAdq()).apply();
+        //ModeloCarros modeloCarros = daoModeloCarros.queryForId(uhmc.getModelosCarrosId());
+        myPreferences.edit().putInt(Constantes.DEFAULT_GAL_CANT, (int)uhmc.getModeloCarros().getGalones()).apply();
+        myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_MAC, uhmc.getBluetoothMac()).apply();
+        myPreferences.edit().putBoolean(Constantes.MODEL_HAS_TWO_TANKS, uhmc.getHasTwoTanks()).apply();
+        myPreferences.edit().putLong(Constantes.DEFAULT_UHMC_ID, uhmc.getId()).apply();
+        myPreferences.edit().putLong("defaultModeloCarroId", uhmc.getModeloCarros().getId()).apply();
+        myPreferences.edit().putString(Constantes.DEFAULT_PLACA, uhmc.getPlaca()).apply();
+
+        if(!uhmc.getHasTwoTanks()){
+
+            tvCombustible.setVisibility(View.GONE);
+            pbTanque2.setVisibility(View.GONE);
+        }
+
+        tvDefaultPlaca.setText(myPreferences.getString(Constantes.DEFAULT_PLACA, ""));
+    }
+
     public void resetAll() {
 
 //        recorridoService.stopTimmers();
 //        recorridoService = null;
 //        bluetoothHelper = null;
-
-
     }
 }

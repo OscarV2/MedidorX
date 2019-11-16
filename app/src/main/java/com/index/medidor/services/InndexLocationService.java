@@ -41,23 +41,20 @@ public class InndexLocationService implements LocationListener {
                 == PackageManager.PERMISSION_GRANTED) {
             //Manifest.permission.ACCESS_COARSE_LOCATION == PackageManager.PERMISSION_GRANTED
             if(locationManager == null) {
-                Log.e("LOC","InitLocationUpdates");
                 locationManager = (LocationManager) mainActivity.getSystemService(Context.LOCATION_SERVICE);
                 Log.e("PRO","enabled " + locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER));
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
                 Location lastKnownLocationGPS = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
                 if(lastKnownLocationGPS != null) {
-
-                    Log.e("LOC1", "AWESOME NO T NULL");
                     myLocation = lastKnownLocationGPS;
+                    mainActivity.updateLocation(myLocation);
 
                 } else {
                     Log.e("LOC2","SORRY TRY IT NEXT TIME");
                 }
             }
         } else {
-            Log.e("NOO","FALTAN PERMISOS HAY QUE HACER ALGO.");
             ActivityCompat.requestPermissions(
                     mainActivity,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
@@ -70,18 +67,14 @@ public class InndexLocationService implements LocationListener {
 
         if (myLocation != null) {
             //Log.e("location", "NOT NULL");
-
+            mainActivity.updateLocation(myLocation);
             distancia_temp = myLocation.distanceTo(location);
-
+            mainActivity.getMapService().updateMyPosition();
             if(distancia_temp > 15) {
 
-                Log.e("location", "distance greater than 15");
-
-                mainActivity.getMapService().updateMyPosition();
                 myLocation = location;
                 distancia += distancia_temp;
             }
-
 
         } else {
             myLocation = location;
