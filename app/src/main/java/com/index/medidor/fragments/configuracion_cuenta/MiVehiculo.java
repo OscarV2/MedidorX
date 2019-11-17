@@ -8,6 +8,7 @@ package com.index.medidor.fragments.configuracion_cuenta;
 
         import androidx.annotation.RequiresApi;
         import androidx.fragment.app.Fragment;
+        import androidx.recyclerview.widget.LinearLayoutManager;
         import androidx.recyclerview.widget.RecyclerView;
 
         import android.util.Log;
@@ -26,6 +27,7 @@ package com.index.medidor.fragments.configuracion_cuenta;
         import com.index.medidor.R;
         import com.index.medidor.activities.MainActivity;
         import com.index.medidor.adapter.BluetoothDeviceAdapter;
+        import com.index.medidor.adapter.VehiculosAdapter;
         import com.index.medidor.bluetooth.SpBluetoothDevice;
         import com.index.medidor.database.DataBaseHelper;
         import com.index.medidor.model.MarcaCarros;
@@ -102,11 +104,24 @@ public class MiVehiculo extends Fragment {
         View v = inflater.inflate(R.layout.fragment_mi_vehiculo, container, false);
 
         RecyclerView rvVehiculos = v.findViewById(R.id.rv_mis_vehiculos);
+        DataBaseHelper helper = OpenHelperManager.getHelper(mainActivity, DataBaseHelper.class);
+        List<UsuarioHasModeloCarro> usuarioHasModeloCarroList;
+        try {
+            Dao<UsuarioHasModeloCarro, Integer> daoUsuarioHasMOdeloCarro = helper.getDaoUsuarioHasModeloCarros();
+            usuarioHasModeloCarroList = daoUsuarioHasMOdeloCarro.queryForAll();
+
+            VehiculosAdapter adapter = new VehiculosAdapter(usuarioHasModeloCarroList, mainActivity);
+
+            rvVehiculos.setLayoutManager(new LinearLayoutManager(getContext()));
+            rvVehiculos.setAdapter(adapter);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
         return v;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);

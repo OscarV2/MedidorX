@@ -1,5 +1,5 @@
 #
-# generated on 2019/11/12 09:22:36
+# generated on 2019/11/17 10:03:28
 #
 # --table-start--
 dataClass=com.index.medidor.model.Estaciones
@@ -302,6 +302,21 @@ fieldName=modeloCarros
 foreign=true
 foreignAutoRefresh=true
 maxForeignAutoRefreshLevel=2
+# --field-end--
+# --field-start--
+fieldName=hasTwoTanks
+# --field-end--
+# --field-start--
+fieldName=tipoCombustible
+# --field-end--
+# --field-start--
+fieldName=marca
+# --field-end--
+# --field-start--
+fieldName=linea
+# --field-end--
+# --field-start--
+fieldName=anio
 # --field-end--
 # --table-fields-end--
 # --table-end--

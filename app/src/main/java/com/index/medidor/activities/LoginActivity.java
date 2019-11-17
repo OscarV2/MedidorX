@@ -142,6 +142,7 @@ public class LoginActivity extends AppCompatActivity {
                         Toast.makeText(LoginActivity.this, "Error: ESTE USUARIO NO EXISTE.", Toast.LENGTH_SHORT).show();
                     }
                 }else{
+                    mCustomProgressDialog.dismiss("");
                     Toast.makeText(LoginActivity.this, "Error", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -160,12 +161,13 @@ public class LoginActivity extends AppCompatActivity {
         infoUsuario.putBoolean(Constantes.SESION_ACTIVE, true);
         infoUsuario.putString("email", user.getEmail());
         infoUsuario.putString("nombres", user.getNombres());
-        infoUsuario.putInt("idUsuario", user.getId());
+        infoUsuario.putInt(Constantes.DEFAULT_USER_ID, user.getId());
         infoUsuario.putString("celular", user.getCelular());
         infoUsuario.putString("apellidos", user.getApellidos());
         infoUsuario.putInt("tipoUsuario", user.getTipo());
 
         infoUsuario.apply();
+        mCustomProgressDialog.dismiss("");
 
         DownloadUsuarioHasModeloCarro downloadUsuarioHasModeloCarro = new DownloadUsuarioHasModeloCarro(user.getId(), this.helper);
         downloadUsuarioHasModeloCarro.start();
@@ -207,41 +209,48 @@ public class LoginActivity extends AppCompatActivity {
                 Gson gson = new Gson();
                 if (response.isSuccessful()){
 
-                    if (response.body() != null && response.body().size() > 0){
+                    if (response.body() != null){
 
-                        try {
-                            daoUsuarioModeloCarros = helper.getDaoUsuarioHasModeloCarros();
-                            daoModeloCarros = helper.getDaoModelos();
+                        if(response.body().size() > 0) {
 
-                            for (UsuarioHasModeloCarro uhmc: response.body()) {
+                            try {
+                                daoUsuarioModeloCarros = helper.getDaoUsuarioHasModeloCarros();
+                                daoModeloCarros = helper.getDaoModelos();
 
-                                if(uhmc.getModeloCarros().getValoresAdq() != null){
-                                    myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_VALUE_ARRAY, uhmc.getModeloCarros().getValoresAdq()).apply();
-                                    //ModeloCarros modeloCarros = daoModeloCarros.queryForId(uhmc.getModelosCarrosId());
-                                    myPreferences.edit().putInt(Constantes.DEFAULT_GAL_CANT, (int)uhmc.getModeloCarros().getGalones()).apply();
-                                    myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_MAC, uhmc.getBluetoothMac()).apply();
-                                    myPreferences.edit().putBoolean(Constantes.MODEL_HAS_TWO_TANKS, uhmc.getModeloCarros().getHasTwoTanks()).apply();
-                                    myPreferences.edit().putLong(Constantes.DEFAULT_UHMC_ID, uhmc.getId()).apply();
-                                    myPreferences.edit().putLong("defaultModeloCarroId", uhmc.getModeloCarros().getId()).apply();
-                                    myPreferences.edit().putString(Constantes.DEFAULT_PLACA, uhmc.getPlaca()).apply();
+                                for (UsuarioHasModeloCarro uhmc: response.body()) {
 
-                                    Log.e("ID MC", gson.toJson(uhmc.getModeloCarros().getId()));
+                                    if(uhmc.getModeloCarros().getValoresAdq() != null){
+                                        myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_VALUE_ARRAY, uhmc.getModeloCarros().getValoresAdq()).apply();
+                                        //ModeloCarros modeloCarros = daoModeloCarros.queryForId(uhmc.getModelosCarrosId());
+                                        myPreferences.edit().putInt(Constantes.DEFAULT_GAL_CANT, (int)uhmc.getModeloCarros().getGalones()).apply();
+                                        myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_MAC, uhmc.getBluetoothMac()).apply();
+                                        myPreferences.edit().putBoolean(Constantes.MODEL_HAS_TWO_TANKS, uhmc.getModeloCarros().getHasTwoTanks()).apply();
+                                        myPreferences.edit().putLong(Constantes.DEFAULT_UHMC_ID, uhmc.getId()).apply();
+                                        myPreferences.edit().putLong("defaultModeloCarroId", uhmc.getModeloCarros().getId()).apply();
+                                        myPreferences.edit().putString(Constantes.DEFAULT_PLACA, uhmc.getPlaca()).apply();
+
+                                        Log.e("ID MC", gson.toJson(uhmc.getModeloCarros().getId()));
+                                    }
+                                    uhmc.setModelosCarrosId(uhmc.getModeloCarros().getId());
+                                    //Log.e("ID","del modelo carro " + uhmc.getModeloCarros().getId());
+                                    daoUsuarioModeloCarros.create(uhmc);
+                                    //daoModeloCarros.create(uhmc.getModeloCarros());
                                 }
-                                uhmc.setModelosCarrosId(uhmc.getModeloCarros().getId());
-                                //Log.e("ID","del modelo carro " + uhmc.getModeloCarros().getId());
-                                daoUsuarioModeloCarros.create(uhmc);
-                                //daoModeloCarros.create(uhmc.getModeloCarros());
+                                irMain(user);
+
+                            } catch (SQLException e) {
+                                mCustomProgressDialog.dismiss("");
+                                e.printStackTrace();
                             }
+                        } else {
                             irMain(user);
-
-                        } catch (SQLException e) {
-                            e.printStackTrace();
                         }
-
                     }else  {
+                        mCustomProgressDialog.dismiss("");
                         Toast.makeText(LoginActivity.this, "NO SE PUDO DESCARGAR LOS VEHICULOS PARA SU USUARIO.", Toast.LENGTH_SHORT).show();
                     }
                 }else {
+                    mCustomProgressDialog.dismiss("");
                     Toast.makeText(LoginActivity.this, "NO SE PUDO DESCARGAR LOS VEHICULOS PARA SU USUARIO.", Toast.LENGTH_SHORT).show();
                 }
             }

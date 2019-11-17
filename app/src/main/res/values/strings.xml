@@ -97,6 +97,9 @@
     <string name="recorrido">Recorrido</string>
     <string name="parar_recorrido">Parar recorrido</string>
     <string name="actualizar_bluetooth">Actualizar bluetooth</string>
+    <string name="registrar_informaci_n">Registrar Información</string>
+    <string name="nivel_adquisition">Nivel: %1$d</string>
+    <string name="flujo_adquisition">Volumen: %1$d</string>
 
     <string-array name="tipos_combustibles">
         <item>ACPM</item>

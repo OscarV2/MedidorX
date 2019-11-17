@@ -52,7 +52,7 @@ public interface SmartBillApiServices {
      * USUARIO HAS MODELO CARROS
      */
     @POST(Constantes.POST_REGISTRAR_USUARIO_HAS_MODELO_CARRO + "{idMarca}" + "/" + "{linea}")
-    Call<ResponseBody> postRegisterUsuarioHasModeloCarro(@Header("Content-Type") String headerContentType,
+    Call<UsuarioHasModeloCarro> postRegisterUsuarioHasModeloCarro(@Header("Content-Type") String headerContentType,
                                                          @Path("idMarca") String idMarca,
                                                          @Path("linea") String linea,
                                           @Body UsuarioHasModeloCarro uhmc);
@@ -86,5 +86,10 @@ public interface SmartBillApiServices {
     @POST(Constantes.POST_REGISTRAR_RECORRIDO)
     Call<String> postRegisterRecorrido(@Header("Content-Type") String headerContentType,
                                              @Body Recorrido recorrido);
+
+
+    @POST(Constantes.POST_RECORRIDOS_BULK)
+    Call<String> postRecorridosBulk(@Header("Content-Type") String headerContentType,
+                                       @Body List<Recorrido> recorridos);
 
 }

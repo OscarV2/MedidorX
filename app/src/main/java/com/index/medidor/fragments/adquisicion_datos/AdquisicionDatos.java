@@ -21,6 +21,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -64,9 +65,11 @@ public class AdquisicionDatos extends Fragment {
     private Spinner spCombustible;
     private Spinner spBluetoothDevices;
 
+    private TextView tvDatoNivel;
+    private TextView tvDatoFlujo;
+
     private Button btnAdquisicion;
     private Button btnRegistrar;
-    private EditText edtGalIngresados;
     private EditText edtLinea;
     private RadioButton rbTieneDosTanques;
 
@@ -131,11 +134,13 @@ public class AdquisicionDatos extends Fragment {
         View v = inflater.inflate(R.layout.fragment_adquisicion_datos, container, false);
         spAnio = v.findViewById(R.id.sp_anio_adq_modelo);
         spCombustible = v.findViewById(R.id.edt_combustible_adq_modelo);
-        edtGalIngresados = v.findViewById(R.id.edt_gal_ingresados_modelo);
         edtLinea = v.findViewById(R.id.edt_linea_adq_modelo);
         spMarca = v.findViewById(R.id.sp_marca_adq_modelo);
         spBluetoothDevices = v.findViewById(R.id.sp_select_bluetooth_device);
         rbTieneDosTanques = v.findViewById(R.id.rb_tiene_2_tanques);
+
+        tvDatoNivel = v.findViewById(R.id.tv_adquisition_dato_1);
+        tvDatoFlujo = v.findViewById(R.id.tv_adquisition_flujo);
 
         btnAdquisicion = v.findViewById(R.id.btn_datos_adq_correctamente);
         btnRegistrar = v.findViewById(R.id.btn_registrar_adq_correctamente);
@@ -226,26 +231,7 @@ public class AdquisicionDatos extends Fragment {
             }
         });
         btnRegistrar.setOnClickListener(v -> {
-
-            String val = edtGalIngresados.getText().toString();
-
-            if(val.length() == 0){
-
-                Toast.makeText(mainActivity, "Debe ingresar un valor de galones ingresados válido", Toast.LENGTH_SHORT).show();
-
-                edtGalIngresados.requestFocus();
-
-            }else{
-                galIngresados = Double.valueOf(val);
-
-                if (galIngresados < 1){
-                    Toast.makeText(mainActivity, "Debe ingresar un valor de galones ingresados válido", Toast.LENGTH_SHORT).show();
-
-                    edtGalIngresados.requestFocus();
-                }else{
-                        guardarAdq();
-                }
-            }
+            guardarAdq();
         });
 
         spAnio.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -444,6 +430,10 @@ public class AdquisicionDatos extends Fragment {
 
             keyArraysAdq.add(dato[0]);
             keyArraysFlux.add(dato[1]);
+
+            tvDatoFlujo.setText(mainActivity.getResources().getString(R.string.flujo_adquisition, dato[1]));
+            tvDatoFlujo.setText(String.format(mainActivity.getResources().getString(R.string.flujo_adquisition), dato[1]));
+            tvDatoNivel.setText(String.format(mainActivity.getResources().getString(R.string.nivel_adquisition), dato[0]));
         }
     }
 
@@ -460,16 +450,6 @@ public class AdquisicionDatos extends Fragment {
         this.deviceConnected = deviceConnected;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);

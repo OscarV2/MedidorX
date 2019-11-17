@@ -32,6 +32,7 @@ public class InndexLocationService implements LocationListener {
 
     public InndexLocationService(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
+        locationManager = (LocationManager) mainActivity.getSystemService(Context.LOCATION_SERVICE);
     }
 
     public void init() {

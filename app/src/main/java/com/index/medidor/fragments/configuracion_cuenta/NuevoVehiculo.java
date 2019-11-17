@@ -58,8 +58,7 @@ public class NuevoVehiculo extends Fragment {
     private String[] marcas;
     private UsuarioHasModeloCarro nuevoUsuarioHasModeloCarro;
     private UsuarioHasModeloCarro usuarioHasModeloCarroUpdate;
-    private TextView tvAgregarVehiculo;
-    private TextView tvEditarBluetooth;
+    //private TextView tvAgregarVehiculo;
     private Button btnUpdateUhmc;
     private ModeloCarros modeloCarros;
 
@@ -113,26 +112,17 @@ public class NuevoVehiculo extends Fragment {
         edtPlaca = v.findViewById(R.id.edt_placa_mi_vehiculo_nuevo);
         spLinea = v.findViewById(R.id.sp_linea_mi_vehiculo_nuevo);
         spMarca = v.findViewById(R.id.sp_marca_mi_vehiculo_nuevo);
-        tvAgregarVehiculo = v.findViewById(R.id.tv_agregar_vehiculo);
-        tvEditarBluetooth = v.findViewById(R.id.tv_edit_bluetooh);
+        //tvAgregarVehiculo = v.findViewById(R.id.tv_agregar_vehiculo);
+        btnUpdateUhmc = v.findViewById(R.id.btn_add_bluetooth_aceptar);
         spBluetoothDevices = v.findViewById(R.id.sp_edit_bluetooth_device);
-        btnUpdateUhmc = v.findViewById(R.id.btn_edit_bluetooth_aceptar);
         initSpBluetoothDevices();
 
-        tvAgregarVehiculo.setOnClickListener(v1 -> guardarVehiculo() );
-
-        tvEditarBluetooth.setOnClickListener(v2 ->    {
-            spBluetoothDevices.setVisibility(View.VISIBLE);
-            btnUpdateUhmc.setVisibility(View.VISIBLE);
-        });
+        //tvAgregarVehiculo.setOnClickListener(v1 -> guardarVehiculo() );
 
         spAnio.setAdapter(new ArrayAdapter<>(mainActivity, android.R.layout.simple_spinner_dropdown_item,
                 Constantes.getYearsModelsCars()));
 
-        btnUpdateUhmc.setOnClickListener(v12 -> updateVehiculo());
-
-        spBluetoothDevices.setVisibility(View.GONE);
-        btnUpdateUhmc.setVisibility(View.GONE);
+        btnUpdateUhmc.setOnClickListener(v12 -> guardarVehiculo());
 
         try {
             spMarca.setAdapter(new ArrayAdapter<>(mainActivity, android.R.layout.simple_spinner_item,
@@ -157,13 +147,10 @@ public class NuevoVehiculo extends Fragment {
                         idMarca = modeloCarrosList.get(0).getId();
 
                         getModelosByMarca(idMarca);
-
                     }
-
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
-
             }
 
             @Override
@@ -178,7 +165,6 @@ public class NuevoVehiculo extends Fragment {
 
                 linea = listModeloCarros.get(position).getLinea();
                 nuevoUsuarioHasModeloCarro.setModelosCarrosId(listModeloCarros.get(position).getId());
-                //nuevoUsuarioHasModeloCarro.setValoresAdq(listModeloCarros.get(position).getValoresAdq());
                 modeloCarros = listModeloCarros.get(position);
                 nuevoUsuarioHasModeloCarro.setModeloCarros(modeloCarros);
             }
@@ -260,53 +246,66 @@ public class NuevoVehiculo extends Fragment {
             return;
         }
 
+        if(nuevoUsuarioHasModeloCarro.getBluetoothMac() == null || nuevoUsuarioHasModeloCarro.getBluetoothMac().equals("")){
+
+            Toast.makeText(mainActivity, "LA DIRECCIÓN MAC DEL DISPOSITIVO NO ES VÁLIDO.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         int idUsuario = mainActivity.getMyPreferences().getInt("idUsuario", 0);
 
         if(idUsuario != 0){
 
             nuevoUsuarioHasModeloCarro.setUsuariosId(idUsuario);
-            nuevoUsuarioHasModeloCarro.setBluetoothMac(mainActivity.getMyPreferences().getString(Constantes.DEFAULT_BLUETOOTH_MAC,""));
             nuevoUsuarioHasModeloCarro.setBluetoothNombre("INNDEX");
             nuevoUsuarioHasModeloCarro.setPlaca(placa);
+            nuevoUsuarioHasModeloCarro.setHasTwoTanks(modeloCarros.getHasTwoTanks());
+            nuevoUsuarioHasModeloCarro.setValoresAdq(modeloCarros.getValoresAdq());
+            nuevoUsuarioHasModeloCarro.setMarca(modeloCarros.getLinea());
+            nuevoUsuarioHasModeloCarro.setLinea(modeloCarros.getLinea());
+            nuevoUsuarioHasModeloCarro.setAnio(modeloCarros.getModelo());
+            nuevoUsuarioHasModeloCarro.setId(12L);
+            //mainActivity.upateDefaultVehicle(nuevoUsuarioHasModeloCarro);
+            //Gson gson = new Gson();
+            //nuevoUsuarioHasModeloCarro.setModeloCarros(null);
+            //Log.e("UHMC", gson.toJson(nuevoUsuarioHasModeloCarro));
 
-            Call<ResponseBody> callRegisterUsuariosHasModeloCarro = MedidorApiAdapter.getApiService()
+            Call<UsuarioHasModeloCarro> callRegisterUsuariosHasModeloCarro = MedidorApiAdapter.getApiService()
                     .postRegisterUsuarioHasModeloCarro(Constantes.CONTENT_TYPE_JSON ,
                             String.valueOf(idMarca), linea,
                             nuevoUsuarioHasModeloCarro);
 
-            callRegisterUsuariosHasModeloCarro.enqueue(new Callback<ResponseBody>() {
+            callRegisterUsuariosHasModeloCarro.enqueue(new Callback<UsuarioHasModeloCarro>() {
                 @Override
-                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                public void onResponse(Call<UsuarioHasModeloCarro> call, Response<UsuarioHasModeloCarro> response) {
 
-                    Log.e("responseU", response.message());
-
-                    if(response.isSuccessful()){
+                    if(response.isSuccessful() && response.body() != null){
 
                         try {
+                            nuevoUsuarioHasModeloCarro.setId(response.body().getId());
                             daoUsuarioModeloCarros.create(nuevoUsuarioHasModeloCarro);
+                            //mainActivity.getMyPreferences().edit().putString(Constantes.DEFAULT_BLUETOOTH_MAC, usuarioHasModeloCarroUpdate.getBluetoothMac()).apply();
+                            mainActivity.upateDefaultVehicle(nuevoUsuarioHasModeloCarro);
                         } catch (SQLException e) {
                             e.printStackTrace();
                         }
-
                         Toast.makeText(mainActivity, "VEHÍCULO REGISTRADO DE MANERA EXITOSA.", Toast.LENGTH_SHORT).show();
-
                     }else{
                         Toast.makeText(mainActivity, "NO SE PUDO REGISTRAR EL VEHÍCULO.", Toast.LENGTH_SHORT).show();
                     }
                 }
 
                 @Override
-                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                public void onFailure(Call<UsuarioHasModeloCarro> call, Throwable t) {
 
                     Toast.makeText(mainActivity, "NO SE PUDO REGISTRAR EL VEHÍCULO." + t.getMessage(), Toast.LENGTH_SHORT).show();
                     Log.e("reg beh", t.getMessage());
                 }
             });
-        }else{
 
+        }else{
             Toast.makeText(mainActivity, "ESTE USUARIO NO EXISTE", Toast.LENGTH_SHORT).show();
         }
-
     }
 
     private void updateVehiculo() {
@@ -339,14 +338,14 @@ public class NuevoVehiculo extends Fragment {
                         mainActivity.resetAll();
                         Toast.makeText(mainActivity, "VEHÍCULO ACTUALIZADO DE MANERA EXITOSA.", Toast.LENGTH_SHORT).show();
                         spBluetoothDevices.setVisibility(View.GONE);
-                        btnUpdateUhmc.setVisibility(View.GONE);
+                        //btnUpdateUhmc.setVisibility(View.GONE);
                         mainActivity.getMyPreferences().edit().putString(Constantes.DEFAULT_BLUETOOTH_MAC, usuarioHasModeloCarroUpdate.getBluetoothMac()).apply();
                     }
-
                 }
 
                 @Override
                 public void onFailure(Call<UsuarioHasModeloCarro> call, Throwable t) {
+                    Toast.makeText(mainActivity, "NO SE PUDO ACTUALIZAR EL VEHÍCULO.", Toast.LENGTH_SHORT).show();
                     Log.e("ERR", t.getLocalizedMessage());
                 }
             });
@@ -381,13 +380,14 @@ public class NuevoVehiculo extends Fragment {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
-                    usuarioHasModeloCarroUpdate.setBluetoothMac(spBluetoothDevicesList.get(position).getAddress());
+                    nuevoUsuarioHasModeloCarro.setBluetoothMac(spBluetoothDevicesList.get(position).getAddress());
+                    //usuarioHasModeloCarroUpdate.setBluetoothMac(spBluetoothDevicesList.get(position).getAddress());
 
                 }
                 @Override
                 public void onNothingSelected(AdapterView<?> parent) {
-
-                    usuarioHasModeloCarroUpdate.setBluetoothMac(spBluetoothDevicesList.get(0).getAddress());
+                    nuevoUsuarioHasModeloCarro.setBluetoothMac(spBluetoothDevicesList.get(0).getAddress());
+                    //usuarioHasModeloCarroUpdate.setBluetoothMac(spBluetoothDevicesList.get(0).getAddress());
                 }
             });
         }
@@ -410,11 +410,11 @@ public class NuevoVehiculo extends Fragment {
                     + " must implement OnFragmentInteractionListener");
         }
     }
+
     private String[] getAllLineasNames(List<ModeloCarros> listModeloCarros) {
 
         if (listModeloCarros!= null && listModeloCarros.size() > 0){
 
-            Log.e("marcas",String.valueOf(listModeloCarros.size()));
         }
         String[] lineas = new String[listModeloCarros.size()];
 
@@ -432,18 +432,7 @@ public class NuevoVehiculo extends Fragment {
         mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
 }

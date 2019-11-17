@@ -37,6 +37,10 @@ public class UsuarioHasModeloCarro {
 
     }
 
+    public UsuarioHasModeloCarro(Long id) {
+        this.id = id;
+    }
+
     public Long getId() {
         return id;
     }

@@ -18,7 +18,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -56,13 +55,13 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
 import com.index.medidor.R;
 import com.index.medidor.bluetooth.interfaces.IBluetoothState;
 import com.index.medidor.database.DataBaseHelper;
 import com.index.medidor.fragments.adquisicion_datos.AdquisicionDatos;
 import com.index.medidor.fragments.DondeTanquearFragment;
 import com.index.medidor.fragments.configuracion_cuenta.ConfiguracionTabs;
+import com.index.medidor.fragments.configuracion_cuenta.NuevoVehiculo;
 import com.index.medidor.fragments.dondetanquear.DondeTanquearTabs;
 import com.index.medidor.fragments.historial.HistorialTabs;
 import com.index.medidor.fragments.combustible.IngresadoFragment;
@@ -72,10 +71,11 @@ import com.index.medidor.model.UsuarioHasModeloCarro;
 import com.index.medidor.places.EstacionesPlaces;
 import com.index.medidor.bluetooth.interfaces.BluetoothDataReceiver;
 import com.index.medidor.bluetooth.BluetoothHelper;
+import com.index.medidor.receiver.StartRecorridoReceiver;
+import com.index.medidor.receiver.StopRecorridoReceiver;
 import com.index.medidor.services.InndexLocationService;
 import com.index.medidor.services.MapService;
 import com.index.medidor.services.RecorridoService;
-import com.index.medidor.services.UploadRecorridoReceiver;
 import com.index.medidor.utils.Constantes;
 import com.index.medidor.utils.CustomProgressDialog;
 import com.index.medidor.utils.NavTypeFace;
@@ -83,7 +83,7 @@ import com.index.medidor.utils.SetArrayValuesForInndex;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
 
-import java.lang.reflect.Type;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -97,10 +97,8 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, SetArrayValuesForInndex,
         BluetoothDataReceiver, AdquisicionDatos.OnFragmentInteractionListener, IBluetoothState, DondeTanquearTabs.OnFragmentInteractionListener,
         InicioFragment.OnFragmentInteractionListener, HistorialTabs.OnFragmentInteractionListener, DondeTanquearFragment.OnFragmentInteractionListener,
-        ConfiguracionTabs.OnFragmentInteractionListener, IngresadoFragment.OnFragmentInteractionListener {
+        ConfiguracionTabs.OnFragmentInteractionListener, IngresadoFragment.OnFragmentInteractionListener, NuevoVehiculo.OnFragmentInteractionListener {
 
-    //private GoogleMap mMap;
-    //private static final int LOCATION_REQUEST_CODE = 1;
     private DrawerLayout drawer;
     private NavigationView navigationView;
 
@@ -126,24 +124,40 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private BluetoothHelper bluetoothHelper;
     private Integer tipoUsuario;
     private RecorridoService recorridoService;
+    private int idUsuario, idUsuarioModeloCarro;
 
     private MapService mapService;
     private InndexLocationService inndexLocationService;
     private boolean modelHasTwoTanks;
     private String values;
 
+    private double galones;
+    private double galonesT2;
+
     private Integer valorBluetooh;
     private Integer valorBluetoohT2;
 
-    private Timer mTimer;
+    //private Timer mTimer;
+    private boolean newDevice;
 
-    BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+    private long timeMillisToStartRecorrido;
+    private long timeMillisToStopRecorrido;
+
+    BroadcastReceiver stopRecorridoReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
 
-            Log.e("MESS", "MESSAGE RECEIVED");
+            Log.e("MESS", "MESSAGE RECEIVED STOPPING TRIP");
             resetRecorrido();
-            Toast.makeText(context, "MESSAGE RECEIVED", Toast.LENGTH_SHORT).show();
+        }
+    };
+
+    BroadcastReceiver startRecorridoReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            Log.e("MESS", "MESSAGE RECEIVED STARTING TRIP");
+            initRecorrido();
         }
     };
 
@@ -173,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mCustomProgressDialog.setCancelable(false);
 
         //locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        inndexLocationService = new InndexLocationService(this);
+        inndexLocationService = new InndexLocationService(MainActivity.this);
         inndexLocationService.init();
         checkGPSState();
 
@@ -183,10 +197,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mapFragment.getMapAsync(this);
         myPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
+        idUsuarioModeloCarro = myPreferences.getInt(Constantes.DEFAULT_UHMC_ID, 0);
+        idUsuario = myPreferences.getInt(Constantes.DEFAULT_USER_ID, 0);
+
         values = myPreferences.getString(Constantes.DEFAULT_BLUETOOTH_VALUE_ARRAY, "");
         modelHasTwoTanks = myPreferences.getBoolean( Constantes.MODEL_HAS_TWO_TANKS, false);
 
         tipoUsuario = myPreferences.getInt("tipoUsuario", 8);
+
 
         pbCombustible = findViewById(R.id.pbCombustible);
         tvCombustible = findViewById(R.id.tvCombustible);
@@ -222,29 +240,34 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, 23);
-        calendar.set(Calendar.MINUTE, 59);
-        calendar.set(Calendar.SECOND, 0);
-
-        AlarmManager mAlarmManger = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(MainActivity.this, UploadRecorridoReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
-        //mAlarmManger.setRepeating(AlarmManager.RTC, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY,pendingIntent);
-        mAlarmManger.setRepeating(AlarmManager.RTC,  calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY,pendingIntent);
-        registerReceiver(broadcastReceiver, new IntentFilter(Constantes.RECORRIDO_INTENT_FILTER));
-
         initRecorrido();
+        initReceivers();
+    }
 
-        mTimer = new Timer();
-        TimerTask task = new TimerTask() {
-            @Override
-            public void run() {
-                updateCurrentRecorrido();
-            }
-        };
-        mTimer.schedule(task, 100000, Constantes.UPLOAD_RECORRIDO_INTERVAL);
+    private void initReceivers() {
+
+        Calendar calendarStop = Calendar.getInstance();
+        calendarStop.set(Calendar.HOUR_OF_DAY, 23);
+        calendarStop.set(Calendar.MINUTE, 59);
+        calendarStop.set(Calendar.SECOND, 0);
+
+        AlarmManager stopRecorridoAlarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        Intent intentStopRecorrido = new Intent(MainActivity.this, StopRecorridoReceiver.class);
+        PendingIntent pendingIntentStop = PendingIntent.getBroadcast(MainActivity.this, 0, intentStopRecorrido, 0);
+        stopRecorridoAlarmManager.setRepeating(AlarmManager.RTC,  calendarStop.getTimeInMillis(), AlarmManager.INTERVAL_DAY,pendingIntentStop);
+        registerReceiver(stopRecorridoReceiver, new IntentFilter(Constantes.STOP_RECORRIDO_INTENT_FILTER ));
+
+        Calendar calendarStart = Calendar.getInstance();
+        calendarStart.set(Calendar.HOUR_OF_DAY, 0);
+        calendarStart.set(Calendar.MINUTE, 0);
+        calendarStart.set(Calendar.SECOND, 2);
+
+        AlarmManager startRecorridoAlarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        Intent intentStartRrecorrido = new Intent(MainActivity.this, StartRecorridoReceiver.class);
+        PendingIntent pendingIntentStart = PendingIntent.getBroadcast(MainActivity.this, 0, intentStartRrecorrido, 0);
+        startRecorridoAlarmManager.setRepeating(AlarmManager.RTC,  calendarStart.getTimeInMillis(), AlarmManager.INTERVAL_DAY,pendingIntentStart);
+        registerReceiver(startRecorridoReceiver, new IntentFilter(Constantes.START_RECORRIDO_INTENT_FILTER));
+
     }
 
     private void initCombustibleProgresBars() {
@@ -255,14 +278,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         pbTanque2.setMax(maxValue);
 
         nivelCombustible = Double.valueOf(Objects.requireNonNull(myPreferences.getString("nivel", "0.0")));
-        nivelCombustibleTank2 = Double.valueOf(Objects.requireNonNull(myPreferences.getString("nivelTank2", "0.0")));
         tvCombustible.setText(String.format(Locale.US,"%.1f", nivelCombustible)+" Gal.");
-        tvCombustibleTank2.setText(String.format(Locale.US,"%.1f", nivelCombustibleTank2)+" Gal.");
         pbCombustible.setProgress((int)nivelCombustible);
 
-        if(!modelHasTwoTanks) {
+        if(!modelHasTwoTanks) {         // NO tiene dos tanques
             pbTanque2.setVisibility(View.GONE);
             tvCombustibleTank2.setVisibility(View.GONE);
+
+        }else {
+            pbTanque2.setVisibility(View.VISIBLE);
+            tvCombustibleTank2.setVisibility(View.VISIBLE);
+            nivelCombustibleTank2 = Double.valueOf(Objects.requireNonNull(myPreferences.getString("nivelTank2", "0.0")));
+            tvCombustibleTank2.setText(String.format(Locale.US,"%.1f", nivelCombustibleTank2)+" Gal.");
         }
     }
 
@@ -355,7 +382,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 return true;
             }
 
-            recorridoService = new RecorridoService(MainActivity.this, true, this.helper);
+            recorridoService = new RecorridoService(MainActivity.this, true, this.helper, idUsuario, idUsuarioModeloCarro);
             inndexLocationService.setDistancia(0);
             recorridoService.iniciarRecorrido();
             Toast.makeText(this, "RECORRIDO INICIADO", Toast.LENGTH_SHORT).show();
@@ -365,13 +392,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if(recorridoService != null) {
                 recorridoService = null;
             }
-
-            if(mTimer != null){
-                mTimer.cancel();
-                mTimer.purge();
-            }
-
-            unregisterReceiver(broadcastReceiver);
         }
         else if (id == R.id.logout) {
             //logout();
@@ -392,7 +412,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onMapReady(GoogleMap googleMap) {
 
         mapService.setmMap(googleMap);
-        mapService.getmMap().setMyLocationEnabled(true);
 
         if(inndexLocationService.getMyLocation() != null) {
 
@@ -410,6 +429,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
+            mapService.getmMap().setMyLocationEnabled(true);
+
             inndexLocationService.setLocationManager((LocationManager) getSystemService(Context.LOCATION_SERVICE));
             //locationManager.req
             //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
@@ -472,6 +493,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (dato.length == 1) {
             nivelCombustible = dato[0];
             pbCombustible.setProgress((int)dato[0]);
+            galones = dato[0];
             tvCombustible.setText(getString(R.string.cant_gal, nivelCombustible));
             myPreferences.edit().putString("nivel", String.valueOf(nivelCombustible)).apply();
         } else if (dato.length > 1) {
@@ -480,6 +502,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             nivelCombustibleTank2 = dato[1];
             pbCombustible.setProgress((int)dato[0]);
             pbTanque2.setProgress((int)dato[1]);
+            galones = dato[0];
+            galonesT2 = dato[1];
             tvCombustible.setText(getString(R.string.cant_gal, nivelCombustible));
             tvCombustibleTank2.setText(getString(R.string.cant_gal, nivelCombustibleTank2));
             myPreferences.edit().putString("nivel", String.valueOf(nivelCombustible)).apply();
@@ -712,6 +736,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onPairedDeviceOff() {
 
+        if(newDevice){
+            return;
+        }
+
         timerInndexDeviceListener = new Timer();
         //handlerInndexDeviceListener = new Handler();
         TimerTask tTInndexDeviceListener = new TimerTask() {
@@ -806,14 +834,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             recorridoService.pararRecorrido();
             inndexLocationService.setDistancia(0);
             recorridoService = new RecorridoService(MainActivity.this, true,
-                    this.helper);
+                    this.helper, idUsuario, idUsuarioModeloCarro);
             recorridoService.iniciarRecorrido();
             Toast.makeText(this, "RECORRIDO INICIADO", Toast.LENGTH_SHORT).show();
 
             return;
         }
 
-        recorridoService = new RecorridoService(MainActivity.this, true, this.helper);
+        recorridoService = new RecorridoService(MainActivity.this, true, this.helper, idUsuario, idUsuarioModeloCarro);
         inndexLocationService.setDistancia(0);
         recorridoService.iniciarRecorrido();
         Toast.makeText(this, "RECORRIDO INICIADO", Toast.LENGTH_SHORT).show();
@@ -831,7 +859,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             return;
         }
 
-        recorridoService = new RecorridoService(MainActivity.this, true, this.helper);
+        recorridoService = new RecorridoService(MainActivity.this, true, this.helper, idUsuario, idUsuarioModeloCarro);
         inndexLocationService.setDistancia(0);
         recorridoService.iniciarRecorrido();
         Toast.makeText(this, "RECORRIDO INICIADO", Toast.LENGTH_SHORT).show();
@@ -843,23 +871,55 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             recorridoService.uploadRecorrido();
     }
 
-    public void udateDefaultVehicle(UsuarioHasModeloCarro uhmc) {
+    public void upateDefaultVehicle(UsuarioHasModeloCarro uhmc) {
+
+        if(this.bluetoothHelper != null) {
+
+            try {
+                newDevice = true;
+                this.bluetoothHelper.getBtSocket().close();
+                this.bluetoothHelper = null;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        Gson gson = new Gson();
+        uhmc.setModeloCarros(null);
+        Log.e("UHMC", gson.toJson(uhmc));
         myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_VALUE_ARRAY, uhmc.getValoresAdq()).apply();
-        //ModeloCarros modeloCarros = daoModeloCarros.queryForId(uhmc.getModelosCarrosId());
-        myPreferences.edit().putInt(Constantes.DEFAULT_GAL_CANT, (int)uhmc.getModeloCarros().getGalones()).apply();
+        //myPreferences.edit().putInt(Constantes.DEFAULT_GAL_CANT, (int)uhmc.getModeloCarros().getGalones()).apply();
         myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_MAC, uhmc.getBluetoothMac()).apply();
         myPreferences.edit().putBoolean(Constantes.MODEL_HAS_TWO_TANKS, uhmc.getHasTwoTanks()).apply();
         myPreferences.edit().putLong(Constantes.DEFAULT_UHMC_ID, uhmc.getId()).apply();
-        myPreferences.edit().putLong("defaultModeloCarroId", uhmc.getModeloCarros().getId()).apply();
+//        myPreferences.edit().putLong("defaultModeloCarroId", uhmc.getModeloCarros().getId()).apply();
         myPreferences.edit().putString(Constantes.DEFAULT_PLACA, uhmc.getPlaca()).apply();
 
-        if(!uhmc.getHasTwoTanks()){
+        values = uhmc.getValoresAdq();
+        modelHasTwoTanks = uhmc.getHasTwoTanks();
 
-            tvCombustible.setVisibility(View.GONE);
-            pbTanque2.setVisibility(View.GONE);
+        if(modelHasTwoTanks){
+            tvCombustibleTank2.setVisibility(View.VISIBLE);
+            pbTanque2.setVisibility(View.VISIBLE);
+        }
+        tvDefaultPlaca.setText(myPreferences.getString(Constantes.DEFAULT_PLACA, ""));
+
+        if (values != null && !values.equals("")) {
+            bluetoothHelper = new BluetoothHelper(MainActivity.this, values);
+            bluetoothHelper.checkBTState();
+            btSocket = bluetoothHelper.getBtSocket();
+
+            initCombustibleProgresBars();
+
+            IntentFilter filter = new IntentFilter();
+            newDevice = false;
+            filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
+            filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
+            filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+//            this.registerReceiver(mReceiver, filter);
         }
 
-        tvDefaultPlaca.setText(myPreferences.getString(Constantes.DEFAULT_PLACA, ""));
+        initCombustibleProgresBars();
     }
 
     public void resetAll() {
@@ -867,5 +927,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //        recorridoService.stopTimmers();
 //        recorridoService = null;
 //        bluetoothHelper = null;
+    }
+
+    public double getGalones() {
+        return galones;
+    }
+
+    public double getGalonesT2() {
+        return galonesT2;
     }
 }

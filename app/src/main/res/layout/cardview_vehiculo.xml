@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -10,52 +10,69 @@
         android:layout_height="100dp"
         android:contentDescription="@string/aceptar"
         android:src="@drawable/carro"
-        android:layout_marginEnd="20dp"/>
+        android:layout_marginEnd="10dp"/>
 
     <LinearLayout
-        android:orientation="vertical"
+        android:id="@+id/lay_mi_vehiculo_1"
+        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginRight="25dp"
-        android:layout_marginLeft="25dp">
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="25dp"
+        android:layout_toEndOf="@id/img_mi_vehiculo">
 
         <TextView
             android:id="@+id/tv_marca_mi_vehiculo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"  />
-        <TextView
-            android:id="@+id/tv_anio_mi_vehiculo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"  />
-
-        <TextView
-            android:id="@+id/tv_bluetooh_vehiculo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="25dp"
-        android:layout_marginLeft="25dp">
 
         <TextView
             android:id="@+id/tv_linea_mi_vehiculo"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"    />
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:layout_marginStart="8dp"/>
+
+        <TextView
+            android:id="@+id/tv_anio_mi_vehiculo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"/>
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_below="@id/lay_mi_vehiculo_1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="25dp"
+        android:layout_toEndOf="@id/img_mi_vehiculo">
+
+
+        <TextView
+            android:id="@+id/tv_bluetooh_vehiculo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/colorAccent"/>
+
         <TextView
             android:id="@+id/tv_placa_mi_vehiculo"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:layout_below="@id/tv_bluetooh_vehiculo"
+            android:textStyle="bold"/>
 
         <ImageButton
             android:id="@+id/img_change_bluetooth"
+            android:layout_below="@+id/tv_placa_mi_vehiculo"
             android:contentDescription="@string/cal_aceptar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_bluetooth_black"/>
-    </LinearLayout>
+            android:src="@drawable/ic_bluetooth_black"
+            android:layout_alignParentEnd="true"
+            />
+    </RelativeLayout>
 
-</LinearLayout>
+</RelativeLayout>

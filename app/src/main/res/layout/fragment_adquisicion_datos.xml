@@ -100,22 +100,23 @@
         android:layout_marginEnd="25dp"
         android:layout_marginTop="25dp"
         android:layout_below="@id/btn_datos_adq_correctamente"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/tv_gal_ingresados_modelo"
+            android:id="@+id/tv_adquisition_dato_1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Gal. Ingresados:"
+            android:text="@string/nivel_adquisition"
             android:textSize="28sp"/>
 
-        <EditText
-            android:id="@+id/edt_gal_ingresados_modelo"
-            android:inputType="number"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+        <TextView
+            android:id="@+id/tv_adquisition_flujo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/flujo_adquisition"
+            android:textSize="28sp"/>
 
     </LinearLayout>
 
@@ -123,7 +124,7 @@
         android:id="@+id/btn_registrar_adq_correctamente"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Registrar Información"
+        android:text="@string/registrar_informaci_n"
         android:layout_centerHorizontal="true"
         android:textColor="@color/white"
         android:background="@color/colorPrimary"

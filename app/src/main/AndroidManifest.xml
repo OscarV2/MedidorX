@@ -61,7 +61,10 @@
         <service android:name=".services.FetchAddressIntentService"
             android:exported="false"/>
 
-        <receiver android:name=".services.UploadRecorridoReceiver"
+        <receiver android:name=".receiver.StopRecorridoReceiver"
+            android:enabled="true"
+            android:exported="true"/>
+        <receiver android:name=".receiver.StartRecorridoReceiver"
             android:enabled="true"
             android:exported="true"/>
     </application>

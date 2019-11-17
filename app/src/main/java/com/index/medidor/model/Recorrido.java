@@ -23,14 +23,19 @@ public class Recorrido implements Serializable {
     private Double distanciaRecorrida;
     @DatabaseField
     private Double galonesPerdidos;
+    @DatabaseField( unique = true)
+    private String recorridoCode;
     @DatabaseField
     private transient boolean uploaded;
+    @DatabaseField
+    private transient boolean completed;
     @ForeignCollectionField
     private Collection<UnidadRecorrido> listUnidadRecorrido;
     @ForeignCollectionField
     private Collection<Tanqueadas> listTanqueadas;
 
     private Usuario usuario;
+    private UsuarioHasModeloCarro usuarioHasModeloCarro;
 
     private String jsonListUnidadRecorrido;
 
@@ -126,5 +131,29 @@ public class Recorrido implements Serializable {
 
     public void setUsuario(Usuario usuario) {
         this.usuario = usuario;
+    }
+
+    public boolean isCompleted() {
+        return completed;
+    }
+
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
+    }
+
+    public String getRecorridoCode() {
+        return recorridoCode;
+    }
+
+    public void setRecorridoCode(String recorridoCode) {
+        this.recorridoCode = recorridoCode;
+    }
+
+    public UsuarioHasModeloCarro getUsuarioHasModeloCarro() {
+        return usuarioHasModeloCarro;
+    }
+
+    public void setUsuarioHasModeloCarro(UsuarioHasModeloCarro usuarioHasModeloCarro) {
+        this.usuarioHasModeloCarro = usuarioHasModeloCarro;
     }
 }

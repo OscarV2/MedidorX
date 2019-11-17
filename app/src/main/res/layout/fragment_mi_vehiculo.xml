@@ -6,8 +6,8 @@
     tools:context=".fragments.configuracion_cuenta.MiVehiculo">
 
        <androidx.recyclerview.widget.RecyclerView
+           android:layout_marginTop="140dp"
         android:id="@+id/rv_mis_vehiculos"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
-
 </ScrollView>

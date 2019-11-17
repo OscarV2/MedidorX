@@ -4,17 +4,17 @@ import android.location.Location;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.index.medidor.R;
 import com.index.medidor.database.DataBaseHelper;
 import com.index.medidor.model.MarcaCarros;
-import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
 
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 public class Constantes {
 
@@ -39,7 +39,10 @@ public class Constantes {
     public static final String API_KEY_PLACES = "AIzaSyBHLkx2pOIKyoiTYjw-c78ValF4iHktcjc";
     //public static final String API_KEY = "AIzaSyBVYoTTWhM_JZAlbUpJuTKTI5xcTJq7NFY";
 
+    //RECORRIDOS
     public static final String POST_REGISTRAR_RECORRIDO = "recorridos/register";
+    public static final String POST_RECORRIDOS_BULK = "recorridos/bulk";
+
     public static final String GET_RECORRIDOS_BY_USER= "recorridos/idUsuario";
 
     public static final String URL_PLACES ="https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{long}&radius=1200&type=gas_station&key=";
@@ -55,6 +58,8 @@ public class Constantes {
      * MARCAS CARROS
      */
     public static final String GET_MARCAS_CARROS =  "marcas-carros/getAll";
+    public static final String DEFAULT_USER_ID = "idUsuario";
+
 
     public static int ROTATION = 0;
 
@@ -65,7 +70,8 @@ public class Constantes {
     public static final String CONTENT_TYPE_JSON = "application/json";
     public static final String DEFAULT_GAL_CANT = "defaultGalCant";
     public static final String MODEL_HAS_TWO_TANKS = "modelHasTwoTanks";
-    public static final String RECORRIDO_INTENT_FILTER = "RECORRIDO_INTENT_FILTER";
+    public static final String STOP_RECORRIDO_INTENT_FILTER = "RECORRIDO_INTENT_FILTER";
+    public static final String START_RECORRIDO_INTENT_FILTER = "START_RECORRIDO_INTENT_FILTER";
     public static final String DEFAULT_UHMC_ID = "defaultUhmcId";
     public static final String DEFAULT_PLACA = "defaultPlaca";
     public static final String SESION_ACTIVE = "sesionMedidor";
@@ -74,13 +80,18 @@ public class Constantes {
 
     public static final long DELAY_RECORRIDO = 1000;
 
-    public static final long UPLOAD_RECORRIDO_INTERVAL = 900000;
-
     public static final SimpleDateFormat SDF_FOR_BACKEND = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
 
     public static final SimpleDateFormat SDF_DATE_RECORRIDO = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
 
     public static final SimpleDateFormat SDF_HOUR_RECORRIDO = new SimpleDateFormat("HH:mm:ss", Locale.US);
+
+    public static String generateRndomRecorridoCode(){
+
+        SimpleDateFormat sdfRandom = new SimpleDateFormat("yyyyMMddHHmm", Locale.US);
+
+        return sdfRandom.format(new Date()) + UUID.randomUUID().toString();
+    }
 
     public static float getDistance(LatLng myPosition, LatLng estacionLatLng){
 

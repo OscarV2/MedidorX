@@ -17,9 +17,9 @@ public class UnidadRecorrido {
     @DatabaseField
     private long tiempo;
     @DatabaseField
-    private Integer galones;
+    private Double galones;
     @DatabaseField
-    private Integer galonesT2;
+    private Double galonesT2;
     @DatabaseField
     private Integer valorBluetooh;
     @DatabaseField
@@ -66,19 +66,19 @@ public class UnidadRecorrido {
         this.tiempo = tiempo;
     }
 
-    public Integer getGalones() {
+    public Double getGalones() {
         return galones;
     }
 
-    public void setGalones(Integer galones) {
+    public void setGalones(Double galones) {
         this.galones = galones;
     }
 
-    public Integer getGalonesT2() {
+    public Double getGalonesT2() {
         return galonesT2;
     }
 
-    public void setGalonesT2(Integer galonesT2) {
+    public void setGalonesT2(Double galonesT2) {
         this.galonesT2 = galonesT2;
     }
 
