@@ -1,5 +1,6 @@
 package com.index.medidor.model;
 
+import com.google.gson.annotations.Expose;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -28,8 +29,9 @@ public class UnidadRecorrido {
     private Double distancia;
     @DatabaseField
     private String hora;
-    @DatabaseField(foreign = true, foreignAutoRefresh = true)
-    private Recorrido recorrido;
+    //@DatabaseField(foreign = true, foreignAutoRefresh = true)
+    //@Expose(serialize = false, deserialize = false)
+    private Long idRecorrido;
 
     public UnidadRecorrido() {
     }
@@ -106,12 +108,14 @@ public class UnidadRecorrido {
         this.altitud = altitud;
     }
 
-    public Recorrido getRecorrido() {
-        return recorrido;
+    public Long getIdRecorrido() {
+        return idRecorrido;
     }
-    public void setRecorrido(Recorrido recorrido) {
-        this.recorrido = recorrido;
+
+    public void setIdRecorrido(Long idRecorrido) {
+        this.idRecorrido = idRecorrido;
     }
+
     public Double getDistancia() {
         return distancia;
     }

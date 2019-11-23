@@ -1,5 +1,5 @@
 #
-# generated on 2019/11/17 10:03:28
+# generated on 2019/11/23 10:47:53
 #
 # --table-start--
 dataClass=com.index.medidor.model.Estaciones
@@ -108,7 +108,7 @@ tableName=recorrido
 # --field-start--
 fieldName=id
 columnName=id
-id=true
+generatedId=true
 # --field-end--
 # --field-start--
 fieldName=fechaInicio
@@ -123,15 +123,20 @@ fieldName=distanciaRecorrida
 fieldName=galonesPerdidos
 # --field-end--
 # --field-start--
+fieldName=recorridoCode
+unique=true
+# --field-end--
+# --field-start--
 fieldName=uploaded
 # --field-end--
 # --field-start--
-fieldName=listUnidadRecorrido
-foreignCollection=true
+fieldName=completed
 # --field-end--
 # --field-start--
-fieldName=listTanqueadas
-foreignCollection=true
+fieldName=fecha
+# --field-end--
+# --field-start--
+fieldName=jsonListUnidadRecorrido
 # --field-end--
 # --table-fields-end--
 # --table-end--
@@ -186,10 +191,7 @@ fieldName=idEstacion
 fieldName=idUsuario
 # --field-end--
 # --field-start--
-fieldName=recorrido
-foreign=true
-foreignAutoRefresh=true
-maxForeignAutoRefreshLevel=2
+fieldName=idRecorrido
 # --field-end--
 # --table-fields-end--
 # --table-end--
@@ -232,12 +234,6 @@ fieldName=distancia
 # --field-end--
 # --field-start--
 fieldName=hora
-# --field-end--
-# --field-start--
-fieldName=recorrido
-foreign=true
-foreignAutoRefresh=true
-maxForeignAutoRefreshLevel=2
 # --field-end--
 # --table-fields-end--
 # --table-end--

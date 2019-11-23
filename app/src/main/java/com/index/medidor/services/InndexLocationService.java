@@ -15,12 +15,23 @@ import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.index.medidor.activities.MainActivity;
 
 import static android.content.Context.LOCATION_SERVICE;
 
-public class InndexLocationService implements LocationListener {
+public class InndexLocationService {
+
+    private FusedLocationProviderClient mFusedLocationClient;
+    private static final int locationRequestCode = 1000;
+    private LocationRequest locationRequest;
+    private LocationCallback locationCallback;
 
     private MainActivity mainActivity;
     private LocationManager locationManager;
@@ -32,11 +43,71 @@ public class InndexLocationService implements LocationListener {
 
     public InndexLocationService(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
-        locationManager = (LocationManager) mainActivity.getSystemService(Context.LOCATION_SERVICE);
+        this.locationManager = (LocationManager) mainActivity.getSystemService(Context.LOCATION_SERVICE);
+        this.mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this.mainActivity);
+        locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(15 * 1000);
+
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+
+                if (locationResult == null) {
+                    Log.e("LOCTION","RESULT NUUULLLL");
+                    return;
+                }
+                for (Location location : locationResult.getLocations()) {
+                    if (location != null) {
+
+                        myLocation = location;
+                        mainActivity.updateLocation(myLocation);
+                        distancia_temp = myLocation.distanceTo(location);
+                        mainActivity.getMapService().updateMyPosition();
+                        mainActivity.getMapService().setMyLocation(myLocation);
+                        if(distancia_temp > 15) {
+
+                            myLocation = location;
+                            distancia += distancia_temp;
+                        }
+                    }
+                }
+            }
+        };
     }
 
     public void init() {
 
+        if (ActivityCompat.checkSelfPermission(mainActivity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(mainActivity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // reuqest for permission
+            ActivityCompat.requestPermissions(mainActivity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                    locationRequestCode);
+        } else {
+            Toast.makeText(mainActivity, "LOCATION PERMISSIONS GRANTED", Toast.LENGTH_LONG).show();
+            // already permission granted
+
+            mFusedLocationClient.getLastLocation().addOnSuccessListener(mainActivity, location -> {
+
+                if(location != null) {
+                    myLocation = location;
+                    mainActivity.updateLocation(myLocation);
+                }
+                else
+                    Toast.makeText(mainActivity, "ESA VAINA ES NULL", Toast.LENGTH_LONG).show();
+            });
+            mFusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
+            //Location lastKnownLocationGPS = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            /*if(lastKnownLocationGPS != null) {
+                myLocation = lastKnownLocationGPS;
+                mainActivity.updateLocation(myLocation);
+
+            } else {
+                Log.e("LOC2","SORRY TRY IT NEXT TIME");
+            }*/
+        }
+
+/*
         if (ContextCompat.checkSelfPermission(mainActivity, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(mainActivity, Manifest.permission.ACCESS_COARSE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -61,53 +132,7 @@ public class InndexLocationService implements LocationListener {
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     LOCATION_REQUEST_CODE);
         }
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-
-        if (myLocation != null) {
-            //Log.e("location", "NOT NULL");
-            mainActivity.updateLocation(myLocation);
-            distancia_temp = myLocation.distanceTo(location);
-            mainActivity.getMapService().updateMyPosition();
-            if(distancia_temp > 15) {
-
-                myLocation = location;
-                distancia += distancia_temp;
-            }
-
-        } else {
-            myLocation = location;
-            mainActivity.getMapService().setMyLocation(myLocation);
-            //coordenada = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
-            mainActivity.getMapService().updateMyPosition();
-        }
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-        switch (status) {
-            case LocationProvider.AVAILABLE:
-                Log.d("debug", "LocationProvider.AVAILABLE");
-                break;
-            case LocationProvider.OUT_OF_SERVICE:
-                Log.d("debug", "LocationProvider.OUT_OF_SERVICE");
-                break;
-            case LocationProvider.TEMPORARILY_UNAVAILABLE:
-                Log.d("debug", "LocationProvider.TEMPORARILY_UNAVAILABLE");
-                break;
-        }
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-        Log.e("PRO", "DISABLED");
+        */
     }
 
     public MainActivity getMainActivity() {

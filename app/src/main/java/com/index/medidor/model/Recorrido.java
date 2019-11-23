@@ -13,7 +13,7 @@ import java.util.Date;
 @DatabaseTable(tableName = "recorrido")
 public class Recorrido implements Serializable {
 
-    @DatabaseField(columnName = "id", id = true)
+    @DatabaseField(columnName = "id", generatedId = true)
     private Long id;
     @DatabaseField
     private String fechaInicio;
@@ -29,14 +29,17 @@ public class Recorrido implements Serializable {
     private transient boolean uploaded;
     @DatabaseField
     private transient boolean completed;
-    @ForeignCollectionField
+    @DatabaseField
+    private transient String fecha;
+    //@ForeignCollectionField
     private Collection<UnidadRecorrido> listUnidadRecorrido;
-    @ForeignCollectionField
+    //@ForeignCollectionField
     private Collection<Tanqueadas> listTanqueadas;
 
     private Usuario usuario;
     private UsuarioHasModeloCarro usuarioHasModeloCarro;
 
+    @DatabaseField
     private String jsonListUnidadRecorrido;
 
     public Recorrido() { }
@@ -151,6 +154,14 @@ public class Recorrido implements Serializable {
 
     public UsuarioHasModeloCarro getUsuarioHasModeloCarro() {
         return usuarioHasModeloCarro;
+    }
+
+    public String getFecha() {
+        return fecha;
+    }
+
+    public void setFecha(String fecha) {
+        this.fecha = fecha;
     }
 
     public void setUsuarioHasModeloCarro(UsuarioHasModeloCarro usuarioHasModeloCarro) {

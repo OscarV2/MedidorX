@@ -82,6 +82,8 @@ public class Constantes {
 
     public static final SimpleDateFormat SDF_FOR_BACKEND = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
 
+    public static final SimpleDateFormat SDF_DATE_ONLY = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+
     public static final SimpleDateFormat SDF_DATE_RECORRIDO = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
 
     public static final SimpleDateFormat SDF_HOUR_RECORRIDO = new SimpleDateFormat("HH:mm:ss", Locale.US);

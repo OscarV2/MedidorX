@@ -42,8 +42,8 @@ public class Tanqueadas implements Serializable {
     @DatabaseField
     private int idUsuario;
 
-    @DatabaseField(foreign = true, foreignAutoRefresh = true)
-    private Recorrido recorrido;
+    @DatabaseField
+    private int idRecorrido;
 
     public Tanqueadas() {
     }
@@ -172,5 +172,13 @@ public class Tanqueadas implements Serializable {
 
     public void setPrecioGalon(double precioGalon) {
         this.precioGalon = precioGalon;
+    }
+
+    public int getIdRecorrido() {
+        return idRecorrido;
+    }
+
+    public void setIdRecorrido(int idRecorrido) {
+        this.idRecorrido = idRecorrido;
     }
 }

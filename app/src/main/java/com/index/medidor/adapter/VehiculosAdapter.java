@@ -41,6 +41,7 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
         public TextView tvMarca;
         public TextView tvLinea;
         public TextView tvBlueTooth;
+        public TextView tvHasTwoTanks;
 
         public ImageButton btnChangeBlueTooth;
 
@@ -51,6 +52,8 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
             tvMarca = itemView.findViewById(R.id.tv_marca_mi_vehiculo);
             tvLinea =  itemView.findViewById(R.id.tv_linea_mi_vehiculo);
             tvBlueTooth = itemView.findViewById(R.id.tv_bluetooh_vehiculo);
+            tvHasTwoTanks = itemView.findViewById(R.id.tv_has_tow_tanks_mi_vehiculo);
+
             btnChangeBlueTooth = itemView.findViewById(R.id.img_change_bluetooth);
 
             Typeface light=Typeface.createFromAsset(context.getAssets(),"fonts/Roboto-Light.ttf");
@@ -60,6 +63,7 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
             tvModelo.setTypeface(light);
             tvLinea.setTypeface(light);
             tvBlueTooth.setTypeface(light);
+            tvHasTwoTanks.setTypeface(light);
 
             itemView.setOnClickListener(view -> {
             });
@@ -70,7 +74,8 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
                 int i = getLayoutPosition();
                 usuarioHasModeloCarroSelected = items.get(i);
                 Log.e("CLICK","ON BLUETOOTH NUmber " + i);
-
+                Gson gson = new Gson();
+                Log.e("11", gson.toJson(usuarioHasModeloCarroSelected));
             });
         }
     }
@@ -146,6 +151,13 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
         holder.tvModelo.setText(items.get(position).getAnio());
         holder.tvBlueTooth.setText(items.get(position).getBluetoothMac());
         holder.tvPlaca.setText(items.get(position).getPlaca());
+
+        if(items.get(position).getHasTwoTanks()){
+
+            holder.tvHasTwoTanks.setText("#Tanques: 2"  );
+        }else {
+            holder.tvHasTwoTanks.setText("#Tanques: 1"  );
+        }
     }
 
     @Override

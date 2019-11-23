@@ -42,12 +42,23 @@ public class RecorridoService implements Serializable {
     private DataBaseHelper helper;
     private Collection<UnidadRecorrido> listUnidadRecorrido;
     private Dao<Recorrido, Integer> daoRecorrido;
+    private int idUsuario ;
+    private long idUsuarioModeloCarro;
+    private short contUpdateRecorrido = 0;
 
     public RecorridoService() {
     }
 
+    public RecorridoService(MainActivity mainActivity, DataBaseHelper helper, long idUsuario, long idUsuarioModeloCarro) {
+        this.mainActivity = mainActivity;
+        this.helper = helper;
+        contUpdateRecorrido = 0;
+        this.idUsuario = (int)idUsuario;
+        this.idUsuarioModeloCarro = idUsuarioModeloCarro;
+    }
+
     public RecorridoService(MainActivity mainActivity, boolean modelHasTwoTanks,
-                            DataBaseHelper helper, int idUsuario, int idUsuarioMOdeloCarro) {
+                            DataBaseHelper helper, long idUsuario, long idUsuarioModeloCarro) {
         this.mainActivity = mainActivity;
         this.modelHasTwoTanks = modelHasTwoTanks;
         recorrido = new Recorrido();
@@ -59,17 +70,24 @@ public class RecorridoService implements Serializable {
         recorrido.setListUnidadRecorrido(new ArrayList<>());
         recorrido.setRecorridoCode(Constantes.generateRndomRecorridoCode());
         Usuario user = new Usuario();
-        user.setId(idUsuario);
-        recorrido.setUsuarioHasModeloCarro(new UsuarioHasModeloCarro((long)idUsuarioMOdeloCarro));
+        user.setId((int)idUsuario);
+        recorrido.setUsuarioHasModeloCarro(new UsuarioHasModeloCarro(idUsuarioModeloCarro));
         recorrido.setUsuario(user);
         time = 0;
+        recorrido.setFecha(Constantes.SDF_DATE_ONLY.format(new Date()));
         this.helper = helper;
         this.listUnidadRecorrido = new ArrayList<>();
         try {
             daoRecorrido = helper.getDaoRecorridos();
+            recorrido.setId((long)daoRecorrido.create(recorrido));
+            Gson gson = new Gson();
+            Log.e("REEER", gson.toJson(recorrido));
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        contUpdateRecorrido = 0;
+        this.idUsuario = (int)idUsuario;
+        this.idUsuarioModeloCarro = idUsuarioModeloCarro;
 
     }
 
@@ -113,7 +131,12 @@ public class RecorridoService implements Serializable {
             unidadRecorrido.setValorBluetooh(mainActivity.getValorBluetooh());
         }
         listUnidadRecorrido.add(unidadRecorrido);
-        updateRecorridoInDao();
+
+        if(contUpdateRecorrido == 5){
+            updateRecorridoInDao();
+            contUpdateRecorrido = 0;
+        }
+        contUpdateRecorrido++;
     }
 
     public void pushTanqueada(Tanqueadas tanqueada) {
@@ -130,9 +153,11 @@ public class RecorridoService implements Serializable {
             mTimer.purge();
             recorridoStarted = false;
         }
-        guardarRecorrido();
+        updateRecorridoInDao();
+        //guardarRecorrido();
     }
 
+    // guarda un recorrido completado
     private void guardarRecorrido() {
 
         recorrido.setListUnidadRecorrido(listUnidadRecorrido);
@@ -141,7 +166,7 @@ public class RecorridoService implements Serializable {
         try {
             Dao<UnidadRecorrido, Integer> daoUnidadRecorrido= helper.getDaoUnidadRecorrido();
 
-            recorrido.setId((long)daoRecorrido.create(recorrido));
+            //recorrido.setId((long)daoRecorrido.create(recorrido));
             daoUnidadRecorrido.create(recorrido.getListUnidadRecorrido());
             Gson gson = new Gson();
             Log.e("RECORRIDO", "DESPUES DE GUARDADO.");
@@ -149,7 +174,6 @@ public class RecorridoService implements Serializable {
 
         } catch (SQLException e) {
             Toast.makeText(mainActivity, "Error guardando reorrido.", Toast.LENGTH_SHORT).show();
-
             e.printStackTrace();
         }
     }
@@ -160,14 +184,12 @@ public class RecorridoService implements Serializable {
         recorrido.setJsonListUnidadRecorrido();
 
         try {
-            daoRecorrido.update(recorrido);
-            Gson gson = new Gson();
+            int updatedd = daoRecorrido.update(recorrido);
             //Log.e("RECORRIDO", "DESPUES DE ACTUALIZADO.");
             //Log.e("", gson.toJson(recorrido));
 
         } catch (SQLException e) {
-            Toast.makeText(mainActivity, "Error guardando reorrido.", Toast.LENGTH_SHORT).show();
-
+            Toast.makeText(mainActivity, "Error guardando recorrido.", Toast.LENGTH_SHORT).show();
             e.printStackTrace();
         }
 
@@ -213,7 +235,6 @@ public class RecorridoService implements Serializable {
 
         final List<Recorrido> recorridoList;
 
-// the name field must be equal to "foo"
         try {
 
             QueryBuilder<Recorrido, Integer> queryBuilder =
@@ -224,16 +245,34 @@ public class RecorridoService implements Serializable {
 
             recorridoList = daoRecorrido.query(preparedQuery);
 
-            if (recorridoList.size() > 0) {
+            if (recorridoList != null && recorridoList.size() > 0) {
 
-                Call<String> uploadAll =   MedidorApiAdapter.getApiService().postRecorridosBulk(Constantes.CONTENT_TYPE_JSON ,
+                Gson gson = new Gson();
+
+                Usuario usuario = new Usuario();
+                usuario.setId(idUsuario);
+                UsuarioHasModeloCarro uhmc = new UsuarioHasModeloCarro();
+                uhmc.setId(idUsuarioModeloCarro);
+
+                for (Recorrido r: recorridoList) {
+
+                    r.setUsuario(usuario);
+                    r.setUsuarioHasModeloCarro(uhmc);
+                }
+
+                Log.e("size", String.valueOf(recorridoList.size()));
+                Log.e("list", gson.toJson(recorridoList.get(0)));
+                Call<String> uploadAll = MedidorApiAdapter.getApiService().postRecorridosBulk(Constantes.CONTENT_TYPE_JSON ,
                         recorridoList);
 
                 uploadAll.enqueue(new Callback<String>() {
                     @Override
                     public void onResponse(Call<String> call, Response<String> response) {
 
+                        Log.e("RESPONSE", String.valueOf(response.code()));
                         if(response.isSuccessful()) {
+
+                            Log.e("RESPONSE", "YES IT IS SUCCESSFUL");
 
                             for (Recorrido r: recorridoList) {
                                 if (r.isCompleted()){
@@ -256,20 +295,52 @@ public class RecorridoService implements Serializable {
                         Log.e("ERROR", t.getMessage());
                     }
                 });
+
+            } else {
+                Log.e("ERR","LA LISTA DE RECORRIDOS ES NULL O SU SIZE ES 0");
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public Recorrido getRecorrido() {
+    public Recorrido getCurrentUnCompleedRecorrido(String fecha) {
+
+        Recorrido recorrido = null;
+
+        try {
+            Dao<Recorrido, Integer> dao = helper.getDaoRecorridos();
+
+            List<Recorrido> recorridoList = dao.queryForEq("fecha", fecha);
+
+            if (recorridoList != null && recorridoList.size() > 0)
+                recorrido = recorridoList.get(0);
+
+        } catch (SQLException | IndexOutOfBoundsException e) {
+
+            e.printStackTrace();
+        }
         return recorrido;
     }
 
-    public void stopTimmers() {
-        if(mTimer != null){
-            mTimer.cancel();
-            mTimer.purge();
+    public void continueCurrentRecorrido(Recorrido recorrido){
+
+        this.recorrido = recorrido;
+        iniciarRecorrido();
+        this.listUnidadRecorrido = new ArrayList<>();
+        try {
+            daoRecorrido = helper.getDaoRecorridos();
+     //       daoRecorrido.create(recorrido);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+        contUpdateRecorrido = 0;
+
+        Toast.makeText(mainActivity, "CONTINUANDO RECORRIDO", Toast.LENGTH_SHORT).show();
+
+    }
+
+    public Recorrido getRecorrido() {
+        return recorrido;
     }
 }

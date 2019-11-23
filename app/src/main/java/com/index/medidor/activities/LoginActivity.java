@@ -169,8 +169,8 @@ public class LoginActivity extends AppCompatActivity {
         infoUsuario.apply();
         mCustomProgressDialog.dismiss("");
 
-        DownloadUsuarioHasModeloCarro downloadUsuarioHasModeloCarro = new DownloadUsuarioHasModeloCarro(user.getId(), this.helper);
-        downloadUsuarioHasModeloCarro.start();
+        //DownloadUsuarioHasModeloCarro downloadUsuarioHasModeloCarro = new DownloadUsuarioHasModeloCarro(user.getId(), this.helper);
+        //downloadUsuarioHasModeloCarro.start();
 
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         startActivity(intent);
@@ -219,22 +219,28 @@ public class LoginActivity extends AppCompatActivity {
 
                                 for (UsuarioHasModeloCarro uhmc: response.body()) {
 
+                                    Log.e("22", String.valueOf(response.body().size()));
                                     if(uhmc.getModeloCarros().getValoresAdq() != null){
                                         myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_VALUE_ARRAY, uhmc.getModeloCarros().getValoresAdq()).apply();
                                         //ModeloCarros modeloCarros = daoModeloCarros.queryForId(uhmc.getModelosCarrosId());
                                         myPreferences.edit().putInt(Constantes.DEFAULT_GAL_CANT, (int)uhmc.getModeloCarros().getGalones()).apply();
                                         myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_MAC, uhmc.getBluetoothMac()).apply();
                                         myPreferences.edit().putBoolean(Constantes.MODEL_HAS_TWO_TANKS, uhmc.getModeloCarros().getHasTwoTanks()).apply();
+                                        Log.e("MHTT", new Gson().toJson(uhmc.getModeloCarros()));
+
                                         myPreferences.edit().putLong(Constantes.DEFAULT_UHMC_ID, uhmc.getId()).apply();
                                         myPreferences.edit().putLong("defaultModeloCarroId", uhmc.getModeloCarros().getId()).apply();
                                         myPreferences.edit().putString(Constantes.DEFAULT_PLACA, uhmc.getPlaca()).apply();
-
-                                        Log.e("ID MC", gson.toJson(uhmc.getModeloCarros().getId()));
                                     }
                                     uhmc.setModelosCarrosId(uhmc.getModeloCarros().getId());
-                                    //Log.e("ID","del modelo carro " + uhmc.getModeloCarros().getId());
+                                    uhmc.setHasTwoTanks(uhmc.getModeloCarros().getHasTwoTanks());
+                                    uhmc.setAnio(uhmc.getModeloCarros().getModelo());
+                                    uhmc.setLinea(uhmc.getModeloCarros().getLinea());
+                                    uhmc.setValoresAdq(uhmc.getModeloCarros().getValoresAdq());
+
+                                    Log.e("hastwo", String.valueOf(uhmc.getHasTwoTanks()));
+
                                     daoUsuarioModeloCarros.create(uhmc);
-                                    //daoModeloCarros.create(uhmc.getModeloCarros());
                                 }
                                 irMain(user);
 

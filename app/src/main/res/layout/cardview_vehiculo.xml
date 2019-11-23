@@ -63,6 +63,13 @@
             android:textSize="18sp"
             android:layout_below="@id/tv_bluetooh_vehiculo"
             android:textStyle="bold"/>
+        <TextView
+            android:id="@+id/tv_has_tow_tanks_mi_vehiculo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:layout_below="@id/tv_placa_mi_vehiculo"
+            android:textStyle="bold"/>
 
         <ImageButton
             android:id="@+id/img_change_bluetooth"

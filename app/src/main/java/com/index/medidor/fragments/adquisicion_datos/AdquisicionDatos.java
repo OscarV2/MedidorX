@@ -90,7 +90,6 @@ public class AdquisicionDatos extends Fragment {
     private Timer mTimer1;
     private Handler mHandler;
     private BluetoothHelper bluetoothHelper;
-    private double galIngresados;
     private List<Integer> keyArraysAdq;
     private List<Integer> keyArraysFlux;
 
@@ -106,14 +105,6 @@ public class AdquisicionDatos extends Fragment {
         this.helper = OpenHelperManager.getHelper(mainActivity, DataBaseHelper.class);
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment AdquisicionDatos.
-     */
     // TODO: Rename and change types and number of parameters
     public static AdquisicionDatos newInstance(String param1, String param2) {
         AdquisicionDatos fragment = new AdquisicionDatos();
@@ -226,7 +217,7 @@ public class AdquisicionDatos extends Fragment {
                 btnAdquisicion.setText(R.string.finalizarAdqModelo);
                 estadoAdquicision = 1;
 
-            }else if(estadoAdquicision == 1 && acquisitionStarted) {
+            }else if(estadoAdquicision == 1) {
                 finalizarAdq();
             }
         });
@@ -296,7 +287,6 @@ public class AdquisicionDatos extends Fragment {
             modeloCarros.setHasTwoTanks(true);
         }
         modeloCarros.setLinea(edtLinea.getText().toString());
-        modeloCarros.setGalones(this.galIngresados);
         modeloCarros.setHasTwoTanks(rbTieneDosTanques.isChecked());
 
         if (idMarca == 0){

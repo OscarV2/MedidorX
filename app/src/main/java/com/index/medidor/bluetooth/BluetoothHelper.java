@@ -147,8 +147,9 @@ public class BluetoothHelper {
 
                                 try {
                                     datoTanque2 = Integer.valueOf(datos[1]);
-                                } catch (NumberFormatException ex) {
+                                } catch (NumberFormatException | ArrayIndexOutOfBoundsException ex) {
 
+                                    datoTanque2 = 0;
                                     ex.getStackTrace();
                                 }
 
