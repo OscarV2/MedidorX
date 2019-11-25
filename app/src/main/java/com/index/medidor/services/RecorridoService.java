@@ -1,5 +1,6 @@
 package com.index.medidor.services;
 
+import android.location.Location;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -13,6 +14,7 @@ import com.index.medidor.model.Usuario;
 import com.index.medidor.model.UsuarioHasModeloCarro;
 import com.index.medidor.retrofit.MedidorApiAdapter;
 import com.index.medidor.utils.Constantes;
+import com.index.medidor.utils.ResponseServices;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.stmt.QueryBuilder;
@@ -36,7 +38,6 @@ public class RecorridoService implements Serializable {
     private Recorrido recorrido;
     private Timer mTimer;
     private boolean modelHasTwoTanks;
-    private boolean recorridoStarted;
     private MainActivity mainActivity;
     private long time;
     private DataBaseHelper helper;
@@ -45,6 +46,7 @@ public class RecorridoService implements Serializable {
     private int idUsuario ;
     private long idUsuarioModeloCarro;
     private short contUpdateRecorrido = 0;
+    private Location location;
 
     public RecorridoService() {
     }
@@ -81,7 +83,6 @@ public class RecorridoService implements Serializable {
             daoRecorrido = helper.getDaoRecorridos();
             recorrido.setId((long)daoRecorrido.create(recorrido));
             Gson gson = new Gson();
-            Log.e("REEER", gson.toJson(recorrido));
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -93,7 +94,6 @@ public class RecorridoService implements Serializable {
 
     public void iniciarRecorrido() {
 
-        recorridoStarted =  true;
         mTimer = new Timer();
         TimerTask task = new TimerTask() {
             @Override
@@ -102,15 +102,20 @@ public class RecorridoService implements Serializable {
             }
         };
         mTimer.schedule(task, 1000, Constantes.DELAY_RECORRIDO);
+        Toast.makeText(mainActivity, "RECORRIDO INICIADO", Toast.LENGTH_SHORT).show();
     }
 
     private void updateRecorrido() {
 
-        //Log.e("RERR", "UPDATING RECORRIDO");
         UnidadRecorrido unidadRecorrido = new UnidadRecorrido();
-        unidadRecorrido.setLatitud(mainActivity.getInndexLocationService().getMyLocation().getLatitude());
-        unidadRecorrido.setLongitud(mainActivity.getInndexLocationService().getMyLocation().getLongitude());
-        unidadRecorrido.setAltitud(mainActivity.getInndexLocationService().getMyLocation().getAltitude());
+        location = mainActivity.getInndexLocationService().getMyLocation();
+        if(location != null)
+        {
+            unidadRecorrido.setLatitud(mainActivity.getInndexLocationService().getMyLocation().getLatitude());
+            unidadRecorrido.setLongitud(mainActivity.getInndexLocationService().getMyLocation().getLongitude());
+            unidadRecorrido.setAltitud(mainActivity.getInndexLocationService().getMyLocation().getAltitude());
+        }
+
         unidadRecorrido.setTiempo(time / 1000);
 
         unidadRecorrido.setDistancia(mainActivity.getInndexLocationService().getDistancia());
@@ -121,10 +126,10 @@ public class RecorridoService implements Serializable {
 
         if (modelHasTwoTanks) {
             unidadRecorrido.setGalones(mainActivity.getGalones());
-            unidadRecorrido.setGalonesT2(mainActivity.getGalones());
+            unidadRecorrido.setGalonesT2(mainActivity.getGalonesT2());
 
             unidadRecorrido.setValorBluetooh(mainActivity.getValorBluetooh());
-            unidadRecorrido.setValorBluetooh(mainActivity.getValorBluetoohT2());
+            unidadRecorrido.setValorBluetoohT2(mainActivity.getValorBluetoohT2());
 
         } else {
             unidadRecorrido.setGalones(mainActivity.getGalones());
@@ -144,17 +149,16 @@ public class RecorridoService implements Serializable {
     }
 
     public void pararRecorrido() {
-        recorrido.setFechaFin(Constantes.SDF_DATE_RECORRIDO.format(new Date()));
-        recorrido.setCompleted(true);
 
-        recorridoStarted = false;
         if(mTimer != null){
             mTimer.cancel();
             mTimer.purge();
-            recorridoStarted = false;
         }
+        recorrido.setFechaFin(Constantes.SDF_DATE_RECORRIDO.format(new Date()));
+        recorrido.setCompleted(true);
+        Toast.makeText(mainActivity, "RECORRIDO COMPLETED", Toast.LENGTH_SHORT).show();
+
         updateRecorridoInDao();
-        //guardarRecorrido();
     }
 
     // guarda un recorrido completado
@@ -184,51 +188,13 @@ public class RecorridoService implements Serializable {
         recorrido.setJsonListUnidadRecorrido();
 
         try {
-            int updatedd = daoRecorrido.update(recorrido);
-            //Log.e("RECORRIDO", "DESPUES DE ACTUALIZADO.");
-            //Log.e("", gson.toJson(recorrido));
+            //Log.e("UP COMPLE", String.valueOf(recorrido.isCompleted()));
+            daoRecorrido.update(recorrido);
 
         } catch (SQLException e) {
-            Toast.makeText(mainActivity, "Error guardando recorrido.", Toast.LENGTH_SHORT).show();
             e.printStackTrace();
+//            Toast.makeText(mainActivity, "Error guardando recorrido.", Toast.LENGTH_SHORT).show();
         }
-
-    }
-
-    public void uploadRecorrido() {
-
-        Gson gson = new Gson();
-        recorrido.setListUnidadRecorrido(listUnidadRecorrido);
-        recorrido.setJsonListUnidadRecorrido();
-        recorrido.setListUnidadRecorrido(null);
-        //recorrido.setId(null);
-
-        Call<String> callRegisterRecorrido =
-                MedidorApiAdapter.getApiService().postRegisterRecorrido(Constantes.CONTENT_TYPE_JSON, recorrido);
-
-        callRegisterRecorrido.enqueue(new Callback<String>() {
-            @Override
-            public void onResponse(Call<String> call, Response<String> response) {
-
-                //se obtiene el id del recorrido
-                Log.e("Recorrido", response.body());
-                if(response.body() != null) {
-
-                    Long id = Long.parseLong(response.body());
-                    recorrido.setId(id);
-                } else {
-                    Log.e("ERROR", "EL RESPONSE BODY ES NULO");
-                }
-                if(response.isSuccessful()) {
-                    Toast.makeText(mainActivity, "RECORRIDO ENVIADO AL SERVIDOR DE MANERA EXITOSA", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<String> call, Throwable t) {
-                Toast.makeText(mainActivity, "NO SE PUDO SUBIR EL RECORRIDO", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     public void uploadAllNotCompletedAndNotUploaded() {
@@ -256,40 +222,51 @@ public class RecorridoService implements Serializable {
 
                 for (Recorrido r: recorridoList) {
 
+                    Log.e("UPLOADED", String.valueOf(r.isUploaded()));
+                    Log.e("COMPLETED", String.valueOf(r.isCompleted()));
+                    if(r.getFechaFin() != null)
+                        Log.e("FECHAFIN", r.getFechaFin());
+                    else
+                        Log.e("FECHAFIN", "NULL");
                     r.setUsuario(usuario);
                     r.setUsuarioHasModeloCarro(uhmc);
                 }
 
                 Log.e("size", String.valueOf(recorridoList.size()));
                 Log.e("list", gson.toJson(recorridoList.get(0)));
-                Call<String> uploadAll = MedidorApiAdapter.getApiService().postRecorridosBulk(Constantes.CONTENT_TYPE_JSON ,
+                Call<ResponseServices> uploadAll = MedidorApiAdapter.getApiService().postRecorridosBulk(Constantes.CONTENT_TYPE_JSON ,
                         recorridoList);
 
-                uploadAll.enqueue(new Callback<String>() {
+                uploadAll.enqueue(new Callback<ResponseServices>() {
                     @Override
-                    public void onResponse(Call<String> call, Response<String> response) {
+                    public void onResponse(Call<ResponseServices> call, Response<ResponseServices> response) {
 
                         Log.e("RESPONSE", String.valueOf(response.code()));
                         if(response.isSuccessful()) {
-
-                            Log.e("RESPONSE", "YES IT IS SUCCESSFUL");
 
                             for (Recorrido r: recorridoList) {
                                 if (r.isCompleted()){
                                     r.setUploaded(true);
                                     try {
-                                        daoRecorrido.update(r);
+                                        int c = daoRecorrido.update(r);
+                                        if(c > 0)
+                                        Log.e("THIS", "WAS UPDATED " + r.getId());
+
                                     } catch (SQLException e) {
                                         Toast.makeText(mainActivity, "ERROR, ACTUALIZANDO RECORRIDOS EN LOCAL.", Toast.LENGTH_SHORT).show();
                                         e.printStackTrace();
                                     }
+                                }else {
+                                    Log.e("THIS", "IS NOT COMPLETED " + r.getId());
                                 }
                             }
+                        }else {
+                            Log.e("RESPPONSE", "IS NOT SUCCESSFUL");
                         }
                     }
 
                     @Override
-                    public void onFailure(Call<String> call, Throwable t) {
+                    public void onFailure(Call<ResponseServices> call, Throwable t) {
 
                         Toast.makeText(mainActivity, "ERROR, NO SE PUDO SUBIR TODA LA INFORMACIÓN.", Toast.LENGTH_SHORT).show();
                         Log.e("ERROR", t.getMessage());
@@ -342,5 +319,59 @@ public class RecorridoService implements Serializable {
 
     public Recorrido getRecorrido() {
         return recorrido;
+    }
+
+    public void deleteAllRecorridos(){
+
+        try {
+            List<Recorrido> recorridosList = daoRecorrido.queryForAll();
+            if (recorridosList != null && recorridosList.size() > 0)
+                daoRecorrido.delete(recorridosList);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void uploadRecorrido() {
+
+        Gson gson = new Gson();
+        recorrido.setListUnidadRecorrido(listUnidadRecorrido);
+        recorrido.setJsonListUnidadRecorrido();
+        recorrido.setListUnidadRecorrido(null);
+        //recorrido.setId(null);
+
+        Call<String> callRegisterRecorrido =
+                MedidorApiAdapter.getApiService().postRegisterRecorrido(Constantes.CONTENT_TYPE_JSON, recorrido);
+
+        callRegisterRecorrido.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+
+                //se obtiene el id del recorrido
+                if(response.body() != null) {
+
+                    Long id = Long.parseLong(response.body());
+                    recorrido.setId(id);
+                } else {
+                    Log.e("ERROR", "EL RESPONSE BODY ES NULO");
+                }
+                if(response.isSuccessful()) {
+                    Toast.makeText(mainActivity, "RECORRIDO ENVIADO AL SERVIDOR DE MANERA EXITOSA", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                Toast.makeText(mainActivity, "NO SE PUDO SUBIR EL RECORRIDO", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    public boolean isModelHasTwoTanks() {
+        return modelHasTwoTanks;
+    }
+
+    public void setModelHasTwoTanks(boolean modelHasTwoTanks) {
+        this.modelHasTwoTanks = modelHasTwoTanks;
     }
 }

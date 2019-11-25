@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.util.Log;
 
 import com.index.medidor.activities.MainActivity;
+import com.index.medidor.utils.Constantes;
 
 public class StopRecorridoReceiver extends BroadcastReceiver {
 
@@ -14,8 +15,8 @@ public class StopRecorridoReceiver extends BroadcastReceiver {
 
         Log.e("ONRECEIVE","STOP");
 
-        MainActivity mainActivity = MainActivity.getInstance();
-        mainActivity.resetRecorrido();
-        //context.sendBroadcast(new Intent(Constantes.STOP_RECORRIDO_INTENT_FILTER ));
+        //MainActivity mainActivity = MainActivity.getInstance();
+        //mainActivity.stopRecorrido();
+        context.sendBroadcast(new Intent(Constantes.STOP_RECORRIDO_INTENT_FILTER ));
     }
 }

@@ -110,14 +110,6 @@ public class MiVehiculo extends Fragment {
             Dao<UsuarioHasModeloCarro, Integer> daoUsuarioHasMOdeloCarro = helper.getDaoUsuarioHasModeloCarros();
             usuarioHasModeloCarroList = daoUsuarioHasMOdeloCarro.queryForAll();
 
-            Log.e("SIZE", String.valueOf(usuarioHasModeloCarroList.size()));
-
-            usuarioHasModeloCarroList.forEach(a -> {
-
-                Log.e("1", String.valueOf(a.getHasTwoTanks()));
-
-            });
-
             VehiculosAdapter adapter = new VehiculosAdapter(usuarioHasModeloCarroList, mainActivity);
 
             rvVehiculos.setLayoutManager(new LinearLayoutManager(getContext()));

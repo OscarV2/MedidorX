@@ -13,8 +13,8 @@ public class StartRecorridoReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
 
         Log.e("ONRECEIVE","START");
-        MainActivity mainActivity = MainActivity.getInstance();
-        mainActivity.initRecorrido();
-        //context.sendBroadcast(new Intent(Constantes.START_RECORRIDO_INTENT_FILTER));
+        //MainActivity mainActivity = MainActivity.getInstance();
+        //mainActivity.initRecorrido();
+        context.sendBroadcast(new Intent(Constantes.START_RECORRIDO_INTENT_FILTER));
     }
 }

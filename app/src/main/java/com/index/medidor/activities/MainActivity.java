@@ -123,6 +123,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private EstacionesPlaces estacionesPlaces;
     private Fragment miFragment;
 
+    private FireBaseRecorridosHelper fireBaseRecorridosHelper;
+
     public static MainActivity myInstance;
 
     private Timer timerInndexDeviceListener;
@@ -146,8 +148,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     //private Timer mTimer;
     private boolean newDevice;
 
-    private long timeMillisToStartRecorrido;
-    private long timeMillisToStopRecorrido;
+    BroadcastReceiver startReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            initRecorrido();
+        }
+    };
+
+    BroadcastReceiver stopReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            stopRecorrido();
+        }
+    };
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @SuppressLint("ResourceType")
@@ -191,6 +206,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         values = myPreferences.getString(Constantes.DEFAULT_BLUETOOTH_VALUE_ARRAY, "");
         modelHasTwoTanks = myPreferences.getBoolean( Constantes.MODEL_HAS_TWO_TANKS, false);
 
+        Log.e("IT", "HASS TWO TANKS " + modelHasTwoTanks);
+
         tipoUsuario = myPreferences.getInt("tipoUsuario", 8);
 
         pbCombustible = findViewById(R.id.pbCombustible);
@@ -229,6 +246,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         RecorridoService rService = new RecorridoService(MainActivity.this, helper, idUsuario, idUsuarioModeloCarro);
+        rService.setModelHasTwoTanks(modelHasTwoTanks);
 
         Recorrido recorrido = rService.getCurrentUnCompleedRecorrido(Constantes.SDF_DATE_ONLY.format(new Date()));
         if (recorrido != null){
@@ -242,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         initReceivers();
-        FireBaseRecorridosHelper fireBaseRecorridosHelper = new FireBaseRecorridosHelper(MainActivity.this, myPreferences.getString(Constantes.DEFAULT_PLACA, ""));
+        fireBaseRecorridosHelper = new FireBaseRecorridosHelper(MainActivity.this, myPreferences.getString(Constantes.DEFAULT_PLACA, ""));
         fireBaseRecorridosHelper.init();
         myInstance = this;
     }
@@ -252,42 +270,38 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Calendar calendarStart = Calendar.getInstance();
         calendarStart.setTimeInMillis(System.currentTimeMillis());
         calendarStart.set(Calendar.HOUR_OF_DAY, 0);
-        calendarStart.set(Calendar.MINUTE, 1);
+        calendarStart.set(Calendar.MINUTE, 3);
         calendarStart.set(Calendar.SECOND, 0);
 
         if (Calendar.getInstance().after(calendarStart)) {
             calendarStart.add(Calendar.DAY_OF_MONTH, 1);
         }
 
-        timeMillisToStartRecorrido = calendarStart.getTimeInMillis();
-
         AlarmManager startRecorridoAlarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
         Intent intentStartRrecorrido = new Intent(MainActivity.this, StartRecorridoReceiver.class);
         PendingIntent pendingIntentStart = PendingIntent.getBroadcast(MainActivity.this, 1, intentStartRrecorrido, 0);
-        intentStartRrecorrido.putExtra("time", timeMillisToStartRecorrido);
         startRecorridoAlarmManager.setRepeating(AlarmManager.RTC_WAKEUP,  calendarStart.getTimeInMillis(),
                 AlarmManager.INTERVAL_DAY, pendingIntentStart);
 
         Calendar calendarStop = Calendar.getInstance();
         calendarStop.setTimeInMillis(System.currentTimeMillis());
         calendarStop.set(Calendar.HOUR_OF_DAY, 23);
-        calendarStop.set(Calendar.MINUTE, 57);
-        calendarStop.set(Calendar.SECOND, 10);
+        calendarStop.set(Calendar.MINUTE, 56);
+        calendarStop.set(Calendar.SECOND, 0);
 
         if (Calendar.getInstance().after(calendarStop)) {
             calendarStop.add(Calendar.DAY_OF_MONTH, 1);
         }
 
-        timeMillisToStopRecorrido = calendarStop.getTimeInMillis();
-
         AlarmManager stopRecorridoAlarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
         Intent intentStopRecorrido = new Intent(MainActivity.this, StopRecorridoReceiver.class);
-        intentStopRecorrido.putExtra("time", timeMillisToStopRecorrido);
         PendingIntent pendingIntentStop = PendingIntent.getBroadcast(MainActivity.this, 0, intentStopRecorrido, 0);
 
         stopRecorridoAlarmManager.setRepeating(AlarmManager.RTC_WAKEUP,  calendarStop.getTimeInMillis(),
                 AlarmManager.INTERVAL_DAY, pendingIntentStop);
 
+        registerReceiver(startReceiver, new IntentFilter(Constantes.START_RECORRIDO_INTENT_FILTER));
+        registerReceiver(stopReceiver, new IntentFilter(Constantes.STOP_RECORRIDO_INTENT_FILTER));
     }
 
     private void initCombustibleProgresBars() {
@@ -410,7 +424,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         else if (id == R.id.nav_recorrido_stop) {
 
             if(recorridoService != null) {
-                recorridoService = null;
+                stopRecorrido();
             }
         }
         else if (id == R.id.logout) {
@@ -494,6 +508,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onDestroy();
 
         inndexLocationService.setLocationManager(null);
+
+        unregisterReceiver(startReceiver);
+        unregisterReceiver(stopReceiver);
 
         if (alert != null) {
             alert.dismiss();
@@ -834,31 +851,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     //Método que detiene el recorrido actual, lo sube al servidor y empieza un nuevo recorrido
-    public void resetRecorrido() {
+    public void stopRecorrido() {
 
         Log.e("ERR","RESETING RECORRIDO");
-
-        if(bluetoothHelper == null ) {
-            Toast.makeText(this, "No se pudo conectar con el dispositivo.", Toast.LENGTH_SHORT).show();
-            return;
-        }
 
         if (recorridoService != null) {
 
             recorridoService.pararRecorrido();
             inndexLocationService.setDistancia(0);
-            recorridoService = new RecorridoService(MainActivity.this, true,
+            //recorridoService = null;
+            /*recorridoService = new RecorridoService(MainActivity.this, modelHasTwoTanks,
                     this.helper, idUsuario, idUsuarioModeloCarro);
-            recorridoService.iniciarRecorrido();
-            Toast.makeText(this, "RECORRIDO INICIADO", Toast.LENGTH_SHORT).show();
-
-            return;
+            recorridoService.iniciarRecorrido();*/
         }
-
-        recorridoService = new RecorridoService(MainActivity.this, true, this.helper, idUsuario, idUsuarioModeloCarro);
-        inndexLocationService.setDistancia(0);
-        recorridoService.iniciarRecorrido();
-        Toast.makeText(this, "RECORRIDO INICIADO", Toast.LENGTH_SHORT).show();
     }
 
     public void initRecorrido() {
@@ -873,16 +878,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             return;
         }
 
-        recorridoService = new RecorridoService(MainActivity.this, myPreferences.getBoolean(Constantes.MODEL_HAS_TWO_TANKS, false), this.helper, idUsuario, idUsuarioModeloCarro);
+        recorridoService = new RecorridoService(MainActivity.this, modelHasTwoTanks, this.helper, idUsuario, idUsuarioModeloCarro);
         inndexLocationService.setDistancia(0);
         recorridoService.iniciarRecorrido();
-        Toast.makeText(this, "RECORRIDO INICIADO", Toast.LENGTH_SHORT).show();
-    }
-
-    private void updateCurrentRecorrido() {
-
-        if(recorridoService != null && recorridoService.getRecorrido() != null)
-            recorridoService.uploadRecorrido();
     }
 
     public void upateDefaultVehicle(UsuarioHasModeloCarro uhmc) {
@@ -898,7 +896,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         }
 
-        Gson gson = new Gson();
         uhmc.setModeloCarros(null);
         myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_VALUE_ARRAY, uhmc.getValoresAdq()).apply();
         //myPreferences.edit().putInt(Constantes.DEFAULT_GAL_CANT, (int)uhmc.getModeloCarros().getGalones()).apply();
@@ -908,6 +905,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //        myPreferences.edit().putLong("defaultModeloCarroId", uhmc.getModeloCarros().getId()).apply();
         myPreferences.edit().putString(Constantes.DEFAULT_PLACA, uhmc.getPlaca()).apply();
 
+        idUsuarioModeloCarro = uhmc.getId();
+
         values = uhmc.getValoresAdq();
         modelHasTwoTanks = uhmc.getHasTwoTanks();
 
@@ -915,7 +914,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             tvCombustibleTank2.setVisibility(View.VISIBLE);
             pbTanque2.setVisibility(View.VISIBLE);
         }
-        tvDefaultPlaca.setText(myPreferences.getString(Constantes.DEFAULT_PLACA, ""));
+        String newPlaca = myPreferences.getString(Constantes.DEFAULT_PLACA, "");
+        tvDefaultPlaca.setText(newPlaca);
 
         if (values != null && !values.equals("")) {
             bluetoothHelper = new BluetoothHelper(MainActivity.this, values);
@@ -933,13 +933,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         initCombustibleProgresBars();
+
+        resetAll();
+
+        fireBaseRecorridosHelper = null;
+        fireBaseRecorridosHelper = new FireBaseRecorridosHelper(MainActivity.this,
+                newPlaca);
+        fireBaseRecorridosHelper.setPlaca(newPlaca);
+        fireBaseRecorridosHelper.init();
+        initRecorrido();
     }
 
     public void resetAll() {
 
-//        recorridoService.stopTimmers();
-//        recorridoService = null;
-//        bluetoothHelper = null;
+        if (recorridoService != null){
+            recorridoService.deleteAllRecorridos();
+        }
+
     }
 
     public double getGalones() {

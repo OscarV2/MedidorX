@@ -1,6 +1,7 @@
 package com.index.medidor.services;
 
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.index.medidor.activities.MainActivity;
@@ -23,8 +24,13 @@ public class FireBaseRecorridosHelper {
             recorridoService = mainActivity.getRecorridoService();
 
             if(recorridoService != null) {
+                Toast.makeText(mainActivity, "SUBIENDO RECORRIDO " + placa, Toast.LENGTH_SHORT).show();
                 recorridoService.uploadAllNotCompletedAndNotUploaded();
             }
         });
+    }
+
+    public void setPlaca(String placa) {
+        this.placa = placa;
     }
 }

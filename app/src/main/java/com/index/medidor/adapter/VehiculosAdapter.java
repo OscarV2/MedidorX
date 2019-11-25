@@ -1,11 +1,12 @@
 package com.index.medidor.adapter;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -23,6 +25,7 @@ import com.index.medidor.R;
 import com.index.medidor.activities.MainActivity;
 import com.index.medidor.bluetooth.SpBluetoothDevice;
 import com.index.medidor.model.UsuarioHasModeloCarro;
+import com.index.medidor.utils.Constantes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +35,7 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
 
     private List<UsuarioHasModeloCarro> items;
     private Context context;
+    private String defaultPlaca;
 
     private UsuarioHasModeloCarro usuarioHasModeloCarroSelected;
 
@@ -42,7 +46,7 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
         public TextView tvLinea;
         public TextView tvBlueTooth;
         public TextView tvHasTwoTanks;
-
+        private RelativeLayout relativeLayout;
         public ImageButton btnChangeBlueTooth;
 
         public EstacionesViewHolder(View itemView) {
@@ -53,7 +57,7 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
             tvLinea =  itemView.findViewById(R.id.tv_linea_mi_vehiculo);
             tvBlueTooth = itemView.findViewById(R.id.tv_bluetooh_vehiculo);
             tvHasTwoTanks = itemView.findViewById(R.id.tv_has_tow_tanks_mi_vehiculo);
-
+            relativeLayout = itemView.findViewById(R.id.rel_mi_vehiculo);
             btnChangeBlueTooth = itemView.findViewById(R.id.img_change_bluetooth);
 
             Typeface light=Typeface.createFromAsset(context.getAssets(),"fonts/Roboto-Light.ttf");
@@ -73,7 +77,6 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
                 showBlueToothList();
                 int i = getLayoutPosition();
                 usuarioHasModeloCarroSelected = items.get(i);
-                Log.e("CLICK","ON BLUETOOTH NUmber " + i);
                 Gson gson = new Gson();
                 Log.e("11", gson.toJson(usuarioHasModeloCarroSelected));
             });
@@ -126,6 +129,7 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
                 dialog.dismiss();
             }
             ((MainActivity)context).upateDefaultVehicle(usuarioHasModeloCarroSelected);
+            notifyDataSetChanged();
 
         });
 
@@ -135,7 +139,9 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
     public VehiculosAdapter(List<UsuarioHasModeloCarro> items, Context context) {
         this.items = items;
         this.context = context;
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         usuarioHasModeloCarroSelected = null;
+        defaultPlaca = sharedPreferences.getString(Constantes.DEFAULT_PLACA, "");
     }
 
     @Override
@@ -154,9 +160,13 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
 
         if(items.get(position).getHasTwoTanks()){
 
-            holder.tvHasTwoTanks.setText("#Tanques: 2"  );
+            holder.tvHasTwoTanks.setText("#Tanques: 2");
         }else {
-            holder.tvHasTwoTanks.setText("#Tanques: 1"  );
+            holder.tvHasTwoTanks.setText("#Tanques: 1");
+        }
+
+        if(items.get(position).getPlaca().equals(defaultPlaca)){
+            holder.relativeLayout.setBackgroundColor(context.getResources().getColor(R.color.yellow_soft));
         }
     }
 

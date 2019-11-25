@@ -89,7 +89,7 @@ public interface SmartBillApiServices {
 
 
     @POST(Constantes.POST_RECORRIDOS_BULK)
-    Call<String> postRecorridosBulk(@Header("Content-Type") String headerContentType,
+    Call<ResponseServices> postRecorridosBulk(@Header("Content-Type") String headerContentType,
                                        @Body List<Recorrido> recorridos);
 
 }

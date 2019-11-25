@@ -10,6 +10,5 @@ public class DataBaseConfig extends OrmLiteConfigUtil {
     public static void main(String[] args) throws IOException, SQLException {
 
         writeConfigFile("medidor_config.txt");
-
     }
 }

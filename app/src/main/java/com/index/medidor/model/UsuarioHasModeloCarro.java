@@ -6,12 +6,12 @@ import com.j256.ormlite.table.DatabaseTable;
 @DatabaseTable(tableName = "usuarios_has_modelos_carros")
 public class UsuarioHasModeloCarro {
 
-    @DatabaseField(generatedId = true)
+    @DatabaseField(id = true)
     private Long id;
     @DatabaseField
-    private int modelosCarrosId;
+    private Integer modelosCarrosId;
     @DatabaseField
-    private int usuariosId;
+    private Integer usuariosId;
     @DatabaseField
     private String bluetoothNombre;
     @DatabaseField
@@ -49,16 +49,20 @@ public class UsuarioHasModeloCarro {
         this.id = id;
     }
 
-    public int getModelosCarrosId() {
+    public Integer getModelosCarrosId() {
         return modelosCarrosId;
     }
 
-    public void setModelosCarrosId(int modelosCarrosId) {
+    public void setModelosCarrosId(Integer modelosCarrosId) {
         this.modelosCarrosId = modelosCarrosId;
     }
 
-    public int getUsuariosId() {
+    public Integer getUsuariosId() {
         return usuariosId;
+    }
+
+    public void setUsuariosId(Integer usuariosId) {
+        this.usuariosId = usuariosId;
     }
 
     public void setUsuariosId(int usuariosId) {

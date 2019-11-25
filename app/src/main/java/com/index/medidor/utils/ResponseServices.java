@@ -1,6 +1,8 @@
 package com.index.medidor.utils;
 
-public class ResponseServices {
+import java.io.Serializable;
+
+public class ResponseServices implements Serializable {
 
     private String code;
     private String msg;
@@ -20,4 +22,7 @@ public class ResponseServices {
         return msg;
     }
 
+    public void setMsg(String msg) {
+        this.msg = msg;
+    }
 }

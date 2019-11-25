@@ -182,10 +182,7 @@ public class NuevoVehiculo extends Fragment {
     private String[] getAllMarcasNames() throws SQLException {
 
         listMarcas = daoMarcaCarros.queryForAll();
-        if (listMarcas!= null && listMarcas.size() > 0){
 
-            Log.e("marcas",String.valueOf(listMarcas.size()));
-        }
         marcas = new String[listMarcas.size()];
 
         for (int i = 0; i < listMarcas.size(); i++ ) {
@@ -264,7 +261,6 @@ public class NuevoVehiculo extends Fragment {
             nuevoUsuarioHasModeloCarro.setMarca(modeloCarros.getLinea());
             nuevoUsuarioHasModeloCarro.setLinea(modeloCarros.getLinea());
             nuevoUsuarioHasModeloCarro.setAnio(modeloCarros.getModelo());
-            nuevoUsuarioHasModeloCarro.setId(12L);
             //mainActivity.upateDefaultVehicle(nuevoUsuarioHasModeloCarro);
             //Gson gson = new Gson();
             //nuevoUsuarioHasModeloCarro.setModeloCarros(null);
@@ -282,10 +278,10 @@ public class NuevoVehiculo extends Fragment {
                     if(response.isSuccessful() && response.body() != null){
 
                         try {
-                            nuevoUsuarioHasModeloCarro.setId(response.body().getId());
+                            //nuevoUsuarioHasModeloCarro.setId(response.body().getId());
                             daoUsuarioModeloCarros.create(nuevoUsuarioHasModeloCarro);
                             //mainActivity.getMyPreferences().edit().putString(Constantes.DEFAULT_BLUETOOTH_MAC, usuarioHasModeloCarroUpdate.getBluetoothMac()).apply();
-                            mainActivity.upateDefaultVehicle(nuevoUsuarioHasModeloCarro);
+                            //mainActivity.upateDefaultVehicle(nuevoUsuarioHasModeloCarro);
                         } catch (SQLException e) {
                             e.printStackTrace();
                         }
@@ -335,7 +331,6 @@ public class NuevoVehiculo extends Fragment {
 
                     if(response.isSuccessful()) {
 
-                        mainActivity.resetAll();
                         Toast.makeText(mainActivity, "VEHÍCULO ACTUALIZADO DE MANERA EXITOSA.", Toast.LENGTH_SHORT).show();
                         spBluetoothDevices.setVisibility(View.GONE);
                         //btnUpdateUhmc.setVisibility(View.GONE);
@@ -413,16 +408,12 @@ public class NuevoVehiculo extends Fragment {
 
     private String[] getAllLineasNames(List<ModeloCarros> listModeloCarros) {
 
-        if (listModeloCarros!= null && listModeloCarros.size() > 0){
-
-        }
         String[] lineas = new String[listModeloCarros.size()];
 
         for (int i = 0; i < listModeloCarros.size(); i++ ) {
 
             lineas[i] = listModeloCarros.get(i).getLinea();
         }
-
         return  lineas;
     }
 
