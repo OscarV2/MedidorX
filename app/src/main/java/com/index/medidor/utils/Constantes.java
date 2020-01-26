@@ -18,7 +18,7 @@ import java.util.UUID;
 
 public class Constantes {
 
-    public static final String BASE_URL = "http://www.smartbill.us:8085/api/";
+    public static final String BASE_URL = "http://inndexco.com:8085/api/";
     //USUARIO
     public static final String POST_LOGIN_USER = "users/postLogin/";
     public static final String POST_REGISTER_USER = "users/postRegistrar";
@@ -92,7 +92,9 @@ public class Constantes {
 
         SimpleDateFormat sdfRandom = new SimpleDateFormat("yyyyMMddHHmm", Locale.US);
 
-        return sdfRandom.format(new Date()) + UUID.randomUUID().toString();
+        String code = sdfRandom.format(new Date()) + UUID.randomUUID().toString();
+        Log.e("genCode", code);
+        return code;
     }
 
     public static float getDistance(LatLng myPosition, LatLng estacionLatLng){
@@ -105,10 +107,8 @@ public class Constantes {
     public static String[] getAllMarcasNames(DataBaseHelper helper) throws SQLException {
 
         final Dao<MarcaCarros, Integer> dao = helper.getDaoMarcas();
-
         List<MarcaCarros> listMarcas = dao.queryForAll();
         if (listMarcas!= null && listMarcas.size() > 0){
-
             Log.e("marcas",String.valueOf(listMarcas.size()));
         }
         String[] marcas = new String[listMarcas.size()];
@@ -124,12 +124,10 @@ public class Constantes {
     public static String[] getYearsModelsCars(){
 
         int year = Calendar.getInstance().get(Calendar.YEAR);
-
         String[] years = new String[50];
         years[0] = String.valueOf(year);
 
         for (int i = 1; i < 50 ;i++){
-
             years[i] = String.valueOf( year-i );
         }
 

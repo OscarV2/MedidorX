@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.preference.PreferenceManager;
+import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +18,7 @@ import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -24,18 +26,30 @@ import com.google.gson.Gson;
 import com.index.medidor.R;
 import com.index.medidor.activities.MainActivity;
 import com.index.medidor.bluetooth.SpBluetoothDevice;
+import com.index.medidor.database.DataBaseHelper;
+import com.index.medidor.model.ModeloCarros;
 import com.index.medidor.model.UsuarioHasModeloCarro;
+import com.index.medidor.retrofit.MedidorApiAdapter;
 import com.index.medidor.utils.Constantes;
+import com.j256.ormlite.dao.Dao;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.EstacionesViewHolder> {
 
     private List<UsuarioHasModeloCarro> items;
     private Context context;
     private String defaultPlaca;
+    private MainActivity mainActivity;
+    private DataBaseHelper helper;
+
 
     private UsuarioHasModeloCarro usuarioHasModeloCarroSelected;
 
@@ -73,7 +87,6 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
             });
 
             btnChangeBlueTooth.setOnClickListener(v ->{
-
                 showBlueToothList();
                 int i = getLayoutPosition();
                 usuarioHasModeloCarroSelected = items.get(i);
@@ -128,17 +141,18 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
             if (dialog.isShowing()) {
                 dialog.dismiss();
             }
-            ((MainActivity)context).upateDefaultVehicle(usuarioHasModeloCarroSelected);
-            notifyDataSetChanged();
+            updateVehiculo();
 
         });
-
         dialog.show();
     }
 
-    public VehiculosAdapter(List<UsuarioHasModeloCarro> items, Context context) {
+    public VehiculosAdapter(List<UsuarioHasModeloCarro> items, Context context, DataBaseHelper helper) {
         this.items = items;
         this.context = context;
+        this.mainActivity = (MainActivity)context;
+        this.helper = helper;
+
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         usuarioHasModeloCarroSelected = null;
         defaultPlaca = sharedPreferences.getString(Constantes.DEFAULT_PLACA, "");
@@ -169,6 +183,53 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
             holder.relativeLayout.setBackgroundColor(context.getResources().getColor(R.color.yellow_soft));
         }
     }
+
+    private void updateVehiculo() {
+
+        try {
+            Integer id = (int)(mainActivity.getMyPreferences().getLong(Constantes.DEFAULT_UHMC_ID, 0));
+            Dao<UsuarioHasModeloCarro, Integer> dao = helper.getDaoUsuarioHasModeloCarros();
+            UsuarioHasModeloCarro uhmc = dao.queryForId(id);
+
+            ModeloCarros modeloCarros = new ModeloCarros();
+            modeloCarros.setId((int)mainActivity.getMyPreferences().getLong("defaultModeloCarroId",0));
+            Gson gson = new Gson();
+            usuarioHasModeloCarroSelected.setId(uhmc.getId());
+            usuarioHasModeloCarroSelected.setBluetoothNombre(uhmc.getBluetoothNombre());
+            usuarioHasModeloCarroSelected.setModeloCarros(modeloCarros);
+            usuarioHasModeloCarroSelected.setUsuariosId(uhmc.getUsuariosId());
+            Log.e("UHMC", gson.toJson(usuarioHasModeloCarroSelected));
+
+            Call<UsuarioHasModeloCarro> callUpdateUsuariosHasModeloCarro = MedidorApiAdapter.getApiService()
+                    .putUpdateUsuarioHasModeloCarro(Constantes.CONTENT_TYPE_JSON ,
+                            usuarioHasModeloCarroSelected);
+
+            callUpdateUsuariosHasModeloCarro.enqueue(new Callback<UsuarioHasModeloCarro>() {
+                @Override
+                public void onResponse(Call<UsuarioHasModeloCarro> call, Response<UsuarioHasModeloCarro> response) {
+
+                    if(response.isSuccessful()) {
+
+                        ((MainActivity)context).upateDefaultVehicle(usuarioHasModeloCarroSelected);
+                        notifyDataSetChanged();
+                        Toast.makeText(mainActivity, "VEHÍCULO ACTUALIZADO DE MANERA EXITOSA.", Toast.LENGTH_SHORT).show();
+                        //btnUpdateUhmc.setVisibility(View.GONE);
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<UsuarioHasModeloCarro> call, Throwable t) {
+                    Toast.makeText(mainActivity, "NO SE PUDO ACTUALIZAR EL VEHÍCULO.", Toast.LENGTH_SHORT).show();
+                    Log.e("ERR", t.getLocalizedMessage());
+                }
+            });
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
 
     @Override
     public int getItemCount() {

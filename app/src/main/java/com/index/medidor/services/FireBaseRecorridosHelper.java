@@ -20,14 +20,16 @@ public class FireBaseRecorridosHelper {
 
     public void init() {
 
-        firebaseFirestore.collection("recorridos").document(placa).addSnapshotListener((documentSnapshot, e) -> {
-            recorridoService = mainActivity.getRecorridoService();
+        if(placa != null && !placa.equals("")){
+            firebaseFirestore.collection("recorridos").document(placa).addSnapshotListener((documentSnapshot, e) -> {
+                recorridoService = mainActivity.getRecorridoService();
 
-            if(recorridoService != null) {
-                Toast.makeText(mainActivity, "SUBIENDO RECORRIDO " + placa, Toast.LENGTH_SHORT).show();
-                recorridoService.uploadAllNotCompletedAndNotUploaded();
-            }
-        });
+                if(recorridoService != null) {
+                    Toast.makeText(mainActivity, "SUBIENDO RECORRIDO " + placa, Toast.LENGTH_SHORT).show();
+                    recorridoService.uploadAllNotCompletedAndNotUploaded();
+                }
+            });
+        }
     }
 
     public void setPlaca(String placa) {

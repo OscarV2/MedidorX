@@ -23,7 +23,7 @@ public class Recorrido implements Serializable {
     private Double distanciaRecorrida;
     @DatabaseField
     private Double galonesPerdidos;
-    @DatabaseField
+    @DatabaseField(unique = true)
     private String recorridoCode;
     @DatabaseField
     private transient boolean uploaded;

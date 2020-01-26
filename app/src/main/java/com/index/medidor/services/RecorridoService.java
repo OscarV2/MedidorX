@@ -33,7 +33,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class RecorridoService implements Serializable {
+public class RecorridoService {
 
     private Recorrido recorrido;
     private Timer mTimer;
@@ -81,8 +81,7 @@ public class RecorridoService implements Serializable {
         this.listUnidadRecorrido = new ArrayList<>();
         try {
             daoRecorrido = helper.getDaoRecorridos();
-            recorrido.setId((long)daoRecorrido.create(recorrido));
-            Gson gson = new Gson();
+            daoRecorrido.create(recorrido);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -115,7 +114,6 @@ public class RecorridoService implements Serializable {
             unidadRecorrido.setLongitud(mainActivity.getInndexLocationService().getMyLocation().getLongitude());
             unidadRecorrido.setAltitud(mainActivity.getInndexLocationService().getMyLocation().getAltitude());
         }
-
         unidadRecorrido.setTiempo(time / 1000);
 
         unidadRecorrido.setDistancia(mainActivity.getInndexLocationService().getDistancia());
@@ -142,10 +140,6 @@ public class RecorridoService implements Serializable {
             contUpdateRecorrido = 0;
         }
         contUpdateRecorrido++;
-    }
-
-    public void pushTanqueada(Tanqueadas tanqueada) {
-        recorrido.getListTanqueadas().add(tanqueada);
     }
 
     public void pararRecorrido() {
@@ -183,12 +177,12 @@ public class RecorridoService implements Serializable {
     }
 
     private void updateRecorridoInDao() {
-
         recorrido.setListUnidadRecorrido(listUnidadRecorrido);
         recorrido.setJsonListUnidadRecorrido();
 
         try {
             //Log.e("UP COMPLE", String.valueOf(recorrido.isCompleted()));
+            Log.e("CODE",recorrido.getRecorridoCode());
             daoRecorrido.update(recorrido);
 
         } catch (SQLException e) {
@@ -202,7 +196,6 @@ public class RecorridoService implements Serializable {
         final List<Recorrido> recorridoList;
 
         try {
-
             QueryBuilder<Recorrido, Integer> queryBuilder =
                     daoRecorrido.queryBuilder();
             Where<Recorrido, Integer> where = queryBuilder.where();
@@ -210,10 +203,9 @@ public class RecorridoService implements Serializable {
             PreparedQuery<Recorrido> preparedQuery = queryBuilder.prepare();
 
             recorridoList = daoRecorrido.query(preparedQuery);
+            //recorridoList = daoRecorrido.queryForAll();
 
             if (recorridoList != null && recorridoList.size() > 0) {
-
-                Gson gson = new Gson();
 
                 Usuario usuario = new Usuario();
                 usuario.setId(idUsuario);
@@ -222,8 +214,15 @@ public class RecorridoService implements Serializable {
 
                 for (Recorrido r: recorridoList) {
 
+                    Log.e("ID RECO", String.valueOf(r.getId()));
                     Log.e("UPLOADED", String.valueOf(r.isUploaded()));
                     Log.e("COMPLETED", String.valueOf(r.isCompleted()));
+//                    Log.e("json", r.getJsonListUnidadRecorrido());
+                    Log.e("fechaIni", r.getFechaInicio());
+                    Log.e("code", r.getRecorridoCode());
+                    Log.e("fecha", r.getFecha());
+
+
                     if(r.getFechaFin() != null)
                         Log.e("FECHAFIN", r.getFechaFin());
                     else
@@ -232,8 +231,7 @@ public class RecorridoService implements Serializable {
                     r.setUsuarioHasModeloCarro(uhmc);
                 }
 
-                Log.e("size", String.valueOf(recorridoList.size()));
-                Log.e("list", gson.toJson(recorridoList.get(0)));
+                Log.e("size", "not uploaded "+recorridoList.size());
                 Call<ResponseServices> uploadAll = MedidorApiAdapter.getApiService().postRecorridosBulk(Constantes.CONTENT_TYPE_JSON ,
                         recorridoList);
 
@@ -241,16 +239,21 @@ public class RecorridoService implements Serializable {
                     @Override
                     public void onResponse(Call<ResponseServices> call, Response<ResponseServices> response) {
 
-                        Log.e("RESPONSE", String.valueOf(response.code()));
                         if(response.isSuccessful()) {
 
                             for (Recorrido r: recorridoList) {
                                 if (r.isCompleted()){
+                                    Log.e("ID:","IS COMPLETED AND READY FOR UPDATE " + r.getId());
                                     r.setUploaded(true);
+                                    Log.e("ID:","it is supposed It HAS BEEN UPDATED " + r.getId());
                                     try {
-                                        int c = daoRecorrido.update(r);
-                                        if(c > 0)
-                                        Log.e("THIS", "WAS UPDATED " + r.getId());
+                                        Log.e("ID","INSIDE TRY CATCH");
+                                        int c = daoRecorrido.delete(r);
+                                        if(c > 0){
+                                            Log.e("THIS", "WAS UPDATED " + r.getId());
+                                        }else {
+                                            Log.e("THIS", "WAS NOOOOTTTT UPDATED " + r.getId());
+                                        }
 
                                     } catch (SQLException e) {
                                         Toast.makeText(mainActivity, "ERROR, ACTUALIZANDO RECORRIDOS EN LOCAL.", Toast.LENGTH_SHORT).show();
@@ -373,5 +376,9 @@ public class RecorridoService implements Serializable {
 
     public void setModelHasTwoTanks(boolean modelHasTwoTanks) {
         this.modelHasTwoTanks = modelHasTwoTanks;
+    }
+
+    public void pushTanqueada(Tanqueadas tanqueada) {
+        recorrido.getListTanqueadas().add(tanqueada);
     }
 }

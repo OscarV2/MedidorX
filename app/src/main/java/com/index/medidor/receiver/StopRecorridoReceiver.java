@@ -15,8 +15,8 @@ public class StopRecorridoReceiver extends BroadcastReceiver {
 
         Log.e("ONRECEIVE","STOP");
 
-        //MainActivity mainActivity = MainActivity.getInstance();
-        //mainActivity.stopRecorrido();
-        context.sendBroadcast(new Intent(Constantes.STOP_RECORRIDO_INTENT_FILTER ));
+        MainActivity mainActivity = MainActivity.getInstance();
+        mainActivity.stopRecorrido();
+        //context.sendBroadcast(new Intent(Constantes.STOP_RECORRIDO_INTENT_FILTER ));
     }
 }

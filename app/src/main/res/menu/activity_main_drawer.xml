@@ -22,6 +22,9 @@
         <item
             android:id="@+id/nav_recorrido_stop"
             android:title="@string/parar_recorrido" />
+        <item
+            android:id="@+id/nav_upload_recorridos"
+            android:title="@string/upload_recorridos" />
     </group>
 
     <item

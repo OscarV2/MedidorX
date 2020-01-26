@@ -270,7 +270,6 @@ public class NuevoVehiculo extends Fragment {
                     .postRegisterUsuarioHasModeloCarro(Constantes.CONTENT_TYPE_JSON ,
                             String.valueOf(idMarca), linea,
                             nuevoUsuarioHasModeloCarro);
-
             callRegisterUsuariosHasModeloCarro.enqueue(new Callback<UsuarioHasModeloCarro>() {
                 @Override
                 public void onResponse(Call<UsuarioHasModeloCarro> call, Response<UsuarioHasModeloCarro> response) {
@@ -278,7 +277,7 @@ public class NuevoVehiculo extends Fragment {
                     if(response.isSuccessful() && response.body() != null){
 
                         try {
-                            //nuevoUsuarioHasModeloCarro.setId(response.body().getId());
+                            nuevoUsuarioHasModeloCarro.setId(response.body().getId());
                             daoUsuarioModeloCarros.create(nuevoUsuarioHasModeloCarro);
                             //mainActivity.getMyPreferences().edit().putString(Constantes.DEFAULT_BLUETOOTH_MAC, usuarioHasModeloCarroUpdate.getBluetoothMac()).apply();
                             //mainActivity.upateDefaultVehicle(nuevoUsuarioHasModeloCarro);
@@ -304,52 +303,6 @@ public class NuevoVehiculo extends Fragment {
         }
     }
 
-    private void updateVehiculo() {
-
-        try {
-            Integer id = (int)(mainActivity.getMyPreferences().getLong(Constantes.DEFAULT_UHMC_ID, 0));
-            Dao<UsuarioHasModeloCarro, Integer> dao = helper.getDaoUsuarioHasModeloCarros();
-            UsuarioHasModeloCarro uhmc = dao.queryForId(id);
-            //uhmc.setId(mainActivity.getMyPreferences().getLong(Constantes.DEFAULT_UHMC_ID, 0));
-
-            ModeloCarros modeloCarros = new ModeloCarros();
-            modeloCarros.setId((int)mainActivity.getMyPreferences().getLong("defaultModeloCarroId",0));
-            Gson gson = new Gson();
-            usuarioHasModeloCarroUpdate.setId(uhmc.getId());
-            usuarioHasModeloCarroUpdate.setBluetoothNombre(uhmc.getBluetoothNombre());
-            usuarioHasModeloCarroUpdate.setModeloCarros(modeloCarros);
-            usuarioHasModeloCarroUpdate.setUsuariosId(uhmc.getUsuariosId());
-            Log.e("UHMC", gson.toJson(usuarioHasModeloCarroUpdate));
-
-            Call<UsuarioHasModeloCarro> callUpdateUsuariosHasModeloCarro = MedidorApiAdapter.getApiService()
-                    .putUpdateUsuarioHasModeloCarro(Constantes.CONTENT_TYPE_JSON ,
-                            usuarioHasModeloCarroUpdate);
-
-            callUpdateUsuariosHasModeloCarro.enqueue(new Callback<UsuarioHasModeloCarro>() {
-                @Override
-                public void onResponse(Call<UsuarioHasModeloCarro> call, Response<UsuarioHasModeloCarro> response) {
-
-                    if(response.isSuccessful()) {
-
-                        Toast.makeText(mainActivity, "VEHÍCULO ACTUALIZADO DE MANERA EXITOSA.", Toast.LENGTH_SHORT).show();
-                        spBluetoothDevices.setVisibility(View.GONE);
-                        //btnUpdateUhmc.setVisibility(View.GONE);
-                        mainActivity.getMyPreferences().edit().putString(Constantes.DEFAULT_BLUETOOTH_MAC, usuarioHasModeloCarroUpdate.getBluetoothMac()).apply();
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<UsuarioHasModeloCarro> call, Throwable t) {
-                    Toast.makeText(mainActivity, "NO SE PUDO ACTUALIZAR EL VEHÍCULO.", Toast.LENGTH_SHORT).show();
-                    Log.e("ERR", t.getLocalizedMessage());
-                }
-            });
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-    }
 
     private void initSpBluetoothDevices() {
 
