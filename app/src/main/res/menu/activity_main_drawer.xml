@@ -25,6 +25,9 @@
         <item
             android:id="@+id/nav_upload_recorridos"
             android:title="@string/upload_recorridos" />
+        <item
+            android:id="@+id/nav_states"
+            android:title="@string/states" />
     </group>
 
     <item

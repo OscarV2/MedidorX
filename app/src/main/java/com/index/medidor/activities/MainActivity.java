@@ -1,15 +1,5 @@
 package com.index.medidor.activities;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.fragment.app.Fragment;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlarmManager;
@@ -43,6 +33,16 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -55,22 +55,23 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.index.medidor.R;
+import com.index.medidor.bluetooth.BluetoothHelper;
+import com.index.medidor.bluetooth.interfaces.BluetoothDataReceiver;
 import com.index.medidor.bluetooth.interfaces.IBluetoothState;
 import com.index.medidor.database.DataBaseHelper;
-import com.index.medidor.fragments.adquisicion_datos.AdquisicionDatos;
 import com.index.medidor.fragments.DondeTanquearFragment;
+import com.index.medidor.fragments.InicioFragment;
+import com.index.medidor.fragments.adquisicion_datos.AdquisicionDatos;
+import com.index.medidor.fragments.combustible.IngresadoFragment;
 import com.index.medidor.fragments.configuracion_cuenta.ConfiguracionTabs;
 import com.index.medidor.fragments.configuracion_cuenta.NuevoVehiculo;
 import com.index.medidor.fragments.dondetanquear.DondeTanquearTabs;
+import com.index.medidor.fragments.estados.EstadosFragment;
 import com.index.medidor.fragments.historial.HistorialTabs;
-import com.index.medidor.fragments.combustible.IngresadoFragment;
-import com.index.medidor.fragments.InicioFragment;
 import com.index.medidor.model.Estaciones;
 import com.index.medidor.model.Recorrido;
-import com.index.medidor.model.UsuarioHasModeloCarro;
+import com.index.medidor.model.Vehiculo;
 import com.index.medidor.places.EstacionesPlaces;
-import com.index.medidor.bluetooth.interfaces.BluetoothDataReceiver;
-import com.index.medidor.bluetooth.BluetoothHelper;
 import com.index.medidor.receiver.StartRecorridoReceiver;
 import com.index.medidor.receiver.StopRecorridoReceiver;
 import com.index.medidor.services.FireBaseRecorridosHelper;
@@ -144,6 +145,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private Integer valorBluetooh;
     private Integer valorBluetoohT2;
 
+    private String placa;
+
     //private Timer mTimer;
     private boolean newDevice;
     /*
@@ -195,7 +198,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         assert mapFragment != null;
         mapFragment.getMapAsync(this);
         myPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-
+        placa = myPreferences.getString(Constantes.DEFAULT_PLACA, "");
         idUsuarioModeloCarro = myPreferences.getLong(Constantes.DEFAULT_UHMC_ID, 0);
         idUsuario = myPreferences.getInt(Constantes.DEFAULT_USER_ID, 0);
 
@@ -240,7 +243,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         if(recorridoService == null){
-            recorridoService = new RecorridoService(MainActivity.this, helper, idUsuario, idUsuarioModeloCarro);
+            recorridoService = new RecorridoService(MainActivity.this, helper, idUsuario, idUsuarioModeloCarro, placa);
             recorridoService.setModelHasTwoTanks(modelHasTwoTanks);
 
             Recorrido recorrido = recorridoService.getCurrentUnCompleedRecorrido(Constantes.SDF_DATE_ONLY.format(new Date()));
@@ -401,16 +404,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             btnMenu.setVisibility(View.GONE);
 
         }else if (id == R.id.nav_recorrido) {
-
             initRecorrido();
         }
         else if (id == R.id.nav_recorrido_stop) {
-
             stopRecorrido();
         }
         else if (id == R.id.nav_upload_recorridos) {
             if(recorridoService != null)
                 this.recorridoService.uploadAllNotCompletedAndNotUploaded();
+        }else if (id == R.id.nav_states) {
+            miFragment = new EstadosFragment(MainActivity.this);
+            fragmentSeleccionado = true;
+            tvTitulo.setText("Estados");
+            viewMap.setVisibility(View.GONE);
+            btnMenu.setVisibility(View.GONE);
+
         }
         else if (id == R.id.logout) {
             //logout();
@@ -573,7 +581,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         TextView tvUsuario = headerLayout.findViewById(R.id.tvUsuario);
         tvDefaultPlaca = headerLayout.findViewById(R.id.tvDefaultPlaca);
-        tvDefaultPlaca.setText(myPreferences.getString(Constantes.DEFAULT_PLACA, ""));
+        tvDefaultPlaca.setText(placa);
         tvUsuario.setText(myPreferences.getString("nombres", "") + myPreferences.getString("apellidos", ""));
         navigationView.setNavigationItemSelectedListener(this);
         Menu m = navigationView.getMenu();
@@ -853,12 +861,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             return;
         }
 
-        recorridoService = new RecorridoService(MainActivity.this, modelHasTwoTanks, this.helper, idUsuario, idUsuarioModeloCarro);
+        recorridoService = new RecorridoService(MainActivity.this, modelHasTwoTanks, this.helper, idUsuario, idUsuarioModeloCarro, placa);
         inndexLocationService.setDistancia(0);
         recorridoService.iniciarRecorrido();
     }
 
-    public void upateDefaultVehicle(UsuarioHasModeloCarro uhmc) {
+    public void upateDefaultVehicle(Vehiculo uhmc) {
 
         if(this.bluetoothHelper != null) {
 

@@ -1,7 +1,7 @@
 package com.index.medidor.threads;
 
 import com.index.medidor.database.DataBaseHelper;
-import com.index.medidor.model.UsuarioHasModeloCarro;
+import com.index.medidor.model.Vehiculo;
 import com.index.medidor.retrofit.MedidorApiAdapter;
 import com.j256.ormlite.dao.Dao;
 
@@ -27,13 +27,13 @@ public class DownloadUsuarioHasModeloCarro extends Thread {
     @Override
     public void run() {
 
-        Call<List<UsuarioHasModeloCarro>> callGetAllUsuarioHasModelos  = MedidorApiAdapter.getApiService().getUsuarioHasModeloCarros(String.valueOf(idUsuario));
-        callGetAllUsuarioHasModelos.enqueue(new Callback<List<UsuarioHasModeloCarro>>() {
+        Call<List<Vehiculo>> callGetAllUsuarioHasModelos  = MedidorApiAdapter.getApiService().getUsuarioHasModeloCarros(String.valueOf(idUsuario));
+        callGetAllUsuarioHasModelos.enqueue(new Callback<List<Vehiculo>>() {
             @Override
-            public void onResponse(Call<List<UsuarioHasModeloCarro>> call, Response<List<UsuarioHasModeloCarro>> response) {
+            public void onResponse(Call<List<Vehiculo>> call, Response<List<Vehiculo>> response) {
 
                 try {
-                    Dao<UsuarioHasModeloCarro, Integer> dao = helper.getDaoUsuarioHasModeloCarros();
+                    Dao<Vehiculo, Integer> dao = helper.getDaoUsuarioHasModeloCarros();
                     if(response.body() != null && response.body().size() > 0) {
                         dao.create(response.body());
                     }
@@ -43,7 +43,7 @@ public class DownloadUsuarioHasModeloCarro extends Thread {
             }
 
             @Override
-            public void onFailure(Call<List<UsuarioHasModeloCarro>> call, Throwable t) {
+            public void onFailure(Call<List<Vehiculo>> call, Throwable t) {
 
             }
         });

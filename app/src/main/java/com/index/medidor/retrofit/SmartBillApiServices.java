@@ -1,18 +1,19 @@
 package com.index.medidor.retrofit;
 
 import com.index.medidor.model.Estaciones;
+import com.index.medidor.model.Estados;
+import com.index.medidor.model.HistorialEstadoVehiculos;
 import com.index.medidor.model.MarcaCarros;
 import com.index.medidor.model.ModeloCarros;
 import com.index.medidor.model.Recorrido;
 import com.index.medidor.model.Tanqueadas;
 import com.index.medidor.model.Usuario;
-import com.index.medidor.model.UsuarioHasModeloCarro;
+import com.index.medidor.model.Vehiculo;
 import com.index.medidor.utils.Constantes;
 import com.index.medidor.utils.ResponseServices;
 
 import java.util.List;
 
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -52,17 +53,17 @@ public interface SmartBillApiServices {
      * USUARIO HAS MODELO CARROS
      */
     @POST(Constantes.POST_REGISTRAR_USUARIO_HAS_MODELO_CARRO + "{idMarca}" + "/" + "{linea}")
-    Call<UsuarioHasModeloCarro> postRegisterUsuarioHasModeloCarro(@Header("Content-Type") String headerContentType,
-                                                         @Path("idMarca") String idMarca,
-                                                         @Path("linea") String linea,
-                                          @Body UsuarioHasModeloCarro uhmc);
+    Call<Vehiculo> postRegisterUsuarioHasModeloCarro(@Header("Content-Type") String headerContentType,
+                                                     @Path("idMarca") String idMarca,
+                                                     @Path("linea") String linea,
+                                                     @Body Vehiculo uhmc);
 
     @PUT(Constantes.PUT_UPDATE_USUARIO_HAS_MODELO_CARRO)
-    Call<UsuarioHasModeloCarro> putUpdateUsuarioHasModeloCarro(@Header("Content-Type") String headerContentType,
-                                                         @Body UsuarioHasModeloCarro uhmc);
+    Call<Vehiculo> putUpdateUsuarioHasModeloCarro(@Header("Content-Type") String headerContentType,
+                                                  @Body Vehiculo uhmc);
 
     @GET(Constantes.GET_USUARIO_HAS_MODELO_CARROS_BY_ID_USER + "{idUsuario}")
-    Call<List<UsuarioHasModeloCarro>> getUsuarioHasModeloCarros(@Path("idUsuario") String idUsuario);
+    Call<List<Vehiculo>> getUsuarioHasModeloCarros(@Path("idUsuario") String idUsuario);
 
     /**
      * MODELOS CARROS
@@ -86,10 +87,20 @@ public interface SmartBillApiServices {
     @POST(Constantes.POST_REGISTRAR_RECORRIDO)
     Call<String> postRegisterRecorrido(@Header("Content-Type") String headerContentType,
                                              @Body Recorrido recorrido);
-
-
     @POST(Constantes.POST_RECORRIDOS_BULK)
-    Call<ResponseServices> postRecorridosBulk(@Header("Content-Type") String headerContentType,
-                                       @Body List<Recorrido> recorridos);
+    Call<Void> postRecorridosBulk(@Header("Content-Type") String headerContentType,
+                                              @Body List<Recorrido> recorridos, @Query("placa") String placa);
 
+    /**
+     * ESTADOS
+     */
+    @GET(Constantes.GET_ESTADOS)
+    Call<List<Estados>> getEstados();
+
+    /**
+     * HISTORIAL ESTADOS
+     */
+    @POST(Constantes.POST_SAVE_HISTORIAL_ESTADO)
+    Call<HistorialEstadoVehiculos> postHistorialEstadosSave(@Header("Content-Type") String headerContentType,
+                                                            @Body HistorialEstadoVehiculos historialEstadoVehiculos);
 }

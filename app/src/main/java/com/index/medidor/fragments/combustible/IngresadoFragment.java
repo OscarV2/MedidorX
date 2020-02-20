@@ -477,10 +477,7 @@ public class IngresadoFragment extends Fragment {
                 }else{
                     Log.e("ON ELSE", response.message());
                     Toast.makeText(mainActivity, "NO SE PUDO REGISTRAR LA ESTACIÓN", Toast.LENGTH_SHORT).show();
-
                 }
-
-
             }
 
             @Override
@@ -527,16 +524,6 @@ public class IngresadoFragment extends Fragment {
         this.mainActivity.getMyPreferences().edit().putString("cantDeseada", String.valueOf((int)this.cantDeseada)).apply();
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);

@@ -2,40 +2,33 @@ package com.index.medidor.activities;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
-import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.provider.Settings;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.google.gson.Gson;
 import com.index.medidor.R;
 import com.index.medidor.database.DataBaseHelper;
+import com.index.medidor.model.Estados;
 import com.index.medidor.model.ModeloCarros;
 import com.index.medidor.model.Usuario;
-import com.index.medidor.model.UsuarioHasModeloCarro;
+import com.index.medidor.model.Vehiculo;
 import com.index.medidor.retrofit.MedidorApiAdapter;
-import com.index.medidor.services.InndexLocationService;
-import com.index.medidor.threads.DownloadUsuarioHasModeloCarro;
 import com.index.medidor.utils.Constantes;
 import com.index.medidor.utils.CustomProgressDialog;
-import com.index.medidor.utils.SetArrayValuesForInndex;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
 
@@ -51,23 +44,17 @@ import retrofit2.Response;
 public class LoginActivity extends AppCompatActivity {
 
     private EditText etPassword, etEmail;
-    private TextView tvRecordar;
-    private Button btnIngresar, btnRegistrar;
     private String email ;
     public static final int LOCATION_REQUEST_CODE = 1;
 
     private CustomProgressDialog mCustomProgressDialog;
-    private SharedPreferences.Editor infoUsuario;
 
-    private Dao<UsuarioHasModeloCarro, Integer> daoUsuarioModeloCarros;
+    private Dao<Vehiculo, Integer> daoUsuarioModeloCarros;
     private Dao<ModeloCarros, Integer> daoModeloCarros;
 
     private DataBaseHelper helper;
 
-    private SetArrayValuesForInndex setArrayValuesForInndex;
     private SharedPreferences myPreferences;
-    private InndexLocationService inndexLocationService;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,7 +73,7 @@ public class LoginActivity extends AppCompatActivity {
         etEmail.setTypeface(light);
         etPassword =  findViewById(R.id.etPassword);
         etPassword.setTypeface(light);
-        btnIngresar =  findViewById(R.id.btnIngresar);
+        Button btnIngresar = findViewById(R.id.btnIngresar);
         btnIngresar.setTypeface(bold);
 
         btnIngresar.setOnClickListener(view -> {
@@ -112,14 +99,14 @@ public class LoginActivity extends AppCompatActivity {
                 Toast.makeText(getBaseContext(),"Por favor ingrese Correo y Contraseña válidos.", Toast.LENGTH_LONG).show();
             }
         });
-        btnRegistrar = findViewById(R.id.btnRegistrar);
+        Button btnRegistrar = findViewById(R.id.btnRegistrar);
         btnRegistrar.setTypeface(bold);
         btnRegistrar.setOnClickListener(view -> {
             Intent intent = new Intent(LoginActivity.this, RegistroActivity.class);
             startActivity(intent);
         });
 
-        tvRecordar = findViewById(R.id.tvRecordar);
+        TextView tvRecordar = findViewById(R.id.tvRecordar);
         tvRecordar.setTypeface(bold);
         tvRecordar.setOnClickListener(view -> {
         });
@@ -135,7 +122,7 @@ public class LoginActivity extends AppCompatActivity {
                 if (response.isSuccessful()){
 
                     if (response.body() != null){
-
+                        getAllStates();
                         getAllUsuariosHasModelosCarros(response.body());
                     }else{
                         mCustomProgressDialog.dismiss("");
@@ -157,7 +144,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void irMain(Usuario user){
-        infoUsuario = myPreferences.edit();
+        SharedPreferences.Editor infoUsuario = myPreferences.edit();
         infoUsuario.putBoolean(Constantes.SESION_ACTIVE, true);
         infoUsuario.putString("email", user.getEmail());
         infoUsuario.putString("nombres", user.getNombres());
@@ -198,15 +185,14 @@ public class LoginActivity extends AppCompatActivity {
 
         helper = OpenHelperManager.getHelper(LoginActivity.this, DataBaseHelper.class);
 
-        Call<List<UsuarioHasModeloCarro>> callGetAllUhmc = MedidorApiAdapter.getApiService()
+        Call<List<Vehiculo>> callGetAllUhmc = MedidorApiAdapter.getApiService()
                 .getUsuarioHasModeloCarros(String.valueOf(user.getId()));
 
-        callGetAllUhmc.enqueue(new Callback<List<UsuarioHasModeloCarro>>() {
+        callGetAllUhmc.enqueue(new Callback<List<Vehiculo>>() {
             @Override
-            public void onResponse(Call<List<UsuarioHasModeloCarro>> call, Response<List<UsuarioHasModeloCarro>> response) {
+            public void onResponse(Call<List<Vehiculo>> call, Response<List<Vehiculo>> response) {
 
                 mCustomProgressDialog.dismiss("");
-                Gson gson = new Gson();
                 if (response.isSuccessful()){
 
                     if (response.body() != null){
@@ -217,7 +203,7 @@ public class LoginActivity extends AppCompatActivity {
                                 daoUsuarioModeloCarros = helper.getDaoUsuarioHasModeloCarros();
                                 daoModeloCarros = helper.getDaoModelos();
 
-                                for (UsuarioHasModeloCarro uhmc: response.body()) {
+                                for (Vehiculo uhmc: response.body()) {
 
                                     if(uhmc.getModeloCarros().getValoresAdq() != null){
                                         myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_VALUE_ARRAY, uhmc.getModeloCarros().getValoresAdq()).apply();
@@ -258,11 +244,34 @@ public class LoginActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<List<UsuarioHasModeloCarro>> call, Throwable t) {
+            public void onFailure(Call<List<Vehiculo>> call, Throwable t) {
                 mCustomProgressDialog.dismiss("");
 
                 Toast.makeText(LoginActivity.this, "NO SE PUDO DESCARGAR LOS VEHICULOS PARA SU USUARIO.", Toast.LENGTH_SHORT).show();
                 Log.e("ERROR", t.getMessage());
+            }
+        });
+    }
+
+    private void getAllStates(){
+        Call<List<Estados>> callGettEstados = MedidorApiAdapter.getApiService().getEstados();
+        callGettEstados.enqueue(new Callback<List<Estados>>() {
+            @Override
+            public void onResponse(Call<List<Estados>> call, Response<List<Estados>> response) {
+
+                if(response.body() != null && response.body().size() > 0){
+                    try {
+                        Dao<Estados, Integer> daoEstados = helper.getDaoEstados();
+                        daoEstados.create(response.body());
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Estados>> call, Throwable t) {
+
             }
         });
     }

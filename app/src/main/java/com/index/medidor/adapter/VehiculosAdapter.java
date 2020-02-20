@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.preference.PreferenceManager;
-import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,7 +27,7 @@ import com.index.medidor.activities.MainActivity;
 import com.index.medidor.bluetooth.SpBluetoothDevice;
 import com.index.medidor.database.DataBaseHelper;
 import com.index.medidor.model.ModeloCarros;
-import com.index.medidor.model.UsuarioHasModeloCarro;
+import com.index.medidor.model.Vehiculo;
 import com.index.medidor.retrofit.MedidorApiAdapter;
 import com.index.medidor.utils.Constantes;
 import com.j256.ormlite.dao.Dao;
@@ -44,14 +43,13 @@ import retrofit2.Response;
 
 public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.EstacionesViewHolder> {
 
-    private List<UsuarioHasModeloCarro> items;
+    private List<Vehiculo> items;
     private Context context;
     private String defaultPlaca;
     private MainActivity mainActivity;
     private DataBaseHelper helper;
 
-
-    private UsuarioHasModeloCarro usuarioHasModeloCarroSelected;
+    private Vehiculo vehiculoSelected;
 
     public class EstacionesViewHolder extends RecyclerView.ViewHolder {
         public TextView tvPlaca;
@@ -89,9 +87,9 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
             btnChangeBlueTooth.setOnClickListener(v ->{
                 showBlueToothList();
                 int i = getLayoutPosition();
-                usuarioHasModeloCarroSelected = items.get(i);
+                vehiculoSelected = items.get(i);
                 Gson gson = new Gson();
-                Log.e("11", gson.toJson(usuarioHasModeloCarroSelected));
+                Log.e("11", gson.toJson(vehiculoSelected));
             });
         }
     }
@@ -126,11 +124,11 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
-                    usuarioHasModeloCarroSelected.setBluetoothMac(spBluetoothDevicesList.get(position).getAddress());
+                    vehiculoSelected.setBluetoothMac(spBluetoothDevicesList.get(position).getAddress());
                 }
                 @Override
                 public void onNothingSelected(AdapterView<?> parent) {
-                    usuarioHasModeloCarroSelected.setBluetoothMac(spBluetoothDevicesList.get(0).getAddress());
+                    vehiculoSelected.setBluetoothMac(spBluetoothDevicesList.get(0).getAddress());
                 }
             });
         }
@@ -147,14 +145,14 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
         dialog.show();
     }
 
-    public VehiculosAdapter(List<UsuarioHasModeloCarro> items, Context context, DataBaseHelper helper) {
+    public VehiculosAdapter(List<Vehiculo> items, Context context, DataBaseHelper helper) {
         this.items = items;
         this.context = context;
         this.mainActivity = (MainActivity)context;
         this.helper = helper;
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        usuarioHasModeloCarroSelected = null;
+        vehiculoSelected = null;
         defaultPlaca = sharedPreferences.getString(Constantes.DEFAULT_PLACA, "");
     }
 
@@ -188,29 +186,29 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
 
         try {
             Integer id = (int)(mainActivity.getMyPreferences().getLong(Constantes.DEFAULT_UHMC_ID, 0));
-            Dao<UsuarioHasModeloCarro, Integer> dao = helper.getDaoUsuarioHasModeloCarros();
-            UsuarioHasModeloCarro uhmc = dao.queryForId(id);
+            Dao<Vehiculo, Integer> dao = helper.getDaoUsuarioHasModeloCarros();
+            Vehiculo uhmc = dao.queryForId(id);
 
             ModeloCarros modeloCarros = new ModeloCarros();
             modeloCarros.setId((int)mainActivity.getMyPreferences().getLong("defaultModeloCarroId",0));
             Gson gson = new Gson();
-            usuarioHasModeloCarroSelected.setId(uhmc.getId());
-            usuarioHasModeloCarroSelected.setBluetoothNombre(uhmc.getBluetoothNombre());
-            usuarioHasModeloCarroSelected.setModeloCarros(modeloCarros);
-            usuarioHasModeloCarroSelected.setUsuariosId(uhmc.getUsuariosId());
-            Log.e("UHMC", gson.toJson(usuarioHasModeloCarroSelected));
+            vehiculoSelected.setId(uhmc.getId());
+            vehiculoSelected.setBluetoothNombre(uhmc.getBluetoothNombre());
+            vehiculoSelected.setModeloCarros(modeloCarros);
+            vehiculoSelected.setUsuariosId(uhmc.getUsuariosId());
+            Log.e("UHMC", gson.toJson(vehiculoSelected));
 
-            Call<UsuarioHasModeloCarro> callUpdateUsuariosHasModeloCarro = MedidorApiAdapter.getApiService()
+            Call<Vehiculo> callUpdateUsuariosHasModeloCarro = MedidorApiAdapter.getApiService()
                     .putUpdateUsuarioHasModeloCarro(Constantes.CONTENT_TYPE_JSON ,
-                            usuarioHasModeloCarroSelected);
+                            vehiculoSelected);
 
-            callUpdateUsuariosHasModeloCarro.enqueue(new Callback<UsuarioHasModeloCarro>() {
+            callUpdateUsuariosHasModeloCarro.enqueue(new Callback<Vehiculo>() {
                 @Override
-                public void onResponse(Call<UsuarioHasModeloCarro> call, Response<UsuarioHasModeloCarro> response) {
+                public void onResponse(Call<Vehiculo> call, Response<Vehiculo> response) {
 
                     if(response.isSuccessful()) {
 
-                        ((MainActivity)context).upateDefaultVehicle(usuarioHasModeloCarroSelected);
+                        ((MainActivity)context).upateDefaultVehicle(vehiculoSelected);
                         notifyDataSetChanged();
                         Toast.makeText(mainActivity, "VEHÍCULO ACTUALIZADO DE MANERA EXITOSA.", Toast.LENGTH_SHORT).show();
                         //btnUpdateUhmc.setVisibility(View.GONE);
@@ -218,7 +216,7 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
                 }
 
                 @Override
-                public void onFailure(Call<UsuarioHasModeloCarro> call, Throwable t) {
+                public void onFailure(Call<Vehiculo> call, Throwable t) {
                     Toast.makeText(mainActivity, "NO SE PUDO ACTUALIZAR EL VEHÍCULO.", Toast.LENGTH_SHORT).show();
                     Log.e("ERR", t.getLocalizedMessage());
                 }

@@ -4,7 +4,7 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "usuarios_has_modelos_carros")
-public class UsuarioHasModeloCarro {
+public class Vehiculo {
 
     @DatabaseField(id = true)
     private Long id;
@@ -33,11 +33,13 @@ public class UsuarioHasModeloCarro {
     @DatabaseField
     private String anio;
 
-    public UsuarioHasModeloCarro() {
+    private Estados estado;
+
+    public Vehiculo() {
 
     }
 
-    public UsuarioHasModeloCarro(Long id) {
+    public Vehiculo(Long id) {
         this.id = id;
     }
 
@@ -147,5 +149,13 @@ public class UsuarioHasModeloCarro {
 
     public void setAnio(String anio) {
         this.anio = anio;
+    }
+
+    public Estados getEstado() {
+        return estado;
+    }
+
+    public void setEstado(Estados estado) {
+        this.estado = estado;
     }
 }

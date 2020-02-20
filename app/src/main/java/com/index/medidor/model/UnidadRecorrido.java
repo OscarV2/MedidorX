@@ -1,6 +1,5 @@
 package com.index.medidor.model;
 
-import com.google.gson.annotations.Expose;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -20,17 +19,18 @@ public class UnidadRecorrido {
     @DatabaseField
     private Double galones;
     @DatabaseField
-    private Double galonesT2;
+    private Double galonesTankTwo;
     @DatabaseField
     private Integer valorBluetooh;
     @DatabaseField
-    private Integer valorBluetoohT2;
+    private Integer valorBluetoothTankTwo;
     @DatabaseField
     private Double distancia;
     @DatabaseField
     private String hora;
     //@DatabaseField(foreign = true, foreignAutoRefresh = true)
     //@Expose(serialize = false, deserialize = false)
+    @DatabaseField
     private Long idRecorrido;
 
     public UnidadRecorrido() {
@@ -76,14 +76,6 @@ public class UnidadRecorrido {
         this.galones = galones;
     }
 
-    public Double getGalonesT2() {
-        return galonesT2;
-    }
-
-    public void setGalonesT2(Double galonesT2) {
-        this.galonesT2 = galonesT2;
-    }
-
     public Integer getValorBluetooh() {
         return valorBluetooh;
     }
@@ -92,12 +84,20 @@ public class UnidadRecorrido {
         this.valorBluetooh = valorBluetooh;
     }
 
-    public Integer getValorBluetoohT2() {
-        return valorBluetoohT2;
+    public Double getGalonesTankTwo() {
+        return galonesTankTwo;
     }
 
-    public void setValorBluetoohT2(Integer valorBluetoohT2) {
-        this.valorBluetoohT2 = valorBluetoohT2;
+    public void setGalonesTankTwo(Double galonesTankTwo) {
+        this.galonesTankTwo = galonesTankTwo;
+    }
+
+    public Integer getValorBluetoothTankTwo() {
+        return valorBluetoothTankTwo;
+    }
+
+    public void setValorBluetoothTankTwo(Integer valorBluetoothTankTwo) {
+        this.valorBluetoothTankTwo = valorBluetoothTankTwo;
     }
 
     public double getAltitud() {

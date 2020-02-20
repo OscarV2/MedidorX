@@ -1,14 +1,12 @@
 package com.index.medidor.model;
 
-import com.google.gson.Gson;
 import com.j256.ormlite.field.DatabaseField;
-import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
+import java.util.List;
 
 @DatabaseTable(tableName = "recorrido")
 public class Recorrido implements Serializable {
@@ -32,15 +30,12 @@ public class Recorrido implements Serializable {
     @DatabaseField
     private transient String fecha;
     //@ForeignCollectionField
-    private Collection<UnidadRecorrido> listUnidadRecorrido;
+    private List<UnidadRecorrido> listUnidadRecorrido;
     //@ForeignCollectionField
     private Collection<Tanqueadas> listTanqueadas;
 
     private Usuario usuario;
-    private UsuarioHasModeloCarro usuarioHasModeloCarro;
-
-    @DatabaseField
-    private String jsonListUnidadRecorrido;
+    private Vehiculo vehiculo;
 
     public Recorrido() { }
 
@@ -111,21 +106,12 @@ public class Recorrido implements Serializable {
         this.uploaded = uploaded;
     }
 
-    public Collection<UnidadRecorrido> getListUnidadRecorrido() {
+    public List<UnidadRecorrido> getListUnidadRecorrido() {
         return listUnidadRecorrido;
     }
 
-    public void setListUnidadRecorrido(Collection<UnidadRecorrido> listUnidadRecorrido) {
+    public void setListUnidadRecorrido(List<UnidadRecorrido> listUnidadRecorrido) {
         this.listUnidadRecorrido = listUnidadRecorrido;
-    }
-
-    public String getJsonListUnidadRecorrido() {
-        return jsonListUnidadRecorrido;
-    }
-
-    public void setJsonListUnidadRecorrido() {
-        Gson gson = new Gson();
-        this.jsonListUnidadRecorrido = gson.toJson(listUnidadRecorrido);
     }
 
     public Usuario getUsuario() {
@@ -152,8 +138,8 @@ public class Recorrido implements Serializable {
         this.recorridoCode = recorridoCode;
     }
 
-    public UsuarioHasModeloCarro getUsuarioHasModeloCarro() {
-        return usuarioHasModeloCarro;
+    public Vehiculo getUsuarioHasModeloCarro() {
+        return vehiculo;
     }
 
     public String getFecha() {
@@ -164,7 +150,11 @@ public class Recorrido implements Serializable {
         this.fecha = fecha;
     }
 
-    public void setUsuarioHasModeloCarro(UsuarioHasModeloCarro usuarioHasModeloCarro) {
-        this.usuarioHasModeloCarro = usuarioHasModeloCarro;
+    public Vehiculo getVehiculo() {
+        return vehiculo;
+    }
+
+    public void setVehiculo(Vehiculo vehiculo) {
+        this.vehiculo = vehiculo;
     }
 }

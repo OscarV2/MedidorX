@@ -1,53 +1,27 @@
 package com.index.medidor.fragments.configuracion_cuenta;
 
-        import android.bluetooth.BluetoothAdapter;
-        import android.bluetooth.BluetoothDevice;
         import android.net.Uri;
-        import android.os.Build;
-        import android.os.Bundle;
+import android.os.Build;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
-        import androidx.annotation.RequiresApi;
-        import androidx.fragment.app.Fragment;
-        import androidx.recyclerview.widget.LinearLayoutManager;
-        import androidx.recyclerview.widget.RecyclerView;
+import androidx.annotation.RequiresApi;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-        import android.util.Log;
-        import android.view.LayoutInflater;
-        import android.view.View;
-        import android.view.ViewGroup;
-        import android.widget.AdapterView;
-        import android.widget.ArrayAdapter;
-        import android.widget.Button;
-        import android.widget.EditText;
-        import android.widget.Spinner;
-        import android.widget.TextView;
-        import android.widget.Toast;
+import com.index.medidor.R;
+import com.index.medidor.activities.MainActivity;
+import com.index.medidor.adapter.VehiculosAdapter;
+import com.index.medidor.database.DataBaseHelper;
+import com.index.medidor.model.Vehiculo;
+import com.j256.ormlite.android.apptools.OpenHelperManager;
+import com.j256.ormlite.dao.Dao;
 
-        import com.google.gson.Gson;
-        import com.index.medidor.R;
-        import com.index.medidor.activities.MainActivity;
-        import com.index.medidor.adapter.BluetoothDeviceAdapter;
-        import com.index.medidor.adapter.VehiculosAdapter;
-        import com.index.medidor.bluetooth.SpBluetoothDevice;
-        import com.index.medidor.database.DataBaseHelper;
-        import com.index.medidor.model.MarcaCarros;
-        import com.index.medidor.model.ModeloCarros;
-        import com.index.medidor.model.UsuarioHasModeloCarro;
-        import com.index.medidor.retrofit.MedidorApiAdapter;
-        import com.index.medidor.utils.Constantes;
-        import com.j256.ormlite.android.apptools.OpenHelperManager;
-        import com.j256.ormlite.dao.Dao;
-        import com.j256.ormlite.stmt.QueryBuilder;
-
-        import java.sql.SQLException;
-        import java.util.ArrayList;
-        import java.util.List;
-        import java.util.Set;
-
-        import okhttp3.ResponseBody;
-        import retrofit2.Call;
-        import retrofit2.Callback;
-        import retrofit2.Response;
+import java.sql.SQLException;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -105,20 +79,16 @@ public class MiVehiculo extends Fragment {
 
         RecyclerView rvVehiculos = v.findViewById(R.id.rv_mis_vehiculos);
         DataBaseHelper helper = OpenHelperManager.getHelper(mainActivity, DataBaseHelper.class);
-        List<UsuarioHasModeloCarro> usuarioHasModeloCarroList;
+        List<Vehiculo> vehiculoList;
         try {
-            Dao<UsuarioHasModeloCarro, Integer> daoUsuarioHasMOdeloCarro = helper.getDaoUsuarioHasModeloCarros();
-            usuarioHasModeloCarroList = daoUsuarioHasMOdeloCarro.queryForAll();
-
-            VehiculosAdapter adapter = new VehiculosAdapter(usuarioHasModeloCarroList, mainActivity, helper);
-
+            Dao<Vehiculo, Integer> daoUsuarioHasMOdeloCarro = helper.getDaoUsuarioHasModeloCarros();
+            vehiculoList = daoUsuarioHasMOdeloCarro.queryForAll();
+            VehiculosAdapter adapter = new VehiculosAdapter(vehiculoList, mainActivity, helper);
             rvVehiculos.setLayoutManager(new LinearLayoutManager(getContext()));
             rvVehiculos.setAdapter(adapter);
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return v;
     }
 

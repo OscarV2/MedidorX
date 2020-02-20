@@ -11,19 +11,16 @@ import com.index.medidor.model.Recorrido;
 import com.index.medidor.model.Tanqueadas;
 import com.index.medidor.model.UnidadRecorrido;
 import com.index.medidor.model.Usuario;
-import com.index.medidor.model.UsuarioHasModeloCarro;
+import com.index.medidor.model.Vehiculo;
 import com.index.medidor.retrofit.MedidorApiAdapter;
 import com.index.medidor.utils.Constantes;
-import com.index.medidor.utils.ResponseServices;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.Where;
 
-import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Timer;
@@ -41,26 +38,29 @@ public class RecorridoService {
     private MainActivity mainActivity;
     private long time;
     private DataBaseHelper helper;
-    private Collection<UnidadRecorrido> listUnidadRecorrido;
+    private List<UnidadRecorrido> listUnidadRecorrido;
     private Dao<Recorrido, Integer> daoRecorrido;
+    private Dao<UnidadRecorrido, Integer> daoUnidadRecorrido;
+
     private int idUsuario ;
     private long idUsuarioModeloCarro;
     private short contUpdateRecorrido = 0;
     private Location location;
+    private String placa;
 
-    public RecorridoService() {
-    }
+    public RecorridoService() { }
 
-    public RecorridoService(MainActivity mainActivity, DataBaseHelper helper, long idUsuario, long idUsuarioModeloCarro) {
+    public RecorridoService(MainActivity mainActivity, DataBaseHelper helper, long idUsuario, long idUsuarioModeloCarro, String placa) {
         this.mainActivity = mainActivity;
         this.helper = helper;
         contUpdateRecorrido = 0;
         this.idUsuario = (int)idUsuario;
         this.idUsuarioModeloCarro = idUsuarioModeloCarro;
+        this.placa = placa;
     }
 
     public RecorridoService(MainActivity mainActivity, boolean modelHasTwoTanks,
-                            DataBaseHelper helper, long idUsuario, long idUsuarioModeloCarro) {
+                            DataBaseHelper helper, long idUsuario, long idUsuarioModeloCarro, String placa) {
         this.mainActivity = mainActivity;
         this.modelHasTwoTanks = modelHasTwoTanks;
         recorrido = new Recorrido();
@@ -73,7 +73,7 @@ public class RecorridoService {
         recorrido.setRecorridoCode(Constantes.generateRndomRecorridoCode());
         Usuario user = new Usuario();
         user.setId((int)idUsuario);
-        recorrido.setUsuarioHasModeloCarro(new UsuarioHasModeloCarro(idUsuarioModeloCarro));
+        recorrido.setVehiculo(new Vehiculo(idUsuarioModeloCarro));
         recorrido.setUsuario(user);
         time = 0;
         recorrido.setFecha(Constantes.SDF_DATE_ONLY.format(new Date()));
@@ -81,6 +81,7 @@ public class RecorridoService {
         this.listUnidadRecorrido = new ArrayList<>();
         try {
             daoRecorrido = helper.getDaoRecorridos();
+            daoUnidadRecorrido = helper.getDaoUnidadRecorrido();
             daoRecorrido.create(recorrido);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -88,11 +89,11 @@ public class RecorridoService {
         contUpdateRecorrido = 0;
         this.idUsuario = (int)idUsuario;
         this.idUsuarioModeloCarro = idUsuarioModeloCarro;
+        this.placa = placa;
 
     }
 
     public void iniciarRecorrido() {
-
         mTimer = new Timer();
         TimerTask task = new TimerTask() {
             @Override
@@ -124,11 +125,9 @@ public class RecorridoService {
 
         if (modelHasTwoTanks) {
             unidadRecorrido.setGalones(mainActivity.getGalones());
-            unidadRecorrido.setGalonesT2(mainActivity.getGalonesT2());
-
+            unidadRecorrido.setGalonesTankTwo(mainActivity.getGalonesT2());
             unidadRecorrido.setValorBluetooh(mainActivity.getValorBluetooh());
-            unidadRecorrido.setValorBluetoohT2(mainActivity.getValorBluetoohT2());
-
+            unidadRecorrido.setValorBluetoothTankTwo(mainActivity.getValorBluetoohT2());
         } else {
             unidadRecorrido.setGalones(mainActivity.getGalones());
             unidadRecorrido.setValorBluetooh(mainActivity.getValorBluetooh());
@@ -151,20 +150,16 @@ public class RecorridoService {
         recorrido.setFechaFin(Constantes.SDF_DATE_RECORRIDO.format(new Date()));
         recorrido.setCompleted(true);
         Toast.makeText(mainActivity, "RECORRIDO COMPLETED", Toast.LENGTH_SHORT).show();
-
         updateRecorridoInDao();
     }
 
     // guarda un recorrido completado
-    private void guardarRecorrido() {
+ /*   private void guardarRecorrido() {
 
         recorrido.setListUnidadRecorrido(listUnidadRecorrido);
-        recorrido.setJsonListUnidadRecorrido();
-
+        //recorrido.setJsonListUnidadRecorrido();
         try {
             Dao<UnidadRecorrido, Integer> daoUnidadRecorrido= helper.getDaoUnidadRecorrido();
-
-            //recorrido.setId((long)daoRecorrido.create(recorrido));
             daoUnidadRecorrido.create(recorrido.getListUnidadRecorrido());
             Gson gson = new Gson();
             Log.e("RECORRIDO", "DESPUES DE GUARDADO.");
@@ -175,19 +170,23 @@ public class RecorridoService {
             e.printStackTrace();
         }
     }
-
+*/
     private void updateRecorridoInDao() {
         recorrido.setListUnidadRecorrido(listUnidadRecorrido);
-        recorrido.setJsonListUnidadRecorrido();
-
         try {
             //Log.e("UP COMPLE", String.valueOf(recorrido.isCompleted()));
-            Log.e("CODE",recorrido.getRecorridoCode());
+            //Log.e("CODE",recorrido.getRecorridoCode());
             daoRecorrido.update(recorrido);
 
+            for (UnidadRecorrido unidad: recorrido.getListUnidadRecorrido()             ) {
+
+                if (unidad.getId() == null) {
+                    unidad.setIdRecorrido(this.recorrido.getId());
+                    this.daoUnidadRecorrido.create(unidad);
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
-//            Toast.makeText(mainActivity, "Error guardando recorrido.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -201,7 +200,6 @@ public class RecorridoService {
             Where<Recorrido, Integer> where = queryBuilder.where();
             where.eq("uploaded", false);
             PreparedQuery<Recorrido> preparedQuery = queryBuilder.prepare();
-
             recorridoList = daoRecorrido.query(preparedQuery);
             //recorridoList = daoRecorrido.queryForAll();
 
@@ -209,12 +207,34 @@ public class RecorridoService {
 
                 Usuario usuario = new Usuario();
                 usuario.setId(idUsuario);
-                UsuarioHasModeloCarro uhmc = new UsuarioHasModeloCarro();
+                Vehiculo uhmc = new Vehiculo();
                 uhmc.setId(idUsuarioModeloCarro);
 
+                QueryBuilder<UnidadRecorrido, Integer> qbUnidadRecorrido;
+                Where<UnidadRecorrido, Integer> whereUR;
+                PreparedQuery<UnidadRecorrido> pqUR;
                 for (Recorrido r: recorridoList) {
 
-                    Log.e("ID RECO", String.valueOf(r.getId()));
+                    qbUnidadRecorrido =
+                            daoUnidadRecorrido.queryBuilder();
+                    whereUR = qbUnidadRecorrido.where();
+                    whereUR.eq("idRecorrido", r.getId());
+                    pqUR = qbUnidadRecorrido.prepare();
+
+                    r.setListUnidadRecorrido(daoUnidadRecorrido.query(pqUR));
+
+                    if(r.getListUnidadRecorrido() != null && r.getListUnidadRecorrido().size() > 0){
+                        Log.e("1", "List u reco OK");
+                        Log.e("2", "Size " +r.getListUnidadRecorrido().size());
+
+                        Log.e("3", "First record " +  r.getListUnidadRecorrido().get(0).getLatitud() );
+
+                    } else {
+                        Log.e("4", "SORRY THIS IS NULL");
+
+                    }
+
+
                     Log.e("UPLOADED", String.valueOf(r.isUploaded()));
                     Log.e("COMPLETED", String.valueOf(r.isCompleted()));
 //                    Log.e("json", r.getJsonListUnidadRecorrido());
@@ -228,20 +248,21 @@ public class RecorridoService {
                     else
                         Log.e("FECHAFIN", "NULL");
                     r.setUsuario(usuario);
-                    r.setUsuarioHasModeloCarro(uhmc);
+                    r.setVehiculo(uhmc);
                 }
 
                 Log.e("size", "not uploaded "+recorridoList.size());
-                Call<ResponseServices> uploadAll = MedidorApiAdapter.getApiService().postRecorridosBulk(Constantes.CONTENT_TYPE_JSON ,
-                        recorridoList);
+                Call<Void> uploadAll = MedidorApiAdapter.getApiService().postRecorridosBulk(Constantes.CONTENT_TYPE_JSON ,
+                        recorridoList, placa);
 
-                uploadAll.enqueue(new Callback<ResponseServices>() {
+                uploadAll.enqueue(new Callback<Void>() {
                     @Override
-                    public void onResponse(Call<ResponseServices> call, Response<ResponseServices> response) {
+                    public void onResponse(Call<Void> call, Response<Void> response) {
 
                         if(response.isSuccessful()) {
 
                             for (Recorrido r: recorridoList) {
+                                deleteUploadedUnidadRecorridos(r.getListUnidadRecorrido());
                                 if (r.isCompleted()){
                                     Log.e("ID:","IS COMPLETED AND READY FOR UPDATE " + r.getId());
                                     r.setUploaded(true);
@@ -269,10 +290,9 @@ public class RecorridoService {
                     }
 
                     @Override
-                    public void onFailure(Call<ResponseServices> call, Throwable t) {
-
+                    public void onFailure(Call<Void> call, Throwable t) {
                         Toast.makeText(mainActivity, "ERROR, NO SE PUDO SUBIR TODA LA INFORMACIÓN.", Toast.LENGTH_SHORT).show();
-                        Log.e("ERROR", t.getMessage());
+                        Log.e("ERROR 3", t.getMessage());
                     }
                 });
 
@@ -310,6 +330,7 @@ public class RecorridoService {
         this.listUnidadRecorrido = new ArrayList<>();
         try {
             daoRecorrido = helper.getDaoRecorridos();
+            daoUnidadRecorrido = helper.getDaoUnidadRecorrido();
      //       daoRecorrido.create(recorrido);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -335,11 +356,20 @@ public class RecorridoService {
         }
     }
 
+    public void deleteUploadedUnidadRecorridos(List<UnidadRecorrido> listUnidadRecorrido){
+
+        try {
+            Log.e("5", "deleting u recorridos");
+            this.daoUnidadRecorrido.delete(listUnidadRecorrido);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void uploadRecorrido() {
 
         Gson gson = new Gson();
         recorrido.setListUnidadRecorrido(listUnidadRecorrido);
-        recorrido.setJsonListUnidadRecorrido();
         recorrido.setListUnidadRecorrido(null);
         //recorrido.setId(null);
 
@@ -352,12 +382,11 @@ public class RecorridoService {
 
                 //se obtiene el id del recorrido
                 if(response.body() != null) {
-
                     Long id = Long.parseLong(response.body());
                     recorrido.setId(id);
                 } else {
                     Log.e("ERROR", "EL RESPONSE BODY ES NULO");
-                }
+                 }
                 if(response.isSuccessful()) {
                     Toast.makeText(mainActivity, "RECORRIDO ENVIADO AL SERVIDOR DE MANERA EXITOSA", Toast.LENGTH_SHORT).show();
                 }
