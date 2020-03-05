@@ -26,6 +26,7 @@ import com.index.medidor.R;
 import com.index.medidor.activities.MainActivity;
 import com.index.medidor.bluetooth.SpBluetoothDevice;
 import com.index.medidor.database.DataBaseHelper;
+import com.index.medidor.model.Estados;
 import com.index.medidor.model.ModeloCarros;
 import com.index.medidor.model.Vehiculo;
 import com.index.medidor.retrofit.MedidorApiAdapter;
@@ -88,8 +89,6 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
                 showBlueToothList();
                 int i = getLayoutPosition();
                 vehiculoSelected = items.get(i);
-                Gson gson = new Gson();
-                Log.e("11", gson.toJson(vehiculoSelected));
             });
         }
     }
@@ -196,18 +195,22 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
             vehiculoSelected.setBluetoothNombre(uhmc.getBluetoothNombre());
             vehiculoSelected.setModeloCarros(modeloCarros);
             vehiculoSelected.setUsuariosId(uhmc.getUsuariosId());
+            Estados estados = new Estados();
+            estados.setId(mainActivity.getMyPreferences().getInt(Constantes.DEFAULT_STATE_ID, 1));
+            vehiculoSelected.setEstado(estados);
             Log.e("UHMC", gson.toJson(vehiculoSelected));
 
             Call<Vehiculo> callUpdateUsuariosHasModeloCarro = MedidorApiAdapter.getApiService()
                     .putUpdateUsuarioHasModeloCarro(Constantes.CONTENT_TYPE_JSON ,
                             vehiculoSelected);
 
+            mainActivity.getmCustomProgressDialog().show("");
             callUpdateUsuariosHasModeloCarro.enqueue(new Callback<Vehiculo>() {
                 @Override
                 public void onResponse(Call<Vehiculo> call, Response<Vehiculo> response) {
 
+                    mainActivity.getmCustomProgressDialog().dismiss("");
                     if(response.isSuccessful()) {
-
                         ((MainActivity)context).upateDefaultVehicle(vehiculoSelected);
                         notifyDataSetChanged();
                         Toast.makeText(mainActivity, "VEHÍCULO ACTUALIZADO DE MANERA EXITOSA.", Toast.LENGTH_SHORT).show();
@@ -217,6 +220,7 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
 
                 @Override
                 public void onFailure(Call<Vehiculo> call, Throwable t) {
+                    mainActivity.getmCustomProgressDialog().dismiss("");
                     Toast.makeText(mainActivity, "NO SE PUDO ACTUALIZAR EL VEHÍCULO.", Toast.LENGTH_SHORT).show();
                     Log.e("ERR", t.getLocalizedMessage());
                 }

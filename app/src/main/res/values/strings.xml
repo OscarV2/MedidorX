@@ -102,6 +102,7 @@
     <string name="flujo_adquisition">Volumen: %1$d</string>
     <string name="upload_recorridos">Subir Recorridos</string>
     <string name="states">Estados</string>
+    <string name="cambiar_estado">Cambiar estado</string>
 
     <string-array name="tipos_combustibles">
         <item>ACPM</item>

@@ -33,6 +33,9 @@ public class UnidadRecorrido {
     @DatabaseField
     private Long idRecorrido;
 
+    @DatabaseField
+    private Integer estado;
+
     public UnidadRecorrido() {
     }
 
@@ -127,5 +130,13 @@ public class UnidadRecorrido {
     }
     public void setHora(String hora) {
         this.hora = hora;
+    }
+
+    public Integer getEstado() {
+        return estado;
+    }
+
+    public void setEstado(Integer estado) {
+        this.estado = estado;
     }
 }

@@ -187,7 +187,6 @@ public class LoginActivity extends AppCompatActivity {
 
         Call<List<Vehiculo>> callGetAllUhmc = MedidorApiAdapter.getApiService()
                 .getUsuarioHasModeloCarros(String.valueOf(user.getId()));
-
         callGetAllUhmc.enqueue(new Callback<List<Vehiculo>>() {
             @Override
             public void onResponse(Call<List<Vehiculo>> call, Response<List<Vehiculo>> response) {
@@ -198,31 +197,30 @@ public class LoginActivity extends AppCompatActivity {
                     if (response.body() != null){
 
                         if(response.body().size() > 0) {
-
                             try {
                                 daoUsuarioModeloCarros = helper.getDaoUsuarioHasModeloCarros();
                                 daoModeloCarros = helper.getDaoModelos();
 
-                                for (Vehiculo uhmc: response.body()) {
-
-                                    if(uhmc.getModeloCarros().getValoresAdq() != null){
-                                        myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_VALUE_ARRAY, uhmc.getModeloCarros().getValoresAdq()).apply();
+                                for (Vehiculo vehiculo: response.body()) {
+                                    if(vehiculo.getModeloCarros().getValoresAdq() != null){
+                                        myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_VALUE_ARRAY, vehiculo.getModeloCarros().getValoresAdq()).apply();
                                         //ModeloCarros modeloCarros = daoModeloCarros.queryForId(uhmc.getModelosCarrosId());
-                                        myPreferences.edit().putInt(Constantes.DEFAULT_GAL_CANT, (int)uhmc.getModeloCarros().getGalones()).apply();
-                                        myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_MAC, uhmc.getBluetoothMac()).apply();
-                                        myPreferences.edit().putBoolean(Constantes.MODEL_HAS_TWO_TANKS, uhmc.getModeloCarros().getHasTwoTanks()).apply();
+                                        myPreferences.edit().putInt(Constantes.DEFAULT_GAL_CANT, (int)vehiculo.getModeloCarros().getGalones()).apply();
+                                        myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_MAC, vehiculo.getBluetoothMac()).apply();
+                                        myPreferences.edit().putBoolean(Constantes.MODEL_HAS_TWO_TANKS, vehiculo.getModeloCarros().getHasTwoTanks()).apply();
 
-                                        myPreferences.edit().putLong(Constantes.DEFAULT_UHMC_ID, uhmc.getId()).apply();
-                                        myPreferences.edit().putLong("defaultModeloCarroId", uhmc.getModeloCarros().getId()).apply();
-                                        myPreferences.edit().putString(Constantes.DEFAULT_PLACA, uhmc.getPlaca()).apply();
+                                        myPreferences.edit().putLong(Constantes.DEFAULT_UHMC_ID, vehiculo.getId()).apply();
+                                        myPreferences.edit().putLong("defaultModeloCarroId", vehiculo.getModeloCarros().getId()).apply();
+                                        myPreferences.edit().putString(Constantes.DEFAULT_PLACA, vehiculo.getPlaca()).apply();
+                                        setDefaultState(vehiculo.getEstado());
                                     }
-                                    uhmc.setModelosCarrosId(uhmc.getModeloCarros().getId());
-                                    uhmc.setHasTwoTanks(uhmc.getModeloCarros().getHasTwoTanks());
-                                    uhmc.setAnio(uhmc.getModeloCarros().getModelo());
-                                    uhmc.setLinea(uhmc.getModeloCarros().getLinea());
-                                    uhmc.setValoresAdq(uhmc.getModeloCarros().getValoresAdq());
+                                    vehiculo.setModelosCarrosId(vehiculo.getModeloCarros().getId());
+                                    vehiculo.setHasTwoTanks(vehiculo.getModeloCarros().getHasTwoTanks());
+                                    vehiculo.setAnio(vehiculo.getModeloCarros().getModelo());
+                                    vehiculo.setLinea(vehiculo.getModeloCarros().getLinea());
+                                    vehiculo.setValoresAdq(vehiculo.getModeloCarros().getValoresAdq());
 
-                                    daoUsuarioModeloCarros.create(uhmc);
+                                    daoUsuarioModeloCarros.create(vehiculo);
                                 }
                                 irMain(user);
 
@@ -258,7 +256,6 @@ public class LoginActivity extends AppCompatActivity {
         callGettEstados.enqueue(new Callback<List<Estados>>() {
             @Override
             public void onResponse(Call<List<Estados>> call, Response<List<Estados>> response) {
-
                 if(response.body() != null && response.body().size() > 0){
                     try {
                         Dao<Estados, Integer> daoEstados = helper.getDaoEstados();
@@ -274,6 +271,13 @@ public class LoginActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    private void setDefaultState(Estados estados){
+        if(estados !=  null){
+            myPreferences.edit().putString(Constantes.DEFAULT_STATE, estados.getNombre()).apply();
+            myPreferences.edit().putInt(Constantes.DEFAULT_STATE_ID, estados.getId()).apply();
+        }
     }
 
     private void checkGPSState() {

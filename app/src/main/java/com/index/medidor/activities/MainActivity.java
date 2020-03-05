@@ -100,7 +100,8 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, SetArrayValuesForInndex,
         BluetoothDataReceiver, AdquisicionDatos.OnFragmentInteractionListener, IBluetoothState, DondeTanquearTabs.OnFragmentInteractionListener,
         InicioFragment.OnFragmentInteractionListener, HistorialTabs.OnFragmentInteractionListener, DondeTanquearFragment.OnFragmentInteractionListener,
-        ConfiguracionTabs.OnFragmentInteractionListener, IngresadoFragment.OnFragmentInteractionListener, NuevoVehiculo.OnFragmentInteractionListener {
+        ConfiguracionTabs.OnFragmentInteractionListener, IngresadoFragment.OnFragmentInteractionListener, NuevoVehiculo.OnFragmentInteractionListener,
+EstadosFragment.OnFragmentInteractionListener{
 
     private DrawerLayout drawer;
     private NavigationView navigationView;
@@ -147,25 +148,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private String placa;
 
-    //private Timer mTimer;
     private boolean newDevice;
-    /*
-    BroadcastReceiver startReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
 
-            initRecorrido();
-        }
-    };
+    private Integer estado;
 
-    BroadcastReceiver stopReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-
-            stopRecorrido();
-        }
-    };
-*/
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @SuppressLint("ResourceType")
     @Override
@@ -412,13 +398,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         else if (id == R.id.nav_upload_recorridos) {
             if(recorridoService != null)
                 this.recorridoService.uploadAllNotCompletedAndNotUploaded();
-        }else if (id == R.id.nav_states) {
-            miFragment = new EstadosFragment(MainActivity.this);
-            fragmentSeleccionado = true;
-            tvTitulo.setText("Estados");
-            viewMap.setVisibility(View.GONE);
-            btnMenu.setVisibility(View.GONE);
-
         }
         else if (id == R.id.logout) {
             //logout();
@@ -513,18 +492,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void getBluetoothData(double... dato) {
 
+        //Log.e("1",String.valueOf(dato.length));
         if(miFragment instanceof AdquisicionDatos && BluetoothHelper.isAdqProcess()){
             (((AdquisicionDatos) miFragment)).getBluetoothData((int)dato[0], (int)dato[1]);
             return;
         }
 
-        if (dato.length == 1) {
+        if (dato.length == 2) {
             nivelCombustible = dato[0];
             pbCombustible.setProgress((int)dato[0]);
             galones = dato[0];
             tvCombustible.setText(getString(R.string.cant_gal, nivelCombustible));
             myPreferences.edit().putString("nivel", String.valueOf(nivelCombustible)).apply();
-        } else if (dato.length > 1) {
+        } else if (dato.length > 2) {
 
             nivelCombustible = dato[0];
             nivelCombustibleTank2 = dato[1];
@@ -532,6 +512,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             pbTanque2.setProgress((int)dato[1]);
             galones = dato[0];
             galonesT2 = dato[1];
+            //estado = (int)(dato[2]);
             tvCombustible.setText(getString(R.string.cant_gal, nivelCombustible));
             tvCombustibleTank2.setText(getString(R.string.cant_gal, nivelCombustibleTank2));
             myPreferences.edit().putString("nivel", String.valueOf(nivelCombustible)).apply();
@@ -541,10 +522,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void getArrayBlueToothValues(Integer... data) {
-
         if(data.length > 1) {
             valorBluetooh = data[0];
             valorBluetoohT2 = data[1];
+            estado = data[2];
         } else {
             valorBluetooh = data[0];
         }
@@ -581,7 +562,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         TextView tvUsuario = headerLayout.findViewById(R.id.tvUsuario);
         tvDefaultPlaca = headerLayout.findViewById(R.id.tvDefaultPlaca);
+        //tvDefaultState = headerLayout.findViewById(R.id.tvDefaultState);
         tvDefaultPlaca.setText(placa);
+        Log.e("DEF","STATE " + myPreferences.getString(Constantes.DEFAULT_STATE, " "));
+        setDefaultState();
         tvUsuario.setText(myPreferences.getString("nombres", "") + myPreferences.getString("apellidos", ""));
         navigationView.setNavigationItemSelectedListener(this);
         Menu m = navigationView.getMenu();
@@ -646,7 +630,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
                 return;
             }
-
             // other 'case' lines to check for other
             // permissions this app might request
         }
@@ -917,11 +900,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         initCombustibleProgresBars();
 
-        fireBaseRecorridosHelper = null;
-        fireBaseRecorridosHelper = new FireBaseRecorridosHelper(MainActivity.this,
-                newPlaca);
-        fireBaseRecorridosHelper.setPlaca(newPlaca);
-        fireBaseRecorridosHelper.init();
+        //fireBaseRecorridosHelper = null;
+        //fireBaseRecorridosHelper = new FireBaseRecorridosHelper(MainActivity.this,
+          //      newPlaca);
+        //fireBaseRecorridosHelper.setPlaca(newPlaca);
+        //fireBaseRecorridosHelper.init();
+        this.recorridoService.deleteAllRecorridos();
         initRecorrido();
     }
 
@@ -940,6 +924,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return galonesT2;
     }
 
+    public Integer getEstado() {
+        return estado;
+    }
+
     public RecorridoService getRecorridoService() {
         return recorridoService;
     }
@@ -953,5 +941,30 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         Log.e("BOM DIA", "GREETINGS!!!");
         Toast.makeText(MainActivity.this, "TIHS IS A TOAST FROM A RECEIVER", Toast.LENGTH_SHORT).show();
+    }
+
+    public void setDefaultState(){
+        String stateName = myPreferences.getString(Constantes.DEFAULT_STATE, " ");
+        //tvDefaultState.setText(stateName);
+//        ((InicioFragment)miFragment).updateState(stateName);
+    }
+
+    public void goToStates(){
+
+        miFragment = new EstadosFragment(MainActivity.this);
+        //fragmentSeleccionado = true;
+        tvTitulo.setText("Estados");
+        viewMap.setVisibility(View.GONE);
+        btnMenu.setVisibility(View.GONE);
+
+        btnBack.setVisibility(View.VISIBLE);
+            tvTitulo.setVisibility(View.VISIBLE);
+            getSupportFragmentManager().beginTransaction().replace(R.id.content_main, miFragment).commit();
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+    }
+
+    public CustomProgressDialog getmCustomProgressDialog() {
+        return mCustomProgressDialog;
     }
 }

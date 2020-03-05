@@ -51,7 +51,7 @@ public class BluetoothHelper {
     private BluetoothAdapter btAdapter;
     private BluetoothSocket btSocket;
     private BluetoothDevice bluetoothDevice;
-    private int dato, datoFlujo, datoTanque2;
+    private int dato, datoFlujo, datoTanque2, datoEstado;
     private static List<Integer> dataToAverage;
     private static List<Integer> dataToAverageTank2;
     public static boolean adqProcess;
@@ -92,7 +92,6 @@ public class BluetoothHelper {
         this.context = context;
         adqProcess = true;
         modelHasTwoTanks = false;
-
         init();
     }
 
@@ -108,17 +107,13 @@ public class BluetoothHelper {
                     readMessage = "";
                 }
                 recDataString.append(readMessage);              //keep appending to string until A
-                //Log.e("message", readMessage);
 
                 int endOfLineIndex = recDataString.indexOf("A");                    // determine the end-of-line
 
                 if(endOfLineIndex > 0) {
                     if (recDataString.charAt(0) == '#') {
-
                         String dataInPrint = recDataString.substring(1, endOfLineIndex);    // extract string
-
                         String[] datos = dataInPrint.split("~");
-
                         if(datos.length > 0) {
 
                             try {
@@ -132,35 +127,33 @@ public class BluetoothHelper {
                                 recDataString.delete(0, recDataString.length());      //clear all string data
                                 return;
                             }
-
                             dataToAverage.add(dato);
-
                             if(!modelHasTwoTanks) {
 
                                 if (dataToAverage.size() == Constantes.ARRAY_DATA_SIZE) {
-                                    sendDataForOneTankModel();
-                                    } else {
+                                    sendDataForOneTankModel(datoEstado);
+
+                                } else {
                                     Log.e("IF","1");
                                     bluetoothDataReceiver.getBluetoothData(dato);
                                 }
                             }else {                     //This model has two tanks
-
                                 try {
-                                    datoTanque2 = Integer.valueOf(datos[1]);
+                                    String[] dato2Yestado = datos[1].split("-");
+                                    datoTanque2 = Integer.valueOf(dato2Yestado[0]);
+                                    datoEstado = Integer.valueOf(dato2Yestado[1]);
                                 } catch (NumberFormatException | ArrayIndexOutOfBoundsException ex) {
-
                                     datoTanque2 = 0;
+                                    datoEstado = 0;
                                     ex.getStackTrace();
                                 }
-
                                 dataToAverageTank2.add(datoTanque2);
-                                sendDataForTwoTanksModel();
+                                sendDataForTwoTanksModel(datoEstado);
                             }
                         }
                     }
                     recDataString.delete(0, recDataString.length());      //clear all string data
                 } else {
-
                     //Log.e("redcata",recDataString.toString());
                     if (recDataString.length() > 30) {
                         recDataString.delete(0, recDataString.length());      //clear all string data
@@ -231,7 +224,6 @@ public class BluetoothHelper {
         }
 
         if (btAdapter == null) {
-
             Toast.makeText(context, "El dispositivo no soporta bluetooth", Toast.LENGTH_LONG).show();
         } else {
 
@@ -240,18 +232,16 @@ public class BluetoothHelper {
             if (btAdapter.isEnabled()) {
                 String address = preferences.getString(Constantes.DEFAULT_BLUETOOTH_MAC, "");
                 bluetoothDevice = btAdapter.getRemoteDevice(address);
-
+                Log.e("addr", address);
                 try {
 
                     btSocket = bluetoothDevice.createRfcommSocketToServiceRecord(BTMODULEUUID);
 
                     if (btSocket != null){
-
                         btSocket.connect();
                         ((MainActivity)context).cancelTimers();
                         mConnectedThread = new ConnectedThread(btSocket);
                         mConnectedThread.start();
-
                     }else {
 
                       //  iBluetoothState.couldNotConnectToDevice();
@@ -267,18 +257,6 @@ public class BluetoothHelper {
                     //iBluetoothState.couldNotConnectToDevice();
                     //((MainActivity)context).couldNotConnectToDevice();
                 }
-
-                // Establish the Bluetooth socket connection.
-                /*try {
-
-                } /*catch (IOException e) {
-                    try {
-                        btSocket.close();
-                        Toast.makeText(context, "No se pudo establecer conexion con el dispositivo", Toast.LENGTH_LONG).show();
-                    } catch (IOException e2) {
-                        //insert code to deal with this
-                    }
-                }*/
             } else {
                 final AlertDialog.Builder builder = new AlertDialog.Builder(context);
                 builder.setMessage("El Bluetooth esta desactivado").setCancelable(false).setPositiveButton("Activar", new DialogInterface.OnClickListener() {
@@ -323,14 +301,12 @@ public class BluetoothHelper {
 
         recDataString = new StringBuilder();
         handlerState = 0;
-
         REQUEST_ENABLE_BT = 1;
         btAdapter = BluetoothAdapter.getDefaultAdapter();
         bluetoothDataReceiver = (BluetoothDataReceiver) context;
         bluetoothIn = new MyVeryOwnHandler();
         btSocket = null;
         iBluetoothState = (MainActivity)context;
-
         preferences = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
@@ -338,10 +314,9 @@ public class BluetoothHelper {
         return datoTanque2;
     }
 
-    static void sendDataForOneTankModel() {
+    static void sendDataForOneTankModel(Integer datoEstado) {
 
         int sum = 0;
-
         for (int i = 0; i < dataToAverage.size(); i++) {
             sum += dataToAverage.get(i);
         }
@@ -352,12 +327,12 @@ public class BluetoothHelper {
 
         if (element != null) {
             //buscar el mas cercano
-            bluetoothDataReceiver.getBluetoothData(element.getAsDouble());
+            bluetoothDataReceiver.getBluetoothData(element.getAsDouble(), datoEstado);
 
         } else {  // no esta en la lista, buscar el mas cercanp
             element = jsonValues.get(String.valueOf(sum));
             try {
-                bluetoothDataReceiver.getBluetoothData(element.getAsDouble());
+                bluetoothDataReceiver.getBluetoothData(element.getAsDouble(), datoEstado);
             } catch (NullPointerException ex) {
                 Log.e("EX", ex.getMessage());
             }
@@ -365,7 +340,7 @@ public class BluetoothHelper {
 
     }
 
-    static void sendDataForTwoTanksModel() {
+    static void sendDataForTwoTanksModel(Integer datoEstado) {
 
         int sumTank1 = 0;
         int sumTank2 = 0;
@@ -388,16 +363,16 @@ public class BluetoothHelper {
 
         if (elementTank1 != null && elementTank2 != null) {
             //buscar el mas cercano
-            bluetoothDataReceiver.getBluetoothData(elementTank1.getAsDouble(), elementTank2.getAsDouble());
-            bluetoothDataReceiver.getArrayBlueToothValues(sumTank1, sumTank2);
+            bluetoothDataReceiver.getBluetoothData(elementTank1.getAsDouble(), elementTank2.getAsDouble(), datoEstado);
+            bluetoothDataReceiver.getArrayBlueToothValues(sumTank1, sumTank2, datoEstado);
 
         } else {  // no están en la lista, buscar el mas cercano
 
             elementTank1 = jsonValues.get(String.valueOf(sumTank1));
             elementTank2 = jsonValues.get(String.valueOf(sumTank2));
-            bluetoothDataReceiver.getArrayBlueToothValues(sumTank1, sumTank2);
+            bluetoothDataReceiver.getArrayBlueToothValues(sumTank1, sumTank2, datoEstado);
             try {
-                bluetoothDataReceiver.getBluetoothData(elementTank1.getAsDouble(), elementTank2.getAsDouble());
+                bluetoothDataReceiver.getBluetoothData(elementTank1.getAsDouble(), elementTank2.getAsDouble(), datoEstado);
             } catch (NullPointerException ex) {
                 Log.e("EX", ex.getMessage());
             }

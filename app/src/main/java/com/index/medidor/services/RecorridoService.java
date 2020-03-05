@@ -120,6 +120,7 @@ public class RecorridoService {
         unidadRecorrido.setDistancia(mainActivity.getInndexLocationService().getDistancia());
         unidadRecorrido.setHora(Constantes.SDF_HOUR_RECORRIDO.format(new Date()));
         //recorrido.setDisanciaRecorrida(mainActivity.getInndexLocationService().getDistancia_temp());
+        unidadRecorrido.setEstado(mainActivity.getEstado());
 
         time += Constantes.DELAY_RECORRIDO;
 
@@ -224,11 +225,9 @@ public class RecorridoService {
                     r.setListUnidadRecorrido(daoUnidadRecorrido.query(pqUR));
 
                     if(r.getListUnidadRecorrido() != null && r.getListUnidadRecorrido().size() > 0){
-                        Log.e("1", "List u reco OK");
+
                         Log.e("2", "Size " +r.getListUnidadRecorrido().size());
-
                         Log.e("3", "First record " +  r.getListUnidadRecorrido().get(0).getLatitud() );
-
                     } else {
                         Log.e("4", "SORRY THIS IS NULL");
 
@@ -255,10 +254,12 @@ public class RecorridoService {
                 Call<Void> uploadAll = MedidorApiAdapter.getApiService().postRecorridosBulk(Constantes.CONTENT_TYPE_JSON ,
                         recorridoList, placa);
 
+                mainActivity.getmCustomProgressDialog().show("");
                 uploadAll.enqueue(new Callback<Void>() {
                     @Override
                     public void onResponse(Call<Void> call, Response<Void> response) {
 
+                        mainActivity.getmCustomProgressDialog().dismiss("");
                         if(response.isSuccessful()) {
 
                             for (Recorrido r: recorridoList) {
@@ -291,6 +292,7 @@ public class RecorridoService {
 
                     @Override
                     public void onFailure(Call<Void> call, Throwable t) {
+                        mainActivity.getmCustomProgressDialog().dismiss("");
                         Toast.makeText(mainActivity, "ERROR, NO SE PUDO SUBIR TODA LA INFORMACIÓN.", Toast.LENGTH_SHORT).show();
                         Log.e("ERROR 3", t.getMessage());
                     }

@@ -58,7 +58,7 @@
 
     </LinearLayout>
 
-    <Button
+    <!--Button
         android:id="@+id/btnTanquear"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -69,7 +69,21 @@
         android:textSize="18sp"
         android:textColor="@color/white"
         android:paddingHorizontal="20dp"
-        android:background="@drawable/redondeado"/>
+        android:background="@drawable/redondeado"/-->
+
+    <Button
+        android:id="@+id/btnDefaultState"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="80sp"
+        android:layout_marginTop="40sp"
+        android:text="@string/tanquear"
+        android:textAllCaps="false"
+        android:textSize="18sp"
+        android:textColor="@color/white"
+        android:paddingHorizontal="20dp"
+        android:background="@drawable/redondeado"
+        android:layout_centerHorizontal="true"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabUbicacion"

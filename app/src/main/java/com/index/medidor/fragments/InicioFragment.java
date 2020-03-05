@@ -4,9 +4,6 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,18 +12,21 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.fragment.app.Fragment;
+
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 import com.index.medidor.R;
 import com.index.medidor.activities.MainActivity;
 import com.index.medidor.database.DataBaseHelper;
 import com.index.medidor.model.Recorrido;
+import com.index.medidor.utils.Constantes;
+import com.index.medidor.utils.CustomProgressDialog;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
 
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Timer;
@@ -48,12 +48,14 @@ public class InicioFragment extends Fragment {
     private FloatingActionButton fabRuta;
 
     private Button btnRecorrido;
-    private TextView tvGalones,tvDistancia;
+    private Button btnChangeDefaultState;
+    private TextView tvGalones, tvDistancia;
     boolean estado = false;
     private Timer mTimer1;
     private Handler mHandler;
     private double combustibleInicial, galonesPerdidos;
     private Recorrido recorrido;
+    private CustomProgressDialog mCustomProgressDialog;
 
     public InicioFragment() {
         // Required empty public constructor
@@ -62,15 +64,11 @@ public class InicioFragment extends Fragment {
 
         this.mainActivity = mainActivity;
         this.bold = bold;
+        mCustomProgressDialog = new CustomProgressDialog(this.mainActivity);
+        mCustomProgressDialog.setCanceledOnTouchOutside(false);
+        mCustomProgressDialog.setCancelable(false);
     }
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment InicioFragment.
-     */
+
     // TODO: Rename and change types and number of parameters
     public static InicioFragment newInstance(String param1, String param2) {
         InicioFragment fragment = new InicioFragment();
@@ -81,6 +79,7 @@ public class InicioFragment extends Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
 
     }
@@ -95,7 +94,13 @@ public class InicioFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_inicio, container, false);
+        btnChangeDefaultState = v.findViewById(R.id.btnDefaultState);
+        btnChangeDefaultState.setText(mainActivity.getMyPreferences().getString(Constantes.DEFAULT_STATE, ""));
+        btnChangeDefaultState.setOnClickListener(v12 -> {
 
+            mainActivity.goToStates();
+
+        });
         //Button btnTanquear = v.findViewById(R.id.btnTanquear);
 
         Typeface light=Typeface.createFromAsset(Objects.requireNonNull(getActivity()).getAssets(),"fonts/Roboto-Light.ttf");
@@ -171,16 +176,6 @@ public class InicioFragment extends Fragment {
         mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
@@ -238,6 +233,10 @@ public class InicioFragment extends Fragment {
         Gson gson = new Gson();
         Log.e("Rendimi", gson.toJson(gson.toJsonTree(recorrido)));
         guardarRecorrido();
+    }
+
+    public void updateState(String stateName){
+        btnChangeDefaultState.setText(stateName);
     }
 
     private void guardarRecorrido(){

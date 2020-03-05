@@ -36,10 +36,6 @@ public class CustomProgressDialog extends Dialog {
         if(dialog!=null) {
             dialog.dismiss();
         }
-
             return dialog;
-
     }
-
-
 }

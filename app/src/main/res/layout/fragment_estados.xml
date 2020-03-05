@@ -1,13 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".fragments.estados.EstadosFragment">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+  <androidx.recyclerview.widget.RecyclerView
+      android:id="@+id/rv_states"
+      android:layout_marginTop="100dp"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"/>
 
-</FrameLayout>
+    <Button
+        android:text="@string/cambiar_estado"
+        android:id="@+id/btn_update_state"
+        android:textSize="28sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:layout_centerHorizontal="true"
+        android:background="@color/colorPrimary"
+        android:paddingEnd="15dp"
+        android:paddingStart="15dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="20dp"
+        />
+</RelativeLayout>
