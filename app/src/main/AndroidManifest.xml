@@ -64,6 +64,9 @@
             android:enabled="true"
             android:exported="true"/>
         <receiver android:name=".receiver.StartRecorridoReceiver"
+        android:enabled="true"
+        android:exported="true"/>
+        <receiver android:name=".receiver.UploadRecorridoReceiver"
             android:enabled="true"
             android:exported="true"/>
     </application>

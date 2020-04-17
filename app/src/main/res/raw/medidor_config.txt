@@ -1,5 +1,5 @@
 #
-# generated on 2020/03/01 11:18:03
+# generated on 2020/04/15 09:29:42
 #
 # --table-start--
 dataClass=com.index.medidor.model.Estaciones
@@ -167,6 +167,9 @@ fieldName=completed
 # --field-start--
 fieldName=fecha
 # --field-end--
+# --field-start--
+fieldName=stFechaInicio
+# --field-end--
 # --table-fields-end--
 # --table-end--
 #################################
@@ -233,6 +236,7 @@ tableName=unidad_recorrido
 fieldName=id
 columnName=id
 generatedId=true
+unique=true
 # --field-end--
 # --field-start--
 fieldName=latitud
@@ -242,9 +246,6 @@ fieldName=longitud
 # --field-end--
 # --field-start--
 fieldName=altitud
-# --field-end--
-# --field-start--
-fieldName=tiempo
 # --field-end--
 # --field-start--
 fieldName=galones

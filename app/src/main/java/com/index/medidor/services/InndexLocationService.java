@@ -3,28 +3,19 @@ package com.index.medidor.services;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
-import android.location.LocationProvider;
-import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.index.medidor.activities.MainActivity;
-
-import static android.content.Context.LOCATION_SERVICE;
 
 public class InndexLocationService {
 
@@ -47,7 +38,7 @@ public class InndexLocationService {
         this.mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this.mainActivity);
         locationRequest = LocationRequest.create();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setInterval(15 * 1000);
+        locationRequest.setInterval(15000);
 
         locationCallback = new LocationCallback() {
             @Override
@@ -57,21 +48,46 @@ public class InndexLocationService {
                     Log.e("LOCTION","RESULT NUUULLLL");
                     return;
                 }
-                for (Location location : locationResult.getLocations()) {
-                    if (location != null) {
 
+                if(myLocation == null) {
+                    myLocation = locationResult.getLastLocation();
+                    return;
+                }
+
+                if (locationResult.getLastLocation() != null) {
+                    //Log.e("LAST","LOCATION NOT NULL");
+                    //Toast.makeText(mainActivity, "DISTANCIA " + distancia, Toast.LENGTH_SHORT).show();
+                    mainActivity.updateLocation(myLocation);
+                    distancia_temp = myLocation.distanceTo(locationResult.getLastLocation());
+                    //Log.e("D1",String.valueOf(distancia_temp));
+                    //Log.e("ML2",String.valueOf(myLocation.getLatitude()));
+                    //Log.e("LL4",String.valueOf(locationResult.getLastLocation().getLatitude()));
+                    //Log.e("ML3",String.valueOf(myLocation.getLongitude()));
+                    //Log.e("LL5",String.valueOf(locationResult.getLastLocation().getLongitude()));
+                    mainActivity.getMapService().updateMyPosition();
+                    mainActivity.getMapService().setMyLocation(myLocation);
+                    if(distancia_temp > 2) {
+
+                        myLocation = locationResult.getLastLocation();
+                        distancia += distancia_temp;
+                    }
+                    myLocation = locationResult.getLastLocation();
+                }
+                //return;
+
+                /*for (Location location : locationResult.getLocations()) {
+                    if (location != null) {
                         myLocation = location;
                         mainActivity.updateLocation(myLocation);
                         distancia_temp = myLocation.distanceTo(location);
                         mainActivity.getMapService().updateMyPosition();
                         mainActivity.getMapService().setMyLocation(myLocation);
-                        if(distancia_temp > 15) {
-
+                        if(distancia_temp > 12) {
                             myLocation = location;
                             distancia += distancia_temp;
                         }
                     }
-                }
+                }*/
             }
         };
     }

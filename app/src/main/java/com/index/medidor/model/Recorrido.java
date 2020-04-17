@@ -29,6 +29,8 @@ public class Recorrido implements Serializable {
     private transient boolean completed;
     @DatabaseField
     private transient String fecha;
+    @DatabaseField
+    private String stFechaInicio;
     //@ForeignCollectionField
     private List<UnidadRecorrido> listUnidadRecorrido;
     //@ForeignCollectionField
@@ -156,5 +158,13 @@ public class Recorrido implements Serializable {
 
     public void setVehiculo(Vehiculo vehiculo) {
         this.vehiculo = vehiculo;
+    }
+
+    public String getStFechaInicio() {
+        return stFechaInicio;
+    }
+
+    public void setStFechaInicio(String stFechaInicio) {
+        this.stFechaInicio = stFechaInicio;
     }
 }

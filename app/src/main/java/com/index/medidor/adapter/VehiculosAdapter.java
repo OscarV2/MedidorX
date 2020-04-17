@@ -6,7 +6,6 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -150,7 +149,7 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
         this.mainActivity = (MainActivity)context;
         this.helper = helper;
 
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences sharedPreferences = mainActivity.getMyPreferences();
         vehiculoSelected = null;
         defaultPlaca = sharedPreferences.getString(Constantes.DEFAULT_PLACA, "");
     }
@@ -187,10 +186,15 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
             Integer id = (int)(mainActivity.getMyPreferences().getLong(Constantes.DEFAULT_UHMC_ID, 0));
             Dao<Vehiculo, Integer> dao = helper.getDaoUsuarioHasModeloCarros();
             Vehiculo uhmc = dao.queryForId(id);
+            if(uhmc == null){
 
+                Toast.makeText(context, "ERROR AL GUARDAR", Toast.LENGTH_SHORT).show();
+                return ;
+            }
             ModeloCarros modeloCarros = new ModeloCarros();
             modeloCarros.setId((int)mainActivity.getMyPreferences().getLong("defaultModeloCarroId",0));
             Gson gson = new Gson();
+
             vehiculoSelected.setId(uhmc.getId());
             vehiculoSelected.setBluetoothNombre(uhmc.getBluetoothNombre());
             vehiculoSelected.setModeloCarros(modeloCarros);
@@ -198,7 +202,6 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
             Estados estados = new Estados();
             estados.setId(mainActivity.getMyPreferences().getInt(Constantes.DEFAULT_STATE_ID, 1));
             vehiculoSelected.setEstado(estados);
-            Log.e("UHMC", gson.toJson(vehiculoSelected));
 
             Call<Vehiculo> callUpdateUsuariosHasModeloCarro = MedidorApiAdapter.getApiService()
                     .putUpdateUsuarioHasModeloCarro(Constantes.CONTENT_TYPE_JSON ,

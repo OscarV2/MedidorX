@@ -88,8 +88,8 @@ public interface SmartBillApiServices {
     Call<String> postRegisterRecorrido(@Header("Content-Type") String headerContentType,
                                              @Body Recorrido recorrido);
     @POST(Constantes.POST_RECORRIDOS_BULK)
-    Call<Void> postRecorridosBulk(@Header("Content-Type") String headerContentType,
-                                              @Body List<Recorrido> recorridos, @Query("placa") String placa);
+    Call<Recorrido> postRecorridosBulk(@Header("Content-Type") String headerContentType,
+                                              @Body Recorrido recorridos, @Query("placa") String placa);
 
     /**
      * ESTADOS

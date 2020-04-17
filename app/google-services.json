@@ -1,34 +1,42 @@
 {
   "project_info": {
-    "project_number": "543662260730",
-    "firebase_url": "https://medidorcombustible-236704.firebaseio.com",
-    "project_id": "medidorcombustible-236704",
-    "storage_bucket": "medidorcombustible-236704.appspot.com"
+    "project_number": "1078096992641",
+    "firebase_url": "https://prueba-con-android-28a95.firebaseio.com",
+    "project_id": "prueba-con-android-28a95",
+    "storage_bucket": "prueba-con-android-28a95.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:543662260730:android:9e29fff74e37598702e443",
+        "mobilesdk_app_id": "1:1078096992641:android:53d958531e12a41c84b080",
         "android_client_info": {
           "package_name": "com.index.medidor"
         }
       },
       "oauth_client": [
         {
-          "client_id": "543662260730-h2u8pokshfv1k2kaf005lovrtq29leqt.apps.googleusercontent.com",
+          "client_id": "1078096992641-m48b80qmaj2goj34kbhc01p8jl664i9s.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.index.medidor",
+            "certificate_hash": "e60d0d8f3a0f2c16f61f86060e336d44b2b8cbbf"
+          }
+        },
+        {
+          "client_id": "1078096992641-0latk06ktak4hnvh3rvecdon02jf0035.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAOGNWNAayTXrn0HUw7D50fFrwKgDNxxwk"
+          "current_key": "AIzaSyCRfWREv6YQGU8OBG0lOmXMOT16wjS2sC4"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "543662260730-h2u8pokshfv1k2kaf005lovrtq29leqt.apps.googleusercontent.com",
+              "client_id": "1078096992641-0latk06ktak4hnvh3rvecdon02jf0035.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

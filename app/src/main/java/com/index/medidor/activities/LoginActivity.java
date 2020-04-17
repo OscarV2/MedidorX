@@ -115,6 +115,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private void login(Usuario user){
 
+
         Call<Usuario> login = MedidorApiAdapter.getApiService().postLogin(Constantes.CONTENT_TYPE_JSON, user);
         login.enqueue(new Callback<Usuario>() {
             @Override

@@ -103,6 +103,7 @@
     <string name="upload_recorridos">Subir Recorridos</string>
     <string name="states">Estados</string>
     <string name="cambiar_estado">Cambiar estado</string>
+    <string name="datos_recorrido">Ver recorridos</string>
 
     <string-array name="tipos_combustibles">
         <item>ACPM</item>

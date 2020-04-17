@@ -6,7 +6,7 @@ import com.j256.ormlite.table.DatabaseTable;
 @DatabaseTable(tableName = "unidad_recorrido")
 public class UnidadRecorrido {
 
-    @DatabaseField(generatedId = true, columnName = "id")
+    @DatabaseField(generatedId = true, columnName = "id", unique = true)
     private Long id;
     @DatabaseField
     private double latitud;
@@ -14,8 +14,6 @@ public class UnidadRecorrido {
     private double longitud;
     @DatabaseField
     private double altitud;
-    @DatabaseField
-    private long tiempo;
     @DatabaseField
     private Double galones;
     @DatabaseField
@@ -61,14 +59,6 @@ public class UnidadRecorrido {
 
     public void setLongitud(double longitud) {
         this.longitud = longitud;
-    }
-
-    public long getTiempo() {
-        return tiempo;
-    }
-
-    public void setTiempo(long tiempo) {
-        this.tiempo = tiempo;
     }
 
     public Double getGalones() {

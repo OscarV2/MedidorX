@@ -68,13 +68,13 @@ import com.index.medidor.fragments.configuracion_cuenta.NuevoVehiculo;
 import com.index.medidor.fragments.dondetanquear.DondeTanquearTabs;
 import com.index.medidor.fragments.estados.EstadosFragment;
 import com.index.medidor.fragments.historial.HistorialTabs;
+import com.index.medidor.fragments.recorridos.RecorridosDatos;
 import com.index.medidor.model.Estaciones;
-import com.index.medidor.model.Recorrido;
 import com.index.medidor.model.Vehiculo;
 import com.index.medidor.places.EstacionesPlaces;
 import com.index.medidor.receiver.StartRecorridoReceiver;
 import com.index.medidor.receiver.StopRecorridoReceiver;
-import com.index.medidor.services.FireBaseRecorridosHelper;
+import com.index.medidor.receiver.UploadRecorridoReceiver;
 import com.index.medidor.services.InndexLocationService;
 import com.index.medidor.services.MapService;
 import com.index.medidor.services.RecorridoService;
@@ -90,18 +90,19 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static com.index.medidor.utils.Constantes.INTERVAL_UPLOAD_UNIT_RECORRIDO;
+
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, SetArrayValuesForInndex,
         BluetoothDataReceiver, AdquisicionDatos.OnFragmentInteractionListener, IBluetoothState, DondeTanquearTabs.OnFragmentInteractionListener,
         InicioFragment.OnFragmentInteractionListener, HistorialTabs.OnFragmentInteractionListener, DondeTanquearFragment.OnFragmentInteractionListener,
         ConfiguracionTabs.OnFragmentInteractionListener, IngresadoFragment.OnFragmentInteractionListener, NuevoVehiculo.OnFragmentInteractionListener,
-EstadosFragment.OnFragmentInteractionListener{
+EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInteractionListener {
 
     private DrawerLayout drawer;
     private NavigationView navigationView;
@@ -124,7 +125,7 @@ EstadosFragment.OnFragmentInteractionListener{
     private EstacionesPlaces estacionesPlaces;
     private Fragment miFragment;
 
-    private FireBaseRecorridosHelper fireBaseRecorridosHelper;
+    //private FireBaseRecorridosHelper fireBaseRecorridosHelper;
 
     public static MainActivity myInstance;
 
@@ -152,6 +153,8 @@ EstadosFragment.OnFragmentInteractionListener{
 
     private Integer estado;
 
+    private Timer uploadRecorridosTimer;
+
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @SuppressLint("ResourceType")
     @Override
@@ -159,9 +162,7 @@ EstadosFragment.OnFragmentInteractionListener{
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-
         helper = OpenHelperManager.getHelper(MainActivity.this, DataBaseHelper.class);
-
         bold = Typeface.createFromAsset(getAssets(), "fonts/Roboto-Bold.ttf");
         viewMap = findViewById(R.id.map);
 
@@ -223,30 +224,35 @@ EstadosFragment.OnFragmentInteractionListener{
             newPosition = new LatLng(Double.valueOf(myPreferences.getString("latitud", "0")),
                     Double.valueOf(myPreferences.getString("longitud", "0")));
             estacionMasCercana = estacionesPlaces.getEstacionMasCercana(newPosition, helper);
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        if(recorridoService == null){
+        /*if(recorridoService == null){
             recorridoService = new RecorridoService(MainActivity.this, helper, idUsuario, idUsuarioModeloCarro, placa);
             recorridoService.setModelHasTwoTanks(modelHasTwoTanks);
-
-            Recorrido recorrido = recorridoService.getCurrentUnCompleedRecorrido(Constantes.SDF_DATE_ONLY.format(new Date()));
+            try {
+                recorridoService.completeUnCompletedRecorridos();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            Recorrido recorrido = recorridoService.getCurrentUnCompletedRecorrido(Constantes.SDF_DATE_ONLY.format(new Date()));
             if (recorrido != null){
-
                 recorridoService.continueCurrentRecorrido(recorrido);
-
             } else {
-//            Toast.makeText(this, "Puedes iniciar uno nuevo", Toast.LENGTH_SHORT).show();
                 initRecorrido();
             }
-        }
-
+        }*/
+        /*db.collection("recorridos").document("rrr123").addSnapshotListener(new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
+                Toast.makeText(MainActivity.this, "ALGO PASO OK", Toast.LENGTH_SHORT).show();
+            }
+        });*/
         initReceivers();
         //fireBaseRecorridosHelper = new FireBaseRecorridosHelper(MainActivity.this, myPreferences.getString(Constantes.DEFAULT_PLACA, ""));
         //fireBaseRecorridosHelper.init();
         myInstance = this;
+        initUploadRecorridosReceiver();
     }
 
     private void initReceivers() {
@@ -254,7 +260,7 @@ EstadosFragment.OnFragmentInteractionListener{
         Calendar calendarStart = Calendar.getInstance();
         calendarStart.setTimeInMillis(System.currentTimeMillis());
         calendarStart.set(Calendar.HOUR_OF_DAY, 0);
-        calendarStart.set(Calendar.MINUTE, 2);
+        calendarStart.set(Calendar.MINUTE, 1);
         calendarStart.set(Calendar.SECOND, 0);
 
         if (Calendar.getInstance().after(calendarStart)) {
@@ -271,8 +277,8 @@ EstadosFragment.OnFragmentInteractionListener{
         Calendar calendarStop = Calendar.getInstance();
         calendarStop.setTimeInMillis(System.currentTimeMillis());
         calendarStop.set(Calendar.HOUR_OF_DAY, 23);
-        calendarStop.set(Calendar.MINUTE, 58);
-        calendarStop.set(Calendar.SECOND, 0);
+        calendarStop.set(Calendar.MINUTE, 59);
+        calendarStop.set(Calendar.SECOND, 30);
 
         if (Calendar.getInstance().after(calendarStop)) {
             calendarStop.add(Calendar.DAY_OF_MONTH, 1);
@@ -342,7 +348,6 @@ EstadosFragment.OnFragmentInteractionListener{
 
     @Override
     public void onBackPressed() {
-
         Toast.makeText(this, "BACK BUTTON PRESSED", Toast.LENGTH_SHORT).show();
         /*DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
@@ -389,11 +394,20 @@ EstadosFragment.OnFragmentInteractionListener{
             viewMap.setVisibility(View.GONE);
             btnMenu.setVisibility(View.GONE);
 
-        }else if (id == R.id.nav_recorrido) {
+        }else if (id == R.id.nav_init_recorrido) {
             initRecorrido();
         }
-        else if (id == R.id.nav_recorrido_stop) {
+        else if (id == R.id.nav_stop_recorrido) {
             stopRecorrido();
+        }
+        else if (id == R.id.nav_datos_recorrido) {
+
+            miFragment = new RecorridosDatos(this);
+            fragmentSeleccionado = true;
+            tvTitulo.setText("Recorridos");
+            btnMenu.setVisibility(View.GONE);
+            viewMap.setVisibility(View.GONE);
+
         }
         else if (id == R.id.nav_upload_recorridos) {
             if(recorridoService != null)
@@ -480,10 +494,8 @@ EstadosFragment.OnFragmentInteractionListener{
         super.onDestroy();
 
         inndexLocationService.setLocationManager(null);
-
         //unregisterReceiver(startReceiver);
         //unregisterReceiver(stopReceiver);
-
         if (alert != null) {
             alert.dismiss();
         }
@@ -750,15 +762,12 @@ EstadosFragment.OnFragmentInteractionListener{
         if(newDevice){
             return;
         }
-
         timerInndexDeviceListener = new Timer();
         //handlerInndexDeviceListener = new Handler();
         TimerTask tTInndexDeviceListener = new TimerTask() {
             @Override
             public void run() {
-
                 if (!btSocket.isConnected()){
-
                     bluetoothHelper.checkBTState();
                 }
             }
@@ -828,8 +837,6 @@ EstadosFragment.OnFragmentInteractionListener{
 
     //Método que detiene el recorrido actual, lo sube al servidor y empieza un nuevo recorrido
     public void stopRecorrido() {
-
-        Log.e("ERR","RESETING RECORRIDO");
         if (recorridoService != null) {
             recorridoService.pararRecorrido();
             inndexLocationService.setDistancia(0);
@@ -843,16 +850,20 @@ EstadosFragment.OnFragmentInteractionListener{
             Toast.makeText(this, "No se pudo conectar con el dispositivo.", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        recorridoService = new RecorridoService(MainActivity.this, modelHasTwoTanks, this.helper, idUsuario, idUsuarioModeloCarro, placa);
+        recorridoService = new RecorridoService(MainActivity.this, modelHasTwoTanks,
+                this.helper, idUsuario, idUsuarioModeloCarro, placa);
         inndexLocationService.setDistancia(0);
-        recorridoService.iniciarRecorrido();
+        try {
+            recorridoService.completeUnCompletedRecorridos();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        recorridoService.initTimmers();
+        Toast.makeText(MainActivity.this, "RECORRIDO INICIADO", Toast.LENGTH_SHORT).show();
     }
 
     public void upateDefaultVehicle(Vehiculo uhmc) {
-
         if(this.bluetoothHelper != null) {
-
             try {
                 newDevice = true;
                 this.bluetoothHelper.getBtSocket().close();
@@ -966,5 +977,33 @@ EstadosFragment.OnFragmentInteractionListener{
 
     public CustomProgressDialog getmCustomProgressDialog() {
         return mCustomProgressDialog;
+    }
+
+    public void initUploadRecorridosReceiver(){
+        Calendar calendarStart = Calendar.getInstance();
+
+        calendarStart.setTimeInMillis(System.currentTimeMillis());
+        calendarStart.set(Calendar.HOUR_OF_DAY, calendarStart.get(Calendar.HOUR_OF_DAY));
+        calendarStart.set(Calendar.MINUTE, calendarStart.get(Calendar.MINUTE) + 5);
+        calendarStart.set(Calendar.SECOND, 0);
+
+        if (Calendar.getInstance().after(calendarStart)) {
+            calendarStart.add(Calendar.DAY_OF_MONTH, 1);
+        }
+        AlarmManager uploadRecorridoAlarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        Intent intentUploadRecorrido = new Intent(MainActivity.this, UploadRecorridoReceiver.class);
+        PendingIntent pendingIntentStart = PendingIntent.getBroadcast(MainActivity.this, 1,
+                intentUploadRecorrido, 0);
+        uploadRecorridoAlarmManager.setRepeating(AlarmManager.RTC_WAKEUP,  calendarStart.getTimeInMillis(),
+                INTERVAL_UPLOAD_UNIT_RECORRIDO, pendingIntentStart);
+    }
+
+    public void upload() {
+        if(myInstance.recorridoService != null && !myInstance.recorridoService.isInUploadingProccess()) {
+            Toast.makeText(this, "SUBIENDO RECORRIDO " + placa, Toast.LENGTH_SHORT).show();
+            myInstance.recorridoService.uploadAllNotCompletedAndNotUploaded();
+        } else {
+            Toast.makeText(myInstance, "INSTANCE IS NULL", Toast.LENGTH_SHORT).show();
+        }
     }
 }

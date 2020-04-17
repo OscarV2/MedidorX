@@ -17,11 +17,14 @@
             android:id="@+id/nav_config"
             android:title="@string/config" />
         <item
-            android:id="@+id/nav_recorrido"
+            android:id="@+id/nav_init_recorrido"
             android:title="@string/recorrido" />
         <item
-            android:id="@+id/nav_recorrido_stop"
+            android:id="@+id/nav_stop_recorrido"
             android:title="@string/parar_recorrido" />
+        <item
+            android:id="@+id/nav_datos_recorrido"
+            android:title="@string/datos_recorrido" />
         <item
             android:id="@+id/nav_upload_recorridos"
             android:title="@string/upload_recorridos" />

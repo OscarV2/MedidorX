@@ -23,6 +23,7 @@ import com.index.medidor.activities.MainActivity;
 import com.index.medidor.adapter.BluetoothDeviceAdapter;
 import com.index.medidor.bluetooth.SpBluetoothDevice;
 import com.index.medidor.database.DataBaseHelper;
+import com.index.medidor.model.Estados;
 import com.index.medidor.model.MarcaCarros;
 import com.index.medidor.model.ModeloCarros;
 import com.index.medidor.model.Vehiculo;
@@ -126,29 +127,23 @@ public class NuevoVehiculo extends Fragment {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         spMarca.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
                 //buscar id de marca por nombre
                 //int idMarca = listMarcas.stream().filter( m -> m.getNombre().equals(parent.getSelectedItem().toString()) ).findFirst().get().getId();
                 QueryBuilder<MarcaCarros, Integer> queryBuilder = daoMarcaCarros.queryBuilder();
                 try {
                     queryBuilder.where().eq("nombre", marcas[position]);
                     List<MarcaCarros> modeloCarrosList = queryBuilder.query();
-
                     if(modeloCarrosList != null && modeloCarrosList.size() > 0){
-
                         idMarca = modeloCarrosList.get(0).getId();
-
                         getModelosByMarca(idMarca);
                     }
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
             }
-
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
 
@@ -158,7 +153,6 @@ public class NuevoVehiculo extends Fragment {
         spLinea.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
                 linea = listModeloCarros.get(position).getLinea();
                 nuevoVehiculo.setModelosCarrosId(listModeloCarros.get(position).getId());
                 modeloCarros = listModeloCarros.get(position);
@@ -225,9 +219,10 @@ public class NuevoVehiculo extends Fragment {
     public void guardarVehiculo(){
 
         String placa =  edtPlaca.getText().toString();
+        Estados estados = new Estados();
+        estados.setId(1);
 
         if(placa.equals("") || placa.length() < 6){
-
             edtPlaca.requestFocus();
             Toast.makeText(mainActivity, "La placa no es válida.", Toast.LENGTH_SHORT).show();
             return;
@@ -251,6 +246,7 @@ public class NuevoVehiculo extends Fragment {
             nuevoVehiculo.setMarca(modeloCarros.getLinea());
             nuevoVehiculo.setLinea(modeloCarros.getLinea());
             nuevoVehiculo.setAnio(modeloCarros.getModelo());
+            //nuevoVehiculo.setEstado(estados);
             //mainActivity.upateDefaultVehicle(nuevoVehiculo);
             //Gson gson = new Gson();
             //nuevoVehiculo.setModeloCarros(null);
@@ -268,7 +264,15 @@ public class NuevoVehiculo extends Fragment {
                     if(response.isSuccessful() && response.body() != null){
                         try {
                             nuevoVehiculo.setId(response.body().getId());
+                            List<Vehiculo> listVehiculos = daoUsuarioModeloCarros.queryForAll();
+
+                            if(listVehiculos != null && listVehiculos.size() == 0){
+                                Log.e("id", "SAVED ID " + nuevoVehiculo.getId());
+                                mainActivity.getMyPreferences().edit().putLong(Constantes.DEFAULT_UHMC_ID, nuevoVehiculo.getId()).apply();
+                            }
+
                             daoUsuarioModeloCarros.create(nuevoVehiculo);
+
                             //mainActivity.getMyPreferences().edit().putString(Constantes.DEFAULT_BLUETOOTH_MAC, vehiculoUpdate.getBluetoothMac()).apply();
                             //mainActivity.upateDefaultVehicle(nuevoVehiculo);
                         } catch (SQLException e) {
@@ -310,10 +314,8 @@ public class NuevoVehiculo extends Fragment {
         }
 
         if (spBluetoothDevicesList.size() > 0){
-
             BluetoothDeviceAdapter adapter = new BluetoothDeviceAdapter(mainActivity, spBluetoothDevicesList);
             spBluetoothDevices.setAdapter(adapter);
-
             spBluetoothDevices.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {

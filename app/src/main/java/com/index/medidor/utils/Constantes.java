@@ -62,6 +62,7 @@ public class Constantes {
 
     public static final String GET_ESTADOS =  "estados/getAll";
     public static final String POST_SAVE_HISTORIAL_ESTADO =  "historial-estados-vehiculos/save";
+    public static final long DELAY_UPLOAD_RECORIDOS = 1800000;
 
     public static int ROTATION = 0;
 
@@ -85,6 +86,12 @@ public class Constantes {
 
     public static final long DELAY_RECORRIDO = 1000;
 
+    public static final long LIMIT_UNIT_RECORRIDO = 2000;
+
+    public static final long INTERVAL_UPLOAD_UNIT_RECORRIDO = 600000;
+
+    public static final long TIMEOUT = 500;
+
     public static final SimpleDateFormat SDF_FOR_BACKEND = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
 
     public static final SimpleDateFormat SDF_DATE_ONLY = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
@@ -93,13 +100,11 @@ public class Constantes {
 
     public static final SimpleDateFormat SDF_HOUR_RECORRIDO = new SimpleDateFormat("HH:mm:ss", Locale.US);
 
-    public static String generateRndomRecorridoCode(){
+    public static String generateRandomRecorridoCode(){
 
         SimpleDateFormat sdfRandom = new SimpleDateFormat("yyyyMMddHHmm", Locale.US);
+        return  sdfRandom.format(new Date()) + UUID.randomUUID().toString();
 
-        String code = sdfRandom.format(new Date()) + UUID.randomUUID().toString();
-        Log.e("genCode", code);
-        return code;
     }
 
     public static float getDistance(LatLng myPosition, LatLng estacionLatLng){

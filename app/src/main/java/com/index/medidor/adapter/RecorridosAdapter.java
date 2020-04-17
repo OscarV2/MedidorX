@@ -11,16 +11,14 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.index.medidor.R;
 import com.index.medidor.model.Recorrido;
+import com.index.medidor.utils.Constantes;
 
 import java.util.List;
 
@@ -153,7 +151,7 @@ public class RecorridosAdapter extends RecyclerView.Adapter<RecorridosAdapter.Re
 
             tvDistancia.setText(String.valueOf(recorrido.getDistanciaRecorrida()));
             tvGalRecorrido.setText(String.valueOf(recorrido.getGalonesPerdidos()));
-            tvFechaRecorrido.setText(recorrido.getFechaInicio());
+            tvFechaRecorrido.setText(Constantes.SDF_DATE_ONLY.format(recorrido.getFechaInicio()));
             /*
             mapView.setTag(recorrido);
             initMap();

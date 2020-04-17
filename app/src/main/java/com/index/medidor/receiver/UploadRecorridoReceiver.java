@@ -7,13 +7,11 @@ import android.util.Log;
 
 import com.index.medidor.activities.MainActivity;
 
-public class StopRecorridoReceiver extends BroadcastReceiver {
-
+public class UploadRecorridoReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-
-        Log.e("ONRECEIVE","STOP");
+        Log.e("ON","UPLOADING RECEIVER");
         MainActivity mainActivity = MainActivity.getInstance();
-        mainActivity.stopRecorrido();
+        mainActivity.upload();
     }
 }
