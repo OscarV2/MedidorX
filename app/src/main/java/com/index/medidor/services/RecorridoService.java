@@ -9,7 +9,6 @@ import com.index.medidor.database.DataBaseHelper;
 import com.index.medidor.model.Recorrido;
 import com.index.medidor.model.Tanqueadas;
 import com.index.medidor.model.UnidadRecorrido;
-import com.index.medidor.model.Usuario;
 import com.index.medidor.model.Vehiculo;
 import com.index.medidor.retrofit.MedidorApiAdapter;
 import com.index.medidor.utils.Constantes;
@@ -29,6 +28,8 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import static com.index.medidor.utils.Constantes.LIMIT_UNIT_RECORRIDO;
+
 public class RecorridoService {
 
     private Recorrido recorrido;
@@ -37,14 +38,10 @@ public class RecorridoService {
     private MainActivity mainActivity;
     private long time;
     private DataBaseHelper helper;
-    private List<UnidadRecorrido> listUnidadRecorrido;
-    private Dao<Recorrido, Integer> daoRecorrido;
+
     private Dao<UnidadRecorrido, Integer> daoUnidadRecorrido;
 
-    private int idUsuario;
-    private long idUsuarioModeloCarro;
     private short contUpdateRecorrido = 0;
-    private Location location;
     private String placa;
 
     private boolean inUploadingProccess = false;
@@ -57,11 +54,8 @@ public class RecorridoService {
         this.mainActivity = mainActivity;
         this.helper = helper;
         contUpdateRecorrido = 0;
-        this.idUsuario = (int) idUsuario;
-        this.idUsuarioModeloCarro = idUsuarioModeloCarro;
         this.placa = placa;
         try {
-            daoRecorrido = helper.getDaoRecorridos();
             daoUnidadRecorrido = helper.getDaoUnidadRecorrido();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -84,24 +78,15 @@ public class RecorridoService {
 
         recorrido.setFecha(Constantes.SDF_DATE_ONLY.format(new Date()));
 
-        Usuario user = new Usuario();
-        user.setId((int) idUsuario);
         recorrido.setVehiculo(new Vehiculo(idUsuarioModeloCarro));
-        recorrido.setUsuario(user);
         time = 0;
         this.helper = helper;
-        this.listUnidadRecorrido = new ArrayList<>();
         try {
-            daoRecorrido = helper.getDaoRecorridos();
             daoUnidadRecorrido = helper.getDaoUnidadRecorrido();
-            daoRecorrido.create(recorrido);
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
         contUpdateRecorrido = 0;
-        this.idUsuario = (int) idUsuario;
-        this.idUsuarioModeloCarro = idUsuarioModeloCarro;
         this.placa = placa;
 
     }
@@ -120,7 +105,7 @@ public class RecorridoService {
     private void updateRecorrido() {
 
         UnidadRecorrido unidadRecorrido = new UnidadRecorrido();
-        location = mainActivity.getInndexLocationService().getMyLocation();
+        Location location = mainActivity.getInndexLocationService().getMyLocation();
         if (location != null) {
             unidadRecorrido.setLatitud(mainActivity.getInndexLocationService().getMyLocation().getLatitude());
             unidadRecorrido.setLongitud(mainActivity.getInndexLocationService().getMyLocation().getLongitude());
@@ -128,8 +113,8 @@ public class RecorridoService {
         }
         unidadRecorrido.setDistancia(mainActivity.getInndexLocationService().getDistancia());
         unidadRecorrido.setHora(Constantes.SDF_HOUR_RECORRIDO.format(new Date()));
-        //recorrido.setDisanciaRecorrida(mainActivity.getInndexLocationService().getDistancia_temp());
         unidadRecorrido.setEstado(mainActivity.getEstado());
+        unidadRecorrido.setFecha(Constantes.SDF_DATE_ONLY.format(new Date()));
 
         time += Constantes.DELAY_RECORRIDO;
 
@@ -142,13 +127,12 @@ public class RecorridoService {
             unidadRecorrido.setGalones(mainActivity.getGalones());
             unidadRecorrido.setValorBluetooh(mainActivity.getValorBluetooh());
         }
-        listUnidadRecorrido.add(unidadRecorrido);
 
-        if (contUpdateRecorrido == 5) {
-            updateRecorridoInDao();
-            contUpdateRecorrido = 0;
+        try {
+            this.daoUnidadRecorrido.create(unidadRecorrido);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        contUpdateRecorrido++;
     }
 
     public void pararRecorrido() {
@@ -157,65 +141,33 @@ public class RecorridoService {
             mTimer.cancel();
             mTimer.purge();
         }
-        recorrido.setFechaFin(Constantes.SDF_DATE_RECORRIDO.format(new Date()));
-        recorrido.setCompleted(true);
         Toast.makeText(mainActivity, "RECORRIDO COMPLETED", Toast.LENGTH_SHORT).show();
-        updateRecorridoInDao();
-    }
-
-    private void updateRecorridoInDao() {
-        recorrido.setListUnidadRecorrido(listUnidadRecorrido);
-        try {
-            //Log.e("UP COMPLE", String.valueOf(recorrido.isCompleted()));
-            //Log.e("CODE",recorrido.getRecorridoCode());
-            daoRecorrido.update(recorrido);
-
-            for (UnidadRecorrido unidad : recorrido.getListUnidadRecorrido()) {
-                if (unidad.getId() == null) {
-                    unidad.setIdRecorrido(this.recorrido.getId());
-                    this.daoUnidadRecorrido.create(unidad);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
     public void uploadAllNotCompletedAndNotUploaded() {
 
-        final List<Recorrido> recorridoList;
-
         try {
-            QueryBuilder<Recorrido, Integer> queryBuilder =
-                    daoRecorrido.queryBuilder();
-            Where<Recorrido, Integer> where = queryBuilder.where();
-            where.eq("uploaded", false);
-            PreparedQuery<Recorrido> preparedQuery = queryBuilder.prepare();
-            recorridoList = daoRecorrido.query(preparedQuery);
-
-            if (recorridoList != null && recorridoList.size() > 0) {
-
-                Usuario usuario = new Usuario();
-                usuario.setId(idUsuario);
-                Vehiculo uhmc = new Vehiculo();
-                uhmc.setId(idUsuarioModeloCarro);
-
-                Recorrido recorridoToUpload = recorridoList.get(0);
-
                 QueryBuilder<UnidadRecorrido, Integer> qbUnidadRecorrido;
                 Where<UnidadRecorrido, Integer> whereUR;
                 PreparedQuery<UnidadRecorrido> pqUR;
                 qbUnidadRecorrido =
                         daoUnidadRecorrido.queryBuilder();
                 qbUnidadRecorrido.orderBy("id", true);
-                //qbUnidadRecorrido.limit(LIMIT_UNIT_RECORRIDO);
+                qbUnidadRecorrido.limit(LIMIT_UNIT_RECORRIDO);
                 whereUR = qbUnidadRecorrido.where();
-                whereUR.eq("idRecorrido", recorridoToUpload.getId());
+                whereUR.gt("id",0);
 
                 pqUR = qbUnidadRecorrido.prepare();
+                QueryBuilder<UnidadRecorrido, Integer> qbUnidadRecorridoCount;
 
+                qbUnidadRecorridoCount =
+                    daoUnidadRecorrido.queryBuilder();
+            qbUnidadRecorridoCount.setCountOf(true);
+            PreparedQuery<UnidadRecorrido> pqURCount = qbUnidadRecorridoCount.prepare();
+                Where<UnidadRecorrido, Integer> whereURCount = qbUnidadRecorrido.where();
+                whereURCount.gt("id",0);
                 List<UnidadRecorrido> lUnidadRecorrido = daoUnidadRecorrido.query(pqUR);
-                totalvaluesForUpload = lUnidadRecorrido.size();
+                totalvaluesForUpload = (int)daoUnidadRecorrido.countOf(pqURCount);
                 //lUnidadRecorrido.sort(Comparator.comparing(UnidadRecorrido::getId));
                 if(lUnidadRecorrido.size() > 1){
 
@@ -223,70 +175,38 @@ public class RecorridoService {
                     Log.e("SORT","Last index " + lUnidadRecorrido.get(lUnidadRecorrido.size() -1).getId());
                 }
 
-                if(totalvaluesForUpload > Constantes.LIMIT_UNIT_RECORRIDO)
-                    recorridoToUpload.setListUnidadRecorrido(lUnidadRecorrido.subList(0, (int)Constantes.LIMIT_UNIT_RECORRIDO));
-                else
-                    recorridoToUpload.setListUnidadRecorrido(lUnidadRecorrido);
+                //if(totalvaluesForUpload > LIMIT_UNIT_RECORRIDO)
+                //    lUnidadRecorrido = lUnidadRecorrido.subList(0, (int) LIMIT_UNIT_RECORRIDO);
 
-                recorridoToUpload.setUsuario(usuario);
-                recorridoToUpload.setVehiculo(uhmc);
-                Log.e("CODE", recorridoToUpload.getRecorridoCode());
-                this.uploadSingleTrip(recorridoToUpload);
-                //}
-                //Log.e("size", "not uploaded "+recorridoList.size());
-            } else {
-                Log.e("ERR", "LA LISTA DE RECORRIDOS ES NULL O SU SIZE ES 0");
-            }
+                this.uploadSingleTrip(lUnidadRecorrido);
+
         } catch (SQLException e) {
             Toast.makeText(mainActivity, "Ocurrió un error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-
             e.printStackTrace();
         }
     }
 
-    private void uploadSingleTrip(Recorrido recorridos) {
-        Call<Recorrido> uploadAll = MedidorApiAdapter.getApiService().postRecorridosBulk(Constantes.CONTENT_TYPE_JSON,
-                recorridos, placa);
+    private void uploadSingleTrip(List<UnidadRecorrido> listUnidadRecorrido) {
+        Call<UnidadRecorrido> uploadAll = MedidorApiAdapter.getApiService().postRecorridosBulk(Constantes.CONTENT_TYPE_JSON,
+                listUnidadRecorrido, placa);
+        Toast.makeText(mainActivity, "Subiendo: " + listUnidadRecorrido.size(), Toast.LENGTH_SHORT).show();
 
         mainActivity.getmCustomProgressDialog().show("");
-        uploadAll.enqueue(new Callback<Recorrido>() {
+        uploadAll.enqueue(new Callback<UnidadRecorrido>() {
             @Override
-            public void onResponse(Call<Recorrido> call, Response<Recorrido> response) {
+            public void onResponse(Call<UnidadRecorrido> call, Response<UnidadRecorrido> response) {
 
                 mainActivity.getmCustomProgressDialog().dismiss("");
                 Toast.makeText(mainActivity, "RESPONSE CODE " + response.code(), Toast.LENGTH_LONG).show();
 
                 if (response.isSuccessful() && response.body() != null) {
-
-                    deleteUploadedUnidadRecorridos(recorridos.getListUnidadRecorrido());
-                    if (recorridos.isCompleted() && (recorridos.getListUnidadRecorrido() == null
-                            || recorridos.getListUnidadRecorrido().size() == 0)) {
-                        Log.e("ID:", "IS COMPLETED AND READY FOR UPDATE " + recorridos.getId());
-                        recorridos.setUploaded(true);
-                        inUploadingProccess = false;
-                        Log.e("ID:", "it is supposed It HAS BEEN UPloaded " + recorridos.getId());
-                        try {
-                            Log.e("ID", "INSIDE TRY CATCH");
-                            daoRecorrido.update(recorridos);
-                                        /*int c = daoRecorrido.delete(r);
-                                        if(c > 0){
-                                            Log.e("THIS", "WAS UPDATED " + r.getId());
-                                        }else {
-                                            Log.e("THIS", "WAS NOOOOTTTT UPDATED " + r.getId());
-                                        }*/
-
-                        } catch (SQLException e) {
-                            Toast.makeText(mainActivity, "ERROR, ACTUALIZANDO RECORRIDOS EN LOCAL.", Toast.LENGTH_SHORT).show();
-                            e.printStackTrace();
-                        }
-                    } else {
-                        if(totalvaluesForUpload > Constantes.LIMIT_UNIT_RECORRIDO){
-                            uploadAllNotCompletedAndNotUploaded();
-                            inUploadingProccess = true;
-                        }
-                        else
-                            inUploadingProccess = false;
+                    deleteUploadedUnidadRecorridos(listUnidadRecorrido);
+                    if(totalvaluesForUpload > LIMIT_UNIT_RECORRIDO){
+                        uploadAllNotCompletedAndNotUploaded();
+                        inUploadingProccess = true;
                     }
+                    else
+                        inUploadingProccess = false;
                 } else {
                     Toast.makeText(mainActivity, "ERROR, NO SE PUDO SUBIR TODA LA INFORMACIÓN " + response.code(), Toast.LENGTH_SHORT).show();
                     Log.e("RESPPONSE", "IS NOT SUCCESSFUL");
@@ -294,7 +214,7 @@ public class RecorridoService {
             }
 
             @Override
-            public void onFailure(Call<Recorrido> call, Throwable t) {
+            public void onFailure(Call<UnidadRecorrido> call, Throwable t) {
                 mainActivity.getmCustomProgressDialog().dismiss("");
                 Toast.makeText(mainActivity, "ERROR, NO SE PUDO SUBIR TODA LA INFORMACIÓN " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 Log.e("ERROR 3", t.getMessage());
@@ -319,28 +239,8 @@ public class RecorridoService {
         return recorrido;
     }
 
-    public void continueCurrentRecorrido(Recorrido recorrido) {
-
-        this.recorrido = recorrido;
-        initTimmers();
-        this.listUnidadRecorrido = new ArrayList<>();
-
-        contUpdateRecorrido = 0;
-        Toast.makeText(mainActivity, "CONTINUANDO RECORRIDO", Toast.LENGTH_SHORT).show();
-    }
-
     public Recorrido getRecorrido() {
         return recorrido;
-    }
-
-    public void deleteAllRecorridos() {
-        try {
-            List<Recorrido> recorridosList = daoRecorrido.queryForAll();
-            if (recorridosList != null && recorridosList.size() > 0)
-                daoRecorrido.delete(recorridosList);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
     private void deleteUploadedUnidadRecorridos(List<UnidadRecorrido> listUnidadRecorrido) {
@@ -365,65 +265,12 @@ public class RecorridoService {
         }
     }
 
-    public void uploadRecorrido() {
-
-        recorrido.setListUnidadRecorrido(listUnidadRecorrido);
-        recorrido.setListUnidadRecorrido(null);
-        //recorrido.setId(null);
-
-        Call<String> callRegisterRecorrido =
-                MedidorApiAdapter.getApiService().postRegisterRecorrido(Constantes.CONTENT_TYPE_JSON, recorrido);
-
-        callRegisterRecorrido.enqueue(new Callback<String>() {
-            @Override
-            public void onResponse(Call<String> call, Response<String> response) {
-
-                //se obtiene el id del recorrido
-                if (response.body() != null) {
-                    Long id = Long.parseLong(response.body());
-                    recorrido.setId(id);
-                } else {
-                    Log.e("ERROR", "EL RESPONSE BODY ES NULO");
-                }
-                if (response.isSuccessful()) {
-                    Toast.makeText(mainActivity, "RECORRIDO ENVIADO AL SERVIDOR DE MANERA EXITOSA", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<String> call, Throwable t) {
-                Toast.makeText(mainActivity, "NO SE PUDO SUBIR EL RECORRIDO", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
     public boolean isModelHasTwoTanks() {
         return modelHasTwoTanks;
     }
 
     public void setModelHasTwoTanks(boolean modelHasTwoTanks) {
         this.modelHasTwoTanks = modelHasTwoTanks;
-    }
-
-    public void completeUnCompletedRecorridos() throws SQLException {
-
-        List<Recorrido> lUnCompletedRecorridos = new ArrayList<>();
-        QueryBuilder<Recorrido, Integer> queryBuilder =
-                daoRecorrido.queryBuilder();
-        Where<Recorrido, Integer> where = queryBuilder.where();
-        where.eq("completed", false).and()
-                .notIn("fecha", Constantes.SDF_DATE_ONLY.format(new Date()));
-        PreparedQuery<Recorrido> preparedQuery = queryBuilder.prepare();
-        lUnCompletedRecorridos = daoRecorrido.query(preparedQuery);
-
-        if (lUnCompletedRecorridos != null && lUnCompletedRecorridos.size() > 0) {
-
-            for (Recorrido r : lUnCompletedRecorridos
-            ) {
-                r.setCompleted(true);
-                daoRecorrido.update(r);
-            }
-        }
     }
 
     public void pushTanqueada(Tanqueadas tanqueada) {

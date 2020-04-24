@@ -26,6 +26,8 @@ public class UnidadRecorrido {
     private Double distancia;
     @DatabaseField
     private String hora;
+    @DatabaseField
+    private String fecha;
     //@DatabaseField(foreign = true, foreignAutoRefresh = true)
     //@Expose(serialize = false, deserialize = false)
     @DatabaseField
@@ -128,5 +130,13 @@ public class UnidadRecorrido {
 
     public void setEstado(Integer estado) {
         this.estado = estado;
+    }
+
+    public String getFecha() {
+        return fecha;
+    }
+
+    public void setFecha(String fecha) {
+        this.fecha = fecha;
     }
 }

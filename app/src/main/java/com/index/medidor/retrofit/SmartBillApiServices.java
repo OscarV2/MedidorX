@@ -7,6 +7,7 @@ import com.index.medidor.model.MarcaCarros;
 import com.index.medidor.model.ModeloCarros;
 import com.index.medidor.model.Recorrido;
 import com.index.medidor.model.Tanqueadas;
+import com.index.medidor.model.UnidadRecorrido;
 import com.index.medidor.model.Usuario;
 import com.index.medidor.model.Vehiculo;
 import com.index.medidor.utils.Constantes;
@@ -88,8 +89,8 @@ public interface SmartBillApiServices {
     Call<String> postRegisterRecorrido(@Header("Content-Type") String headerContentType,
                                              @Body Recorrido recorrido);
     @POST(Constantes.POST_RECORRIDOS_BULK)
-    Call<Recorrido> postRecorridosBulk(@Header("Content-Type") String headerContentType,
-                                              @Body Recorrido recorridos, @Query("placa") String placa);
+    Call<UnidadRecorrido> postRecorridosBulk(@Header("Content-Type") String headerContentType,
+                                       @Body List<UnidadRecorrido> lUnidadRecorridos, @Query("placa") String placa);
 
     /**
      * ESTADOS

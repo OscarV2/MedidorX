@@ -72,8 +72,6 @@ import com.index.medidor.fragments.recorridos.RecorridosDatos;
 import com.index.medidor.model.Estaciones;
 import com.index.medidor.model.Vehiculo;
 import com.index.medidor.places.EstacionesPlaces;
-import com.index.medidor.receiver.StartRecorridoReceiver;
-import com.index.medidor.receiver.StopRecorridoReceiver;
 import com.index.medidor.receiver.UploadRecorridoReceiver;
 import com.index.medidor.services.InndexLocationService;
 import com.index.medidor.services.MapService;
@@ -248,51 +246,10 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
                 Toast.makeText(MainActivity.this, "ALGO PASO OK", Toast.LENGTH_SHORT).show();
             }
         });*/
-        initReceivers();
         //fireBaseRecorridosHelper = new FireBaseRecorridosHelper(MainActivity.this, myPreferences.getString(Constantes.DEFAULT_PLACA, ""));
         //fireBaseRecorridosHelper.init();
         myInstance = this;
         initUploadRecorridosReceiver();
-    }
-
-    private void initReceivers() {
-
-        Calendar calendarStart = Calendar.getInstance();
-        calendarStart.setTimeInMillis(System.currentTimeMillis());
-        calendarStart.set(Calendar.HOUR_OF_DAY, 0);
-        calendarStart.set(Calendar.MINUTE, 1);
-        calendarStart.set(Calendar.SECOND, 0);
-
-        if (Calendar.getInstance().after(calendarStart)) {
-            calendarStart.add(Calendar.DAY_OF_MONTH, 1);
-        }
-
-        AlarmManager startRecorridoAlarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-        Intent intentStartRrecorrido = new Intent(MainActivity.this, StartRecorridoReceiver.class);
-        PendingIntent pendingIntentStart = PendingIntent.getBroadcast(MainActivity.this, 1,
-                intentStartRrecorrido, 0);
-        startRecorridoAlarmManager.setRepeating(AlarmManager.RTC_WAKEUP,  calendarStart.getTimeInMillis(),
-                AlarmManager.INTERVAL_DAY, pendingIntentStart);
-
-        Calendar calendarStop = Calendar.getInstance();
-        calendarStop.setTimeInMillis(System.currentTimeMillis());
-        calendarStop.set(Calendar.HOUR_OF_DAY, 23);
-        calendarStop.set(Calendar.MINUTE, 59);
-        calendarStop.set(Calendar.SECOND, 30);
-
-        if (Calendar.getInstance().after(calendarStop)) {
-            calendarStop.add(Calendar.DAY_OF_MONTH, 1);
-        }
-
-        AlarmManager stopRecorridoAlarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-        Intent intentStopRecorrido = new Intent(MainActivity.this, StopRecorridoReceiver.class);
-        PendingIntent pendingIntentStop = PendingIntent.getBroadcast(MainActivity.this, 0, intentStopRecorrido, 0);
-
-        stopRecorridoAlarmManager.setRepeating(AlarmManager.RTC_WAKEUP,  calendarStop.getTimeInMillis(),
-                AlarmManager.INTERVAL_DAY, pendingIntentStop);
-
-        //registerReceiver(startReceiver, new IntentFilter(Constantes.START_RECORRIDO_INTENT_FILTER));
-        //registerReceiver(stopReceiver, new IntentFilter(Constantes.STOP_RECORRIDO_INTENT_FILTER));
     }
 
     private void initCombustibleProgresBars() {
@@ -853,11 +810,6 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
         recorridoService = new RecorridoService(MainActivity.this, modelHasTwoTanks,
                 this.helper, idUsuario, idUsuarioModeloCarro, placa);
         inndexLocationService.setDistancia(0);
-        try {
-            recorridoService.completeUnCompletedRecorridos();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
         recorridoService.initTimmers();
         Toast.makeText(MainActivity.this, "RECORRIDO INICIADO", Toast.LENGTH_SHORT).show();
     }
@@ -916,15 +868,7 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
           //      newPlaca);
         //fireBaseRecorridosHelper.setPlaca(newPlaca);
         //fireBaseRecorridosHelper.init();
-        this.recorridoService.deleteAllRecorridos();
         initRecorrido();
-    }
-
-    public void resetAll() {
-
-        if (recorridoService != null){
-            recorridoService.deleteAllRecorridos();
-        }
     }
 
     public double getGalones() {
@@ -1000,7 +944,7 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
 
     public void upload() {
         if(myInstance.recorridoService != null && !myInstance.recorridoService.isInUploadingProccess()) {
-            Toast.makeText(this, "SUBIENDO RECORRIDO " + placa, Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "SUBIENDO RECORRIDO " + placa, Toast.LENGTH_SHORT).show();
             myInstance.recorridoService.uploadAllNotCompletedAndNotUploaded();
         } else {
             Toast.makeText(myInstance, "INSTANCE IS NULL", Toast.LENGTH_SHORT).show();

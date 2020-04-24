@@ -5,10 +5,6 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
-import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -20,44 +16,38 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.fragment.app.Fragment;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.index.medidor.R;
 import com.index.medidor.activities.MainActivity;
 import com.index.medidor.adapter.BluetoothDeviceAdapter;
+import com.index.medidor.bluetooth.BluetoothHelper;
 import com.index.medidor.bluetooth.SpBluetoothDevice;
 import com.index.medidor.database.DataBaseHelper;
 import com.index.medidor.model.MarcaCarros;
 import com.index.medidor.model.ModeloCarros;
+import com.index.medidor.pojo.Flujo;
 import com.index.medidor.retrofit.MedidorApiAdapter;
-import com.index.medidor.bluetooth.BluetoothHelper;
 import com.index.medidor.utils.Constantes;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.Timer;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link AdquisicionDatos.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link AdquisicionDatos#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class AdquisicionDatos extends Fragment {
 
     private Spinner spMarca;
@@ -66,7 +56,10 @@ public class AdquisicionDatos extends Fragment {
     private Spinner spBluetoothDevices;
 
     private TextView tvDatoNivel;
-    private TextView tvDatoFlujo;
+    private EditText edtDatoFlujo;
+    private TextView tvLastData;
+    private TextView tvDataQuantity;
+    private Button btnAddFluxData;
 
     private Button btnAdquisicion;
     private Button btnRegistrar;
@@ -80,15 +73,19 @@ public class AdquisicionDatos extends Fragment {
     private boolean acquisitionStarted;
     private boolean deviceConnected;
 
+    private RelativeLayout rlAdqData;
+
+    private List<Flujo> lFlujo;
+
     private MainActivity mainActivity;
 
     private ModeloCarros modeloCarros;
 
-    private JsonObject jsonMuestreo;
+private int nivel;
 
     private OnFragmentInteractionListener mListener;
-    private Timer mTimer1;
-    private Handler mHandler;
+    //private Timer mTimer1;
+    //private Handler mHandler;
     private BluetoothHelper bluetoothHelper;
     private List<Integer> keyArraysAdq;
     private List<Integer> keyArraysFlux;
@@ -98,11 +95,13 @@ public class AdquisicionDatos extends Fragment {
     }
 
     public AdquisicionDatos(MainActivity mainActivity) {
-
         //this.bluetoothHelper = new BluetoothHelper();
         this.mainActivity = mainActivity;
         this.keyArraysAdq = new ArrayList<>();
         this.helper = OpenHelperManager.getHelper(mainActivity, DataBaseHelper.class);
+        this.lFlujo = new ArrayList<>();
+        Flujo flujo = new Flujo(0, 0);
+        lFlujo.add(flujo);
     }
 
     // TODO: Rename and change types and number of parameters
@@ -129,11 +128,38 @@ public class AdquisicionDatos extends Fragment {
         spMarca = v.findViewById(R.id.sp_marca_adq_modelo);
         spBluetoothDevices = v.findViewById(R.id.sp_select_bluetooth_device);
         rbTieneDosTanques = v.findViewById(R.id.rb_tiene_2_tanques);
-
+        rlAdqData = v.findViewById(R.id.lay_gal_ingresados_modelo);
+        rlAdqData.setVisibility(View.GONE);
         tvDatoNivel = v.findViewById(R.id.tv_adquisition_dato_1);
-        tvDatoFlujo = v.findViewById(R.id.tv_adquisition_flujo);
+        edtDatoFlujo = v.findViewById(R.id.edt_adq_volumen);
+        edtDatoFlujo.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                if(count > 0) {
+                    double dato = Double.parseDouble(s.toString());
+                    if(dato > 0) {
+                        btnAddFluxData.setVisibility(View.VISIBLE);
+                    }
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+        tvDataQuantity = v.findViewById(R.id.tv_adquisition_data_quantity);
+        tvLastData = v.findViewById(R.id.tv_adquisition_last_saved_data);
         btnAdquisicion = v.findViewById(R.id.btn_datos_adq_correctamente);
+
+        btnAddFluxData = v.findViewById(R.id.btn_add_adq_value);
+
         btnRegistrar = v.findViewById(R.id.btn_registrar_adq_correctamente);
         estadoAdquicision = 0;
         keyArraysFlux = new ArrayList<>();
@@ -197,7 +223,6 @@ public class AdquisicionDatos extends Fragment {
                     }else{
                         btnAdquisicion.setEnabled(false);
                         btnAdquisicion.setBackgroundColor(mainActivity.getResources().getColor(R.color.colorPrimaryDark));
-
                     }
                 }
             }
@@ -213,6 +238,7 @@ public class AdquisicionDatos extends Fragment {
                 return;
             }
             if (!acquisitionStarted){
+                rlAdqData.setVisibility(View.VISIBLE);
                 iniciarAdq();
                 btnAdquisicion.setText(R.string.finalizarAdqModelo);
                 estadoAdquicision = 1;
@@ -294,7 +320,6 @@ public class AdquisicionDatos extends Fragment {
         }
         modeloCarros.setIdMarca(this.idMarca);
 
-        Log.e("Objeto","Adq");
         Log.e("Adq", gson.toJson(modeloCarros));
 
         Call<ModeloCarros> callRegistrarModelo = MedidorApiAdapter.getApiService()
@@ -417,14 +442,21 @@ public class AdquisicionDatos extends Fragment {
         if (acquisitionStarted) {
             Log.e("tu adqDato", String.valueOf(dato[0]));
             Log.e("tu adqDato2", String.valueOf(dato[1]));
+            nivel = dato[0];
 
-            keyArraysAdq.add(dato[0]);
-            keyArraysFlux.add(dato[1]);
-
-            tvDatoFlujo.setText(mainActivity.getResources().getString(R.string.flujo_adquisition, dato[1]));
-            tvDatoFlujo.setText(String.format(mainActivity.getResources().getString(R.string.flujo_adquisition), dato[1]));
             tvDatoNivel.setText(String.format(mainActivity.getResources().getString(R.string.nivel_adquisition), dato[0]));
         }
+    }
+
+    public void addFluxData() {
+
+        double volumen = Double.parseDouble(edtDatoFlujo.getText().toString());
+        Flujo flujo = new Flujo(nivel, volumen);
+        lFlujo.add(flujo);
+
+        tvLastData.setText(String.valueOf(flujo.getVolumen()));
+        tvDataQuantity.setText(String.valueOf(lFlujo.size()));
+        btnAddFluxData.setVisibility(View.GONE);
     }
 
     public boolean isDeviceConnected() {
@@ -432,7 +464,6 @@ public class AdquisicionDatos extends Fragment {
     }
 
     public void setDeviceConnected(boolean deviceConnected) {
-
         if (!deviceConnected) {
             spBluetoothDevices.setEnabled(true);
             Toast.makeText(mainActivity, "NO SE PUDO CONECTAR CON EL DISPOSITIVO.", Toast.LENGTH_SHORT).show();

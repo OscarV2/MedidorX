@@ -122,7 +122,8 @@ public class BluetoothHelper {
                                 ex.getStackTrace();
                             }
                             if(adqProcess && datos.length > 1) {  // en proceso de adquisición
-                                datoFlujo = Integer.valueOf(datos[1]);
+                                String tmpDatos = datos[1];
+                                datoFlujo = Integer.parseInt(tmpDatos.split("-")[0]);
                                 bluetoothDataReceiver.getBluetoothData(dato, datoFlujo);
                                 recDataString.delete(0, recDataString.length());      //clear all string data
                                 return;
