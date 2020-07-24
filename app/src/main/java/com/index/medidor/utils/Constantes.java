@@ -27,42 +27,42 @@ public class Constantes {
     public static final String GET_ALL_ESTACIONES = "estaciones/getAll";
     public static final String POST_REGISTER_STATION = "estaciones/postRegistrar";
     //TANQUEADAS
-    public static final String POST_REGISTRAR_TANQUEADA =  "tanqueadas/postRegistrar";
-    public static final String GET_TANQUEADAS_BY_USER =  "tanqueadas/getByUser/";
+    public static final String POST_REGISTRAR_TANQUEADA = "tanqueadas/postRegistrar";
+    public static final String GET_TANQUEADAS_BY_USER = "tanqueadas/getByUser/";
 
-    //USUARIO HAS MODELO CARROS
-    public static final String POST_REGISTRAR_USUARIO_HAS_MODELO_CARRO =  "usuarioHasModeloCarros/";
-    public static final String PUT_UPDATE_USUARIO_HAS_MODELO_CARRO =  "usuarioHasModeloCarros/update";
-    public static final String GET_USUARIO_HAS_MODELO_CARROS_BY_ID_USER =  "usuarioHasModeloCarros/getAllByUser/";
+    //Vehiculos
+    public static final String POST_REGISTRAR_USUARIO_HAS_MODELO_CARRO = "usuarioHasModeloCarros/";
+    public static final String PUT_UPDATE_USUARIO_HAS_MODELO_CARRO = "usuarioHasModeloCarros/update";
+    public static final String GET_USUARIO_HAS_MODELO_CARROS_BY_ID_USER = "usuarioHasModeloCarros/getAllByUser/";
 
     //API KEY DE PONTON
     public static final String API_KEY_PLACES = "AIzaSyBHLkx2pOIKyoiTYjw-c78ValF4iHktcjc";
     //public static final String API_KEY = "AIzaSyBVYoTTWhM_JZAlbUpJuTKTI5xcTJq7NFY";
 
     //RECORRIDOS
-    public static final String POST_REGISTRAR_RECORRIDO = "recorridos/register";
     public static final String POST_RECORRIDOS_BULK = "recorridos/bulk";
 
-    public static final String GET_RECORRIDOS_BY_USER= "recorridos/idUsuario";
+    public static final String POST_CHECK_PASSWORD = "inndexAppSecurity/getByAppPassword";
 
-    public static final String URL_PLACES ="https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{long}&radius=1200&type=gas_station&key=";
+    public static final String GET_RECORRIDOS_BY_USER = "recorridos/idUsuario";
+
+    public static final String URL_PLACES = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{long}&radius=1200&type=gas_station&key=";
     public static final String URL_HTTP = "https://maps.googleapis.com/maps/api/directions/json?origin=";
 
     /**
      * MODELOS CARROS
      */
-    public static final String GET_MODELOS_CARROS_BY_MARCA =  "modelos-carros/getByMarca/";
+    public static final String GET_MODELOS_CARROS_BY_MARCA = "modelos-carros/getByMarca/";
     public static final String POST_REGISTER_MODELO_CARRO = "modelos-carros/postRegistrar";
 
     /**
      * MARCAS CARROS
      */
-    public static final String GET_MARCAS_CARROS =  "marcas-carros/getAll";
+    public static final String GET_MARCAS_CARROS = "marcas-carros/getAll";
     public static final String DEFAULT_USER_ID = "idUsuario";
 
-    public static final String GET_ESTADOS =  "estados/getAll";
-    public static final String POST_SAVE_HISTORIAL_ESTADO =  "historial-estados-vehiculos/save";
-    public static final long DELAY_UPLOAD_RECORIDOS = 1800000;
+    public static final String GET_ESTADOS = "estados/getAll";
+    public static final String POST_SAVE_HISTORIAL_ESTADO = "historial-estados-vehiculos/save";
 
     public static int ROTATION = 0;
 
@@ -75,7 +75,7 @@ public class Constantes {
     public static final String MODEL_HAS_TWO_TANKS = "modelHasTwoTanks";
     public static final String STOP_RECORRIDO_INTENT_FILTER = "RECORRIDO_INTENT_FILTER";
     public static final String START_RECORRIDO_INTENT_FILTER = "START_RECORRIDO_INTENT_FILTER";
-    public static final String DEFAULT_UHMC_ID = "defaultUhmcId";
+    public static final String DEFAULT_VEHICLE_ID = "defaultUhmcId";
     public static final String DEFAULT_PLACA = "defaultPlaca";
     public static final String DEFAULT_STATE = "defaultState";
     public static final String DEFAULT_STATE_ID = "defaultStateId";
@@ -85,9 +85,9 @@ public class Constantes {
     public static final double LAT_LNG_TOLERANCE = 0.002;
 
     public static final long DELAY_RECORRIDO = 1000;
-
     public static final long LIMIT_UNIT_RECORRIDO = 2000;
-
+    //    public static final long DELAY_UPLOAD_RECORIDOS = 1800000;
+    public static final long DELAY_UPLOAD_RECORIDOS = 300000;
     public static final long INTERVAL_UPLOAD_UNIT_RECORRIDO = 600000;
 
     public static final long TIMEOUT = 500;
@@ -100,14 +100,14 @@ public class Constantes {
 
     public static final SimpleDateFormat SDF_HOUR_RECORRIDO = new SimpleDateFormat("HH:mm:ss", Locale.US);
 
-    public static String generateRandomRecorridoCode(){
+    public static String generateRandomRecorridoCode() {
 
         SimpleDateFormat sdfRandom = new SimpleDateFormat("yyyyMMddHHmm", Locale.US);
-        return  sdfRandom.format(new Date()) + UUID.randomUUID().toString();
+        return sdfRandom.format(new Date()) + UUID.randomUUID().toString();
 
     }
 
-    public static float getDistance(LatLng myPosition, LatLng estacionLatLng){
+    public static float getDistance(LatLng myPosition, LatLng estacionLatLng) {
 
         float[] results = {0};
         Location.distanceBetween(myPosition.latitude, myPosition.longitude, estacionLatLng.latitude, estacionLatLng.longitude, results);
@@ -118,27 +118,27 @@ public class Constantes {
 
         final Dao<MarcaCarros, Integer> dao = helper.getDaoMarcas();
         List<MarcaCarros> listMarcas = dao.queryForAll();
-        if (listMarcas!= null && listMarcas.size() > 0){
-            Log.e("marcas",String.valueOf(listMarcas.size()));
+        if (listMarcas != null && listMarcas.size() > 0) {
+            Log.e("marcas", String.valueOf(listMarcas.size()));
         }
         String[] marcas = new String[listMarcas.size()];
 
-        for (int i = 0; i < listMarcas.size(); i++ ) {
+        for (int i = 0; i < listMarcas.size(); i++) {
 
             marcas[i] = listMarcas.get(i).getNombre();
         }
 
-        return  marcas;
+        return marcas;
     }
 
-    public static String[] getYearsModelsCars(){
+    public static String[] getYearsModelsCars() {
 
         int year = Calendar.getInstance().get(Calendar.YEAR);
         String[] years = new String[50];
         years[0] = String.valueOf(year);
 
-        for (int i = 1; i < 50 ;i++){
-            years[i] = String.valueOf( year-i );
+        for (int i = 1; i < 50; i++) {
+            years[i] = String.valueOf(year - i);
         }
 
         return years;
@@ -158,8 +158,7 @@ public class Constantes {
             ".LOCATION_DATA_EXTRA";
 
     public static String obtenerDireccionesURL(Double latitud_origen, Double longitud_origen, Double latitud_destino,
-                                                Double longitud_destino, String mapsApiKey) {
-
+                                               Double longitud_destino, String mapsApiKey) {
         String str_key = "key=" + mapsApiKey;
         String str_origin = "origin=" + latitud_origen + "," + longitud_origen;
         String str_dest = "destination=" + latitud_destino + "," + longitud_destino;
@@ -168,4 +167,6 @@ public class Constantes {
         String url = "https://maps.googleapis.com/maps/api/directions/json?" + parameters;
         return url;
     }
+
+    public static String SECURITY_PASWORD = "Tempo0$";
 }

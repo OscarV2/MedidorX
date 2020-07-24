@@ -5,12 +5,12 @@ import java.io.Serializable;
 public class Flujo implements Serializable {
 
     private int nivel;
-    private double volumen;
+    private int volumen;
 
     public Flujo() {
     }
 
-    public Flujo(int nivel, double volumen) {
+    public Flujo(int nivel, int volumen) {
         this.nivel = nivel;
         this.volumen = volumen;
     }
@@ -23,11 +23,11 @@ public class Flujo implements Serializable {
         this.nivel = nivel;
     }
 
-    public double getVolumen() {
+    public int getVolumen() {
         return volumen;
     }
 
-    public void setVolumen(double volumen) {
+    public void setVolumen(int volumen) {
         this.volumen = volumen;
     }
 }

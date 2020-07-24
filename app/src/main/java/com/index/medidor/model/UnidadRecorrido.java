@@ -23,8 +23,6 @@ public class UnidadRecorrido {
     @DatabaseField
     private Integer valorBluetoothTankTwo;
     @DatabaseField
-    private Double distancia;
-    @DatabaseField
     private String hora;
     @DatabaseField
     private String fecha;
@@ -111,15 +109,10 @@ public class UnidadRecorrido {
         this.idRecorrido = idRecorrido;
     }
 
-    public Double getDistancia() {
-        return distancia;
-    }
-    public void setDistancia(Double distancia) {
-        this.distancia = distancia;
-    }
     public String getHora() {
         return hora;
     }
+
     public void setHora(String hora) {
         this.hora = hora;
     }

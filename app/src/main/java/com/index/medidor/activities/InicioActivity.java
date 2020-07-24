@@ -56,7 +56,6 @@ public class InicioActivity extends AppCompatActivity {
             if(myPreferences.getBoolean(Constantes.SESION_ACTIVE,false)){
                 irMain();
             }else{
-
                 Intent intent = new Intent(InicioActivity.this, LoginActivity.class);
                 startActivity(intent);
                 finish();
@@ -88,9 +87,6 @@ public class InicioActivity extends AppCompatActivity {
                                 try {
                                     dao.create(e);
                                 } catch (SQLException e1) {
-                                    Log.e("ERROR", e1.getMessage());
-                                    Log.e("ERROR", e1.getLocalizedMessage());
-                                    Log.e("ERROR", e1.getCause().getMessage());
 
                                     Toast.makeText(InicioActivity.this, "Error en la base de datos.", Toast.LENGTH_SHORT).show();
                                     break;

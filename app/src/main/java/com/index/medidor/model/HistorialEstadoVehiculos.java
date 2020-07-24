@@ -14,6 +14,14 @@ public class HistorialEstadoVehiculos implements Serializable {
     private String fechaFin;
     @DatabaseField
     private String fechaInicio;
+    @DatabaseField
+    private transient boolean uploaded;
+
+    @DatabaseField
+    private transient int idEstado;
+    @DatabaseField
+    private transient Long idVehiculo;
+
 
     private Vehiculo vehiculo;
 
@@ -60,5 +68,29 @@ public class HistorialEstadoVehiculos implements Serializable {
 
     public void setEstado(Estados estado) {
         this.estado = estado;
+    }
+
+    public boolean isUploaded() {
+        return uploaded;
+    }
+
+    public void setUploaded(boolean uploaded) {
+        this.uploaded = uploaded;
+    }
+
+    public int getIdEstado() {
+        return idEstado;
+    }
+
+    public void setIdEstado(int idEstado) {
+        this.idEstado = idEstado;
+    }
+
+    public Long getIdVehiculo() {
+        return idVehiculo;
+    }
+
+    public void setIdVehiculo(Long idVehiculo) {
+        this.idVehiculo = idVehiculo;
     }
 }

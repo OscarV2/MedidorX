@@ -2,32 +2,41 @@ package com.index.medidor.activities;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
+import android.text.InputType;
 import android.text.Spannable;
 import android.text.SpannableString;
+import android.util.Base64;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -70,12 +79,14 @@ import com.index.medidor.fragments.estados.EstadosFragment;
 import com.index.medidor.fragments.historial.HistorialTabs;
 import com.index.medidor.fragments.recorridos.RecorridosDatos;
 import com.index.medidor.model.Estaciones;
+import com.index.medidor.model.InndexAppSecurity;
 import com.index.medidor.model.Vehiculo;
 import com.index.medidor.places.EstacionesPlaces;
-import com.index.medidor.receiver.UploadRecorridoReceiver;
+import com.index.medidor.retrofit.MedidorApiAdapter;
 import com.index.medidor.services.InndexLocationService;
 import com.index.medidor.services.MapService;
 import com.index.medidor.services.RecorridoService;
+import com.index.medidor.services.UploadRecorridosService;
 import com.index.medidor.utils.Constantes;
 import com.index.medidor.utils.CustomProgressDialog;
 import com.index.medidor.utils.NavTypeFace;
@@ -84,9 +95,9 @@ import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -94,13 +105,15 @@ import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static com.index.medidor.utils.Constantes.INTERVAL_UPLOAD_UNIT_RECORRIDO;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, SetArrayValuesForInndex,
         BluetoothDataReceiver, AdquisicionDatos.OnFragmentInteractionListener, IBluetoothState, DondeTanquearTabs.OnFragmentInteractionListener,
         InicioFragment.OnFragmentInteractionListener, HistorialTabs.OnFragmentInteractionListener, DondeTanquearFragment.OnFragmentInteractionListener,
         ConfiguracionTabs.OnFragmentInteractionListener, IngresadoFragment.OnFragmentInteractionListener, NuevoVehiculo.OnFragmentInteractionListener,
-EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInteractionListener {
+        EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInteractionListener, SensorEventListener {
 
     private DrawerLayout drawer;
     private NavigationView navigationView;
@@ -132,7 +145,7 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
     private Integer tipoUsuario;
     private RecorridoService recorridoService;
     private long idUsuario;
-    private long idUsuarioModeloCarro;
+    private Long idVehiculo;
 
     private MapService mapService;
     private InndexLocationService inndexLocationService;
@@ -152,6 +165,11 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
     private Integer estado;
 
     private Timer uploadRecorridosTimer;
+    private UploadRecorridosService uploadRecorridosService;
+
+    private static final int SENSOR_SENSITIVITY = 4;
+    private SensorManager mSensorManager;
+    private Sensor mProximity;
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @SuppressLint("ResourceType")
@@ -176,19 +194,23 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
         mCustomProgressDialog.setCancelable(false);
         inndexLocationService = new InndexLocationService(MainActivity.this);
         inndexLocationService.init();
-        checkGPSState();
 
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mProximity = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
+
+        checkGPSState();
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         assert mapFragment != null;
         mapFragment.getMapAsync(this);
         myPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         placa = myPreferences.getString(Constantes.DEFAULT_PLACA, "");
-        idUsuarioModeloCarro = myPreferences.getLong(Constantes.DEFAULT_UHMC_ID, 0);
+        idVehiculo = myPreferences.getLong(Constantes.DEFAULT_VEHICLE_ID, 0);
         idUsuario = myPreferences.getInt(Constantes.DEFAULT_USER_ID, 0);
+        uploadRecorridosService = new UploadRecorridosService(MainActivity.this, this.placa);
 
         values = myPreferences.getString(Constantes.DEFAULT_BLUETOOTH_VALUE_ARRAY, "");
-        modelHasTwoTanks = myPreferences.getBoolean( Constantes.MODEL_HAS_TWO_TANKS, false);
+        modelHasTwoTanks = myPreferences.getBoolean(Constantes.MODEL_HAS_TWO_TANKS, false);
 
         tipoUsuario = myPreferences.getInt("tipoUsuario", 8);
 
@@ -216,6 +238,7 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
         getSupportFragmentManager().beginTransaction().replace(R.id.content_main, fragment).commit();
 //        ((InicioFragment) fragment).getFabRuta().setVisibility(View.GONE);
         initControls();
+
         try {
             estacionesPlaces = new EstacionesPlaces();
             LatLng newPosition;
@@ -250,6 +273,8 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
         //fireBaseRecorridosHelper.init();
         myInstance = this;
         initUploadRecorridosReceiver();
+        if (idVehiculo != null && idVehiculo > 0)
+            initRecorrido();
     }
 
     private void initCombustibleProgresBars() {
@@ -260,18 +285,18 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
         pbTanque2.setMax(maxValue);
 
         nivelCombustible = Double.valueOf(Objects.requireNonNull(myPreferences.getString("nivel", "0.0")));
-        tvCombustible.setText(String.format(Locale.US,"%.1f", nivelCombustible)+" Gal.");
-        pbCombustible.setProgress((int)nivelCombustible);
+        tvCombustible.setText(String.format(Locale.US, "%.1f", nivelCombustible) + " Gal.");
+        pbCombustible.setProgress((int) nivelCombustible);
 
-        if(!modelHasTwoTanks) {         // NO tiene dos tanques
+        if (!modelHasTwoTanks) {         // NO tiene dos tanques
             pbTanque2.setVisibility(View.GONE);
             tvCombustibleTank2.setVisibility(View.GONE);
 
-        }else {
+        } else {
             pbTanque2.setVisibility(View.VISIBLE);
             tvCombustibleTank2.setVisibility(View.VISIBLE);
             nivelCombustibleTank2 = Double.valueOf(Objects.requireNonNull(myPreferences.getString("nivelTank2", "0.0")));
-            tvCombustibleTank2.setText(String.format(Locale.US,"%.1f", nivelCombustibleTank2)+" Gal.");
+            tvCombustibleTank2.setText(String.format(Locale.US, "%.1f", nivelCombustibleTank2) + " Gal.");
         }
     }
 
@@ -283,11 +308,11 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
         JsonObject jsonValues = jsonArray.get(0).getAsJsonObject();
         List<Integer> listValues = new ArrayList<>();
 
-        for (String key: jsonValues.keySet()) {
-            listValues.add((int)jsonValues.get(key).getAsDouble());
+        for (String key : jsonValues.keySet()) {
+            listValues.add((int) jsonValues.get(key).getAsDouble());
         }
 
-        if(listValues.size() > 0) {
+        if (listValues.size() > 0) {
 
             return Collections.max(listValues);
         } else {
@@ -344,20 +369,18 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
             viewMap.setVisibility(View.GONE);
             btnMenu.setVisibility(View.GONE);
 
-        }else if (id == R.id.nav_adq_datos) {
+        } else if (id == R.id.nav_adq_datos) {
             miFragment = new AdquisicionDatos(MainActivity.this);
             fragmentSeleccionado = true;
             tvTitulo.setText("Adquisición de datos");
             viewMap.setVisibility(View.GONE);
             btnMenu.setVisibility(View.GONE);
 
-        }else if (id == R.id.nav_init_recorrido) {
+        } else if (id == R.id.nav_init_recorrido) {
             initRecorrido();
-        }
-        else if (id == R.id.nav_stop_recorrido) {
+        } else if (id == R.id.nav_stop_recorrido) {
             stopRecorrido();
-        }
-        else if (id == R.id.nav_datos_recorrido) {
+        } else if (id == R.id.nav_datos_recorrido) {
 
             miFragment = new RecorridosDatos(this);
             fragmentSeleccionado = true;
@@ -365,16 +388,14 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
             btnMenu.setVisibility(View.GONE);
             viewMap.setVisibility(View.GONE);
 
-        }
-        else if (id == R.id.nav_upload_recorridos) {
-            if(recorridoService != null)
-                this.recorridoService.uploadAllNotCompletedAndNotUploaded();
-        }
-        else if (id == R.id.logout) {
+        } else if (id == R.id.nav_upload_recorridos) {
+            if (uploadRecorridosService != null)
+                this.uploadRecorridosService.uploadAllNotCompletedAndNotUploaded();
+        } else if (id == R.id.logout) {
             //logout();
         }
 
-        if (fragmentSeleccionado){
+        if (fragmentSeleccionado) {
             btnBack.setVisibility(View.VISIBLE);
             tvTitulo.setVisibility(View.VISIBLE);
             getSupportFragmentManager().beginTransaction().replace(R.id.content_main, miFragment).commit();
@@ -390,14 +411,14 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
 
         mapService.setmMap(googleMap);
 
-        if(inndexLocationService.getMyLocation() != null) {
+        if (inndexLocationService.getMyLocation() != null) {
 
             mapService.setMyLocation(inndexLocationService.getMyLocation());
             mapService.mostrarUbicacion();
         }
 
-        if (estaciones.size() > 0){
-            for (Estaciones estacion:
+        if (estaciones.size() > 0) {
+            for (Estaciones estacion :
                     estaciones) {
                 LatLng latLng = new LatLng(estacion.getLatitud(), estacion.getLongitud());
                 mapService.getmMap().addMarker(new MarkerOptions().position(latLng).title(estacion.getMarca()).snippet(estacion.getDireccion()).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker)));
@@ -412,11 +433,11 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
             //locationManager.req
             //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
             mapService.setMyLocation(inndexLocationService.getLocationManager().getLastKnownLocation(LocationManager.PASSIVE_PROVIDER));
-            if (mapService.getMyLocation() != null){
+            if (mapService.getMyLocation() != null) {
                 LatLng newPosition = new LatLng(mapService.getMyLocation().getLatitude(), mapService.getMyLocation().getLongitude());
                 SharedPreferences.Editor editor = myPreferences.edit();
-                editor.putString("latitud",String.valueOf(mapService.getMyLocation().getLatitude()));
-                editor.putString("longitud",String.valueOf(mapService.getMyLocation().getLongitude()));
+                editor.putString("latitud", String.valueOf(mapService.getMyLocation().getLatitude()));
+                editor.putString("longitud", String.valueOf(mapService.getMyLocation().getLongitude()));
                 editor.apply();
                 mapService.getmMap().animateCamera(CameraUpdateFactory.newLatLngZoom(newPosition, 14));
                 //mMap.addMarker(new MarkerOptions().position(newPosition).flat(true).title("Mi ubicación"));
@@ -427,13 +448,13 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
                     Gson gson = new Gson();
 
                 } catch (SQLException e) {
-                    Log.e("EXCEPCION","No se pudo obtener la estacion mas cercana");
+                    Log.e("EXCEPCION", "No se pudo obtener la estacion mas cercana");
                     e.printStackTrace();
                 }
 
             }
-        }else{
-            Log.e("PERMISOS","HACE FALTA ALGUN PERMISO");
+        } else {
+            Log.e("PERMISOS", "HACE FALTA ALGUN PERMISO");
             ActivityCompat.requestPermissions(
                     MainActivity.this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
@@ -462,14 +483,14 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
     public void getBluetoothData(double... dato) {
 
         //Log.e("1",String.valueOf(dato.length));
-        if(miFragment instanceof AdquisicionDatos && BluetoothHelper.isAdqProcess()){
-            (((AdquisicionDatos) miFragment)).getBluetoothData((int)dato[0], (int)dato[1]);
+        if (miFragment instanceof AdquisicionDatos && BluetoothHelper.isAdqProcess()) {
+            (((AdquisicionDatos) miFragment)).getBluetoothData((int) dato[0], (int) dato[1]);
             return;
         }
 
         if (dato.length == 2) {
             nivelCombustible = dato[0];
-            pbCombustible.setProgress((int)dato[0]);
+            pbCombustible.setProgress((int) dato[0]);
             galones = dato[0];
             tvCombustible.setText(getString(R.string.cant_gal, nivelCombustible));
             myPreferences.edit().putString("nivel", String.valueOf(nivelCombustible)).apply();
@@ -477,8 +498,8 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
 
             nivelCombustible = dato[0];
             nivelCombustibleTank2 = dato[1];
-            pbCombustible.setProgress((int)dato[0]);
-            pbTanque2.setProgress((int)dato[1]);
+            pbCombustible.setProgress((int) dato[0]);
+            pbTanque2.setProgress((int) dato[1]);
             galones = dato[0];
             galonesT2 = dato[1];
             //estado = (int)(dato[2]);
@@ -491,7 +512,7 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
 
     @Override
     public void getArrayBlueToothValues(Integer... data) {
-        if(data.length > 1) {
+        if (data.length > 1) {
             valorBluetooh = data[0];
             valorBluetoohT2 = data[1];
             estado = data[2];
@@ -514,13 +535,53 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @SuppressLint("SetTextI18n")
-    private void initControls(){
+    private void initControls() {
         Typeface light = Typeface.createFromAsset(getAssets(), "fonts/Roboto-Light.ttf");
         Typeface thin = Typeface.createFromAsset(getAssets(), "fonts/Roboto-Thin.ttf");
 
         btnMenu = findViewById(R.id.btnMenu);
         btnMenu.setOnClickListener(view -> {
-            this.getDrawer().openDrawer(this.getNavigationView());
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Ingresar contraseña");
+
+            final EditText inputPassword = new EditText(this);
+            inputPassword.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
+            builder.setView(inputPassword);
+
+            // Set up the buttons
+            builder.setPositiveButton("OK", (dialog, which) -> {
+                String text = inputPassword.getText().toString();
+                String hash = Base64.encodeToString(text.getBytes(StandardCharsets.UTF_8), Base64.DEFAULT);
+
+                InndexAppSecurity inndexAppSecurity = new InndexAppSecurity();
+                inndexAppSecurity.setAppPassword(hash.replace("\n",""));
+                mCustomProgressDialog.show("");
+                Call<InndexAppSecurity> callCheckPassword = MedidorApiAdapter.getApiService().postCheckMenuPassword(Constantes.CONTENT_TYPE_JSON, inndexAppSecurity);
+                callCheckPassword.enqueue(new Callback<InndexAppSecurity>() {
+                    @Override
+                    public void onResponse(Call<InndexAppSecurity> call, Response<InndexAppSecurity> response) {
+                        mCustomProgressDialog.dismiss("");
+                        if (response.isSuccessful()) {
+                            dialog.dismiss();
+                            openMenu();
+                        } else
+                            Toast.makeText(MainActivity.this, "CONTRASEÑA INCORRECTA.", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onFailure(Call<InndexAppSecurity> call, Throwable t) {
+                        mCustomProgressDialog.dismiss("");
+                        Toast.makeText(MainActivity.this, "ERROR. REVISE SU CONEXIÓN A INTERNET.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            });
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
+            builder.show();
         });
 
         drawer = findViewById(R.id.drawer_layout);
@@ -533,7 +594,6 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
         tvDefaultPlaca = headerLayout.findViewById(R.id.tvDefaultPlaca);
         //tvDefaultState = headerLayout.findViewById(R.id.tvDefaultState);
         tvDefaultPlaca.setText(placa);
-        Log.e("DEF","STATE " + myPreferences.getString(Constantes.DEFAULT_STATE, " "));
         setDefaultState();
         tvUsuario.setText(myPreferences.getString("nombres", "") + myPreferences.getString("apellidos", ""));
         navigationView.setNavigationItemSelectedListener(this);
@@ -554,9 +614,9 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
             //the method we have create in activity
             applyFontToMenuItem(mi);
 
-            if (tipoUsuario == 1){
+            if (tipoUsuario == 1) {
 
-                if (mi.getItemId() == R.id.nav_adq_datos){
+                if (mi.getItemId() == R.id.nav_adq_datos) {
 
                     mi.setVisible(false);
                 }
@@ -587,7 +647,7 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
-                    Log.e("PERMISOS","FUERON HABILITADOS");
+                    Log.e("PERMISOS", "FUERON HABILITADOS");
 
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
@@ -609,7 +669,7 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
         estaciones = dao.queryForAll();
     }
 
-    public void irDondeTanquear(){
+    public void irDondeTanquear() {
 
         Fragment miFragment = null;
         boolean fragmentSeleccionado = false;
@@ -637,12 +697,12 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
 
     }
 
-    public void updateLocation(Location myLocation){
+    public void updateLocation(Location myLocation) {
         //myLocation = location;
         mapService.setMyLocation(null);
         SharedPreferences.Editor editor = myPreferences.edit();
-        editor.putString("latitud",String.valueOf(myLocation.getLatitude()));
-        editor.putString("longitud",String.valueOf(myLocation.getLongitude()));
+        editor.putString("latitud", String.valueOf(myLocation.getLatitude()));
+        editor.putString("longitud", String.valueOf(myLocation.getLongitude()));
         editor.apply();
     }
 
@@ -686,7 +746,7 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
         return myPreferences;
     }
 
-    public void irCambiarContrasena(){
+    public void irCambiarContrasena() {
     }
 
     public BluetoothHelper getBluetoothHelper() {
@@ -704,19 +764,25 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
     }
 
     @Override
-    public void setValues(String values) { }
+    public void setValues(String values) {
+    }
 
-    public void addNewStationToMap(Estaciones estacion){
+    public void addNewStationToMap(Estaciones estacion) {
         estaciones.add(estacion);
-
         LatLng latLng = new LatLng(estacion.getLatitud(), estacion.getLongitud());
         mapService.getmMap().addMarker(new MarkerOptions().position(latLng).title(estacion.getMarca()).snippet(estacion.getDireccion()).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker)));
     }
 
     @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        mSensorManager.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    @Override
     public void onPairedDeviceOff() {
 
-        if(newDevice){
+        if (newDevice) {
             return;
         }
         timerInndexDeviceListener = new Timer();
@@ -724,22 +790,22 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
         TimerTask tTInndexDeviceListener = new TimerTask() {
             @Override
             public void run() {
-                if (!btSocket.isConnected()){
+                if (!btSocket.isConnected()) {
                     bluetoothHelper.checkBTState();
                 }
             }
         };
-        timerInndexDeviceListener.schedule(tTInndexDeviceListener, 1,3000);
+        timerInndexDeviceListener.schedule(tTInndexDeviceListener, 1, 3000);
     }
 
-    public void cancelTimers(){
+    public void cancelTimers() {
         if (timerInndexDeviceListener != null) {
             timerInndexDeviceListener.cancel();
             timerInndexDeviceListener.purge();
         }
     }
 
-    public void initAdq(String bluetoothMac){
+    public void initAdq(String bluetoothMac) {
         myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_MAC, bluetoothMac).apply();
         bluetoothHelper = new BluetoothHelper(MainActivity.this);
         bluetoothHelper.checkBTState();
@@ -749,7 +815,7 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
     @Override
     public void couldNotConnectToDevice() {
         //if(miFragment instanceof AdquisicionDatos)
-        if(miFragment instanceof AdquisicionDatos)
+        if (miFragment instanceof AdquisicionDatos)
             ((AdquisicionDatos) miFragment).setDeviceConnected(false);
 
         Toast.makeText(getApplicationContext(), "No se pudo establecer conexion con el dispositivo", Toast.LENGTH_LONG).show();
@@ -803,19 +869,21 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
 
     public void initRecorrido() {
 
-        if(bluetoothHelper == null ) {
+        if (bluetoothHelper == null) {
             Toast.makeText(this, "No se pudo conectar con el dispositivo.", Toast.LENGTH_SHORT).show();
             return;
         }
+        if (idVehiculo == null || idVehiculo == 0)
+            return;
         recorridoService = new RecorridoService(MainActivity.this, modelHasTwoTanks,
-                this.helper, idUsuario, idUsuarioModeloCarro, placa);
+                this.helper, idUsuario, idVehiculo, placa);
         inndexLocationService.setDistancia(0);
         recorridoService.initTimmers();
         Toast.makeText(MainActivity.this, "RECORRIDO INICIADO", Toast.LENGTH_SHORT).show();
     }
 
     public void upateDefaultVehicle(Vehiculo uhmc) {
-        if(this.bluetoothHelper != null) {
+        if (this.bluetoothHelper != null && this.bluetoothHelper.getBtSocket() != null) {
             try {
                 newDevice = true;
                 this.bluetoothHelper.getBtSocket().close();
@@ -830,16 +898,16 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
         //myPreferences.edit().putInt(Constantes.DEFAULT_GAL_CANT, (int)uhmc.getModeloCarros().getGalones()).apply();
         myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_MAC, uhmc.getBluetoothMac()).apply();
         myPreferences.edit().putBoolean(Constantes.MODEL_HAS_TWO_TANKS, uhmc.getHasTwoTanks()).apply();
-        myPreferences.edit().putLong(Constantes.DEFAULT_UHMC_ID, uhmc.getId()).apply();
+        myPreferences.edit().putLong(Constantes.DEFAULT_VEHICLE_ID, uhmc.getId()).apply();
 //        myPreferences.edit().putLong("defaultModeloCarroId", uhmc.getModeloCarros().getId()).apply();
         myPreferences.edit().putString(Constantes.DEFAULT_PLACA, uhmc.getPlaca()).apply();
-
-        idUsuarioModeloCarro = uhmc.getId();
+        this.uploadRecorridosService.setPlaca(uhmc.getPlaca());
+        idVehiculo = uhmc.getId();
 
         values = uhmc.getValoresAdq();
         modelHasTwoTanks = uhmc.getHasTwoTanks();
 
-        if(modelHasTwoTanks){
+        if (modelHasTwoTanks) {
             tvCombustibleTank2.setVisibility(View.VISIBLE);
             pbTanque2.setVisibility(View.VISIBLE);
         }
@@ -865,7 +933,7 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
 
         //fireBaseRecorridosHelper = null;
         //fireBaseRecorridosHelper = new FireBaseRecorridosHelper(MainActivity.this,
-          //      newPlaca);
+        //      newPlaca);
         //fireBaseRecorridosHelper.setPlaca(newPlaca);
         //fireBaseRecorridosHelper.init();
         initRecorrido();
@@ -887,24 +955,17 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
         return recorridoService;
     }
 
-    public static MainActivity getInstance(){
-
+    public static MainActivity getInstance() {
         return myInstance;
     }
 
-    public void showToastEx(){
-
-        Log.e("BOM DIA", "GREETINGS!!!");
-        Toast.makeText(MainActivity.this, "TIHS IS A TOAST FROM A RECEIVER", Toast.LENGTH_SHORT).show();
-    }
-
-    public void setDefaultState(){
+    public void setDefaultState() {
         String stateName = myPreferences.getString(Constantes.DEFAULT_STATE, " ");
         //tvDefaultState.setText(stateName);
 //        ((InicioFragment)miFragment).updateState(stateName);
     }
 
-    public void goToStates(){
+    public void goToStates() {
 
         miFragment = new EstadosFragment(MainActivity.this);
         //fragmentSeleccionado = true;
@@ -913,8 +974,8 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
         btnMenu.setVisibility(View.GONE);
 
         btnBack.setVisibility(View.VISIBLE);
-            tvTitulo.setVisibility(View.VISIBLE);
-            getSupportFragmentManager().beginTransaction().replace(R.id.content_main, miFragment).commit();
+        tvTitulo.setVisibility(View.VISIBLE);
+        getSupportFragmentManager().beginTransaction().replace(R.id.content_main, miFragment).commit();
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
     }
@@ -923,31 +984,43 @@ EstadosFragment.OnFragmentInteractionListener, RecorridosDatos.OnFragmentInterac
         return mCustomProgressDialog;
     }
 
-    public void initUploadRecorridosReceiver(){
-        Calendar calendarStart = Calendar.getInstance();
-
-        calendarStart.setTimeInMillis(System.currentTimeMillis());
-        calendarStart.set(Calendar.HOUR_OF_DAY, calendarStart.get(Calendar.HOUR_OF_DAY));
-        calendarStart.set(Calendar.MINUTE, calendarStart.get(Calendar.MINUTE) + 5);
-        calendarStart.set(Calendar.SECOND, 0);
-
-        if (Calendar.getInstance().after(calendarStart)) {
-            calendarStart.add(Calendar.DAY_OF_MONTH, 1);
-        }
-        AlarmManager uploadRecorridoAlarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-        Intent intentUploadRecorrido = new Intent(MainActivity.this, UploadRecorridoReceiver.class);
-        PendingIntent pendingIntentStart = PendingIntent.getBroadcast(MainActivity.this, 1,
-                intentUploadRecorrido, 0);
-        uploadRecorridoAlarmManager.setRepeating(AlarmManager.RTC_WAKEUP,  calendarStart.getTimeInMillis(),
-                INTERVAL_UPLOAD_UNIT_RECORRIDO, pendingIntentStart);
+    public void initUploadRecorridosReceiver() {
+        final Handler handler = new Handler(Looper.getMainLooper());
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                //Log.e("INSEDE","HANDLER");
+                uploadRecorridosService.uploadAllNotCompletedAndNotUploaded();
+                handler.postDelayed(this, Constantes.DELAY_UPLOAD_RECORIDOS);
+            }
+        };
+        handler.postDelayed(runnable, 30000);
     }
 
-    public void upload() {
-        if(myInstance.recorridoService != null && !myInstance.recorridoService.isInUploadingProccess()) {
-            //Toast.makeText(this, "SUBIENDO RECORRIDO " + placa, Toast.LENGTH_SHORT).show();
-            myInstance.recorridoService.uploadAllNotCompletedAndNotUploaded();
-        } else {
-            Toast.makeText(myInstance, "INSTANCE IS NULL", Toast.LENGTH_SHORT).show();
+    private void openMenu() {
+        this.getDrawer().openDrawer(this.getNavigationView());
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        Log.e("1", "1");
+        if (event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
+            Log.e("2", "2");
+            if (event.values[0] >= -SENSOR_SENSITIVITY && event.values[0] <= SENSOR_SENSITIVITY) {
+                Log.e("3", "3");
+
+                //near
+                PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+                PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK |
+                        PowerManager.ACQUIRE_CAUSES_WAKEUP |
+                        PowerManager.ON_AFTER_RELEASE, "appname::WakeLock");
+                wakeLock.acquire(10 * 60 * 1000L /*10 minutes*/);
+            }
         }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
     }
 }

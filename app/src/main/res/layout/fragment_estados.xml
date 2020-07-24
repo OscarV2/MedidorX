@@ -10,20 +10,4 @@
       android:layout_marginTop="100dp"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"/>
-
-    <Button
-        android:text="@string/cambiar_estado"
-        android:id="@+id/btn_update_state"
-        android:textSize="28sp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textStyle="bold"
-        android:textColor="@color/white"
-        android:layout_centerHorizontal="true"
-        android:background="@color/colorPrimary"
-        android:paddingEnd="15dp"
-        android:paddingStart="15dp"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="20dp"
-        />
 </RelativeLayout>

@@ -13,8 +13,6 @@ public class ModeloCarros implements Serializable {
     @DatabaseField
     private String linea;
     @DatabaseField
-    private String muestreo;
-    @DatabaseField
     private int idMarca;
     @DatabaseField
     private double galones;
@@ -46,14 +44,6 @@ public class ModeloCarros implements Serializable {
 
     public void setLinea(String linea) {
         this.linea = linea;
-    }
-
-    public String getMuestreo() {
-        return muestreo;
-    }
-
-    public void setMuestreo(String muestreo) {
-        this.muestreo = muestreo;
     }
 
     public int getIdMarca() {

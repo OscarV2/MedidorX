@@ -17,6 +17,10 @@ public class Estados implements Serializable {
     public Estados() {
     }
 
+    public Estados(int id) {
+        this.id = id;
+    }
+
     public int getId() {
         return id;
     }

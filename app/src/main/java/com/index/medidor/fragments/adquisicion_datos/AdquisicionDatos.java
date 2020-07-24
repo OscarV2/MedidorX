@@ -24,7 +24,6 @@ import android.widget.Toast;
 import androidx.fragment.app.Fragment;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.index.medidor.R;
 import com.index.medidor.activities.MainActivity;
 import com.index.medidor.adapter.BluetoothDeviceAdapter;
@@ -56,7 +55,7 @@ public class AdquisicionDatos extends Fragment {
     private Spinner spBluetoothDevices;
 
     private TextView tvDatoNivel;
-    private EditText edtDatoFlujo;
+    private TextView tvDatoFlujo;
     private TextView tvLastData;
     private TextView tvDataQuantity;
     private Button btnAddFluxData;
@@ -81,8 +80,8 @@ public class AdquisicionDatos extends Fragment {
 
     private ModeloCarros modeloCarros;
 
-private int nivel;
-
+    private int nivel;
+    private int volumen;
     private OnFragmentInteractionListener mListener;
     //private Timer mTimer1;
     //private Handler mHandler;
@@ -131,34 +130,15 @@ private int nivel;
         rlAdqData = v.findViewById(R.id.lay_gal_ingresados_modelo);
         rlAdqData.setVisibility(View.GONE);
         tvDatoNivel = v.findViewById(R.id.tv_adquisition_dato_1);
-        edtDatoFlujo = v.findViewById(R.id.edt_adq_volumen);
-        edtDatoFlujo.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-                if(count > 0) {
-                    double dato = Double.parseDouble(s.toString());
-                    if(dato > 0) {
-                        btnAddFluxData.setVisibility(View.VISIBLE);
-                    }
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        });
+        tvDatoFlujo = v.findViewById(R.id.tv_adq_volumen);
         tvDataQuantity = v.findViewById(R.id.tv_adquisition_data_quantity);
         tvLastData = v.findViewById(R.id.tv_adquisition_last_saved_data);
         btnAdquisicion = v.findViewById(R.id.btn_datos_adq_correctamente);
 
         btnAddFluxData = v.findViewById(R.id.btn_add_adq_value);
+        btnAddFluxData.setOnClickListener(v1 -> {
+            addFluxData();
+        });
 
         btnRegistrar = v.findViewById(R.id.btn_registrar_adq_correctamente);
         estadoAdquicision = 0;
@@ -299,16 +279,10 @@ private int nivel;
 
     private void guardarAdq() {
 
+        Log.e("1","GUARDANDO ADQ");
         Gson gson = new Gson();
 
-        JsonObject jsonArrayKeys = new JsonObject();
-        JsonObject jsonArrayFlux = new JsonObject();
-
-        jsonArrayKeys.add("galones", gson.toJsonTree(keyArraysAdq));
-        jsonArrayFlux.add("flujo", gson.toJsonTree(keyArraysFlux));
-
-        modeloCarros.setMuestreo( gson.toJson(jsonArrayKeys));
-        modeloCarros.setFlujo( gson.toJson(jsonArrayFlux));
+        modeloCarros.setFlujo( gson.toJson(lFlujo));
         if(this.rbTieneDosTanques.isChecked()) {
             modeloCarros.setHasTwoTanks(true);
         }
@@ -320,17 +294,14 @@ private int nivel;
         }
         modeloCarros.setIdMarca(this.idMarca);
 
-        Log.e("Adq", gson.toJson(modeloCarros));
-
         Call<ModeloCarros> callRegistrarModelo = MedidorApiAdapter.getApiService()
                 .postRegisterModelo(Constantes.CONTENT_TYPE_JSON, modeloCarros);
-
+        mainActivity.getmCustomProgressDialog().show("");
         callRegistrarModelo.enqueue(new Callback<ModeloCarros>() {
             @Override
             public void onResponse(Call<ModeloCarros> call, Response<ModeloCarros> response) {
-
+                mainActivity.getmCustomProgressDialog().dismiss("");
                 if(response.isSuccessful()){
-
                     DataBaseHelper helper = OpenHelperManager.getHelper(mainActivity, DataBaseHelper.class);
 
                     try {
@@ -350,7 +321,7 @@ private int nivel;
 
             @Override
             public void onFailure(Call<ModeloCarros> call, Throwable t) {
-
+                mainActivity.getmCustomProgressDialog().dismiss("");
                 Toast.makeText(mainActivity, "ERROR " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
@@ -440,23 +411,21 @@ private int nivel;
     public void getBluetoothData(int... dato) {
 
         if (acquisitionStarted) {
-            Log.e("tu adqDato", String.valueOf(dato[0]));
-            Log.e("tu adqDato2", String.valueOf(dato[1]));
             nivel = dato[0];
+            volumen = dato[1];
 
             tvDatoNivel.setText(String.format(mainActivity.getResources().getString(R.string.nivel_adquisition), dato[0]));
+            tvDatoFlujo.setText(String.format(mainActivity.getResources().getString(R.string.flujo_adquisition), volumen));
         }
     }
 
     public void addFluxData() {
 
-        double volumen = Double.parseDouble(edtDatoFlujo.getText().toString());
         Flujo flujo = new Flujo(nivel, volumen);
         lFlujo.add(flujo);
 
         tvLastData.setText(String.valueOf(flujo.getVolumen()));
         tvDataQuantity.setText(String.valueOf(lFlujo.size()));
-        btnAddFluxData.setVisibility(View.GONE);
     }
 
     public boolean isDeviceConnected() {

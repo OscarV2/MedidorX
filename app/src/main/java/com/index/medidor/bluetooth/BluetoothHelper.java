@@ -61,12 +61,6 @@ public class BluetoothHelper {
     private IBluetoothState iBluetoothState;
     private static boolean modelHasTwoTanks;
 
-
-    /**
-     * Constructor for any car model, even those with two tanks
-     * @param context
-     * @param valoresString
-     */
     public BluetoothHelper(Context context, String valoresString) {
 
         this.context = context;
@@ -75,7 +69,11 @@ public class BluetoothHelper {
         dataToAverage = new ArrayList<>();
         dataToAverageTank2 = new ArrayList<>();
         init();
-        jsonValues = jsonArray.get(0).getAsJsonObject();
+        if(jsonArray != null && jsonArray.size() > 0){
+            jsonValues = jsonArray.get(0).getAsJsonObject();
+        } else {
+            Toast.makeText(context, "ERROR", Toast.LENGTH_SHORT).show();
+        }
         List<Integer> listKeys = new ArrayList<>();
         modelHasTwoTanks = preferences.getBoolean(Constantes.MODEL_HAS_TWO_TANKS, false);
 
@@ -84,10 +82,6 @@ public class BluetoothHelper {
         }
     }
 
-    /**
-     * Constructor for adquisition
-     * @param context
-     */
     public BluetoothHelper(Context context) {
         this.context = context;
         adqProcess = true;
@@ -115,7 +109,6 @@ public class BluetoothHelper {
                         String dataInPrint = recDataString.substring(1, endOfLineIndex);    // extract string
                         String[] datos = dataInPrint.split("~");
                         if(datos.length > 0) {
-
                             try {
                                 dato = Integer.parseInt(datos[0]);
                             } catch (NumberFormatException ex) {
@@ -130,21 +123,18 @@ public class BluetoothHelper {
                             }
                             dataToAverage.add(dato);
                             if(!modelHasTwoTanks) {
-
                                 if (dataToAverage.size() == Constantes.ARRAY_DATA_SIZE) {
                                     sendDataForOneTankModel(datoEstado);
-
                                 } else {
-                                    Log.e("IF","1");
                                     bluetoothDataReceiver.getBluetoothData(dato);
                                 }
                             }else {                     //This model has two tanks
                                 try {
                                     String[] dato2Yestado = datos[1].split("-");
-                                    datoTanque2 = Integer.valueOf(dato2Yestado[0]);
-                                    datoEstado = Integer.valueOf(dato2Yestado[1]);
+                                    datoTanque2 = Integer.parseInt(dato2Yestado[0]);
+                                    datoEstado = Integer.parseInt(dato2Yestado[1]);
                                 } catch (NumberFormatException | ArrayIndexOutOfBoundsException ex) {
-                                    datoTanque2 = 0;
+                                    //datoTanque2 = 0;
                                     datoEstado = 0;
                                     ex.getStackTrace();
                                 }
@@ -232,8 +222,9 @@ public class BluetoothHelper {
 
             if (btAdapter.isEnabled()) {
                 String address = preferences.getString(Constantes.DEFAULT_BLUETOOTH_MAC, "");
+                if(!BluetoothAdapter.checkBluetoothAddress(address))
+                    return;
                 bluetoothDevice = btAdapter.getRemoteDevice(address);
-                Log.e("addr", address);
                 try {
 
                     btSocket = bluetoothDevice.createRfcommSocketToServiceRecord(BTMODULEUUID);

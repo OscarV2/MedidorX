@@ -7,6 +7,7 @@ import android.util.Log;
 import com.index.medidor.R;
 import com.index.medidor.model.Estaciones;
 import com.index.medidor.model.Estados;
+import com.index.medidor.model.HistorialEstadoVehiculos;
 import com.index.medidor.model.MarcaCarros;
 import com.index.medidor.model.ModeloCarros;
 import com.index.medidor.model.Recorrido;
@@ -54,6 +55,9 @@ public class DataBaseHelper extends OrmLiteSqliteOpenHelper {
     private Dao<Estados, Integer> daoEstados= null;
     private RuntimeExceptionDao<Estados, Integer> estadoRuntimeDao = null;
 
+    private Dao<HistorialEstadoVehiculos, Integer> daoHistorialEstados= null;
+    private RuntimeExceptionDao<HistorialEstadoVehiculos, Integer> historialEstadosRuntimeDao = null;
+
     public DataBaseHelper(Context context) {
         super(context, DATABASE_NAME, null, VERSION, R.raw.medidor_config);
     }
@@ -62,15 +66,16 @@ public class DataBaseHelper extends OrmLiteSqliteOpenHelper {
     public void onCreate(SQLiteDatabase sqLiteDatabase, ConnectionSource connectionSource) {
 
         try {
-            TableUtils.createTable(connectionSource, Estados.class);
-            TableUtils.createTable(connectionSource, Usuario.class);
             TableUtils.createTable(connectionSource, Estaciones.class);
-            TableUtils.createTable(connectionSource, Tanqueadas.class);
-            TableUtils.createTable(connectionSource, Recorrido.class);
+            TableUtils.createTable(connectionSource, Estados.class);
+            TableUtils.createTable(connectionSource, HistorialEstadoVehiculos.class);
             TableUtils.createTable(connectionSource, MarcaCarros.class);
             TableUtils.createTable(connectionSource, ModeloCarros.class);
-            TableUtils.createTable(connectionSource, Vehiculo.class);
+            TableUtils.createTable(connectionSource, Recorrido.class);
+            TableUtils.createTable(connectionSource, Tanqueadas.class);
             TableUtils.createTable(connectionSource, UnidadRecorrido.class);
+            TableUtils.createTable(connectionSource, Usuario.class);
+            TableUtils.createTable(connectionSource, Vehiculo.class);
 
         } catch (SQLException e) {
             Log.e("Error ","Creating tables");
@@ -92,6 +97,7 @@ public class DataBaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.dropTable(connection, ModeloCarros.class,true);
             TableUtils.dropTable(connection, UnidadRecorrido.class,true);
             TableUtils.dropTable(connection, Vehiculo.class,true);
+            TableUtils.dropTable(connection, HistorialEstadoVehiculos.class,true);
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -189,8 +195,17 @@ public class DataBaseHelper extends OrmLiteSqliteOpenHelper {
 
     public RuntimeExceptionDao<Estados, Integer> getEstadoRuntimeDao() {
         if(estadoRuntimeDao == null) estadoRuntimeDao = getRuntimeExceptionDao(Estados.class);
-
         return estadoRuntimeDao;
+    }
+
+    public Dao<HistorialEstadoVehiculos, Integer> getDaoHistorialEstados() throws SQLException {
+        if (daoHistorialEstados == null) daoHistorialEstados= getDao(HistorialEstadoVehiculos.class);
+        return daoHistorialEstados;
+    }
+
+    public RuntimeExceptionDao<HistorialEstadoVehiculos, Integer> getHistorialEstadosRuntimeDao() {
+        if(historialEstadosRuntimeDao == null) historialEstadosRuntimeDao = getRuntimeExceptionDao(HistorialEstadoVehiculos.class);
+        return historialEstadosRuntimeDao;
     }
 
     @Override

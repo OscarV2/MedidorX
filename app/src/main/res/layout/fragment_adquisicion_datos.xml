@@ -117,21 +117,20 @@
                 android:text="@string/nivel_adquisition"
                 android:textSize="28sp"/>
 
-            <EditText
-                android:id="@+id/edt_adq_volumen"
+            <TextView
+                android:id="@+id/tv_adq_volumen"
                 android:layout_width="200dp"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/tv_adquisition_dato_1"
-                android:hint="@string/volumen"
-                android:inputType="number"
-                android:autofillHints="@string/volumen"
-                android:textSize="28sp"/>
+                android:textSize="28sp"
+                android:text="@string/flujo_adquisition"
+                android:layout_marginStart="10dp"/>
             <Button
                 android:id="@+id/btn_add_adq_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_toEndOf="@id/edt_adq_volumen"
-                android:layout_alignEnd="@id/edt_adq_volumen"
+                android:layout_toEndOf="@id/tv_adq_volumen"
+                android:layout_alignEnd="@id/tv_adq_volumen"
                 android:layout_alignParentEnd="true"
                 android:text="@string/agregar"
                 android:textColor="@color/white"
@@ -144,14 +143,14 @@
                 android:layout_height="wrap_content"
                 android:text="# Datos guardados: "
                 android:textSize="22sp"
-                android:layout_below="@+id/edt_adq_volumen"/>
+                android:layout_below="@+id/tv_adq_volumen"/>
 
             <TextView
                 android:id="@+id/tv_adquisition_data_quantity"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="28sp"
-                android:layout_below="@+id/edt_adq_volumen"
+                android:layout_below="@+id/tv_adq_volumen"
                 android:layout_toEndOf="@id/tv_adquisition_dato_2"
                 android:layout_marginStart="10dp"
                 android:textColor="@color/colorAccent"

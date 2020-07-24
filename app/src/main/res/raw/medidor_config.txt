@@ -1,5 +1,5 @@
 #
-# generated on 2020/04/18 08:16:46
+# generated on 2020/05/24 05:38:22
 #
 # --table-start--
 dataClass=com.index.medidor.model.Estaciones
@@ -78,6 +78,15 @@ fieldName=fechaFin
 # --field-start--
 fieldName=fechaInicio
 # --field-end--
+# --field-start--
+fieldName=uploaded
+# --field-end--
+# --field-start--
+fieldName=idEstado
+# --field-end--
+# --field-start--
+fieldName=idVehiculo
+# --field-end--
 # --table-fields-end--
 # --table-end--
 #################################
@@ -105,9 +114,6 @@ generatedId=true
 # --field-end--
 # --field-start--
 fieldName=linea
-# --field-end--
-# --field-start--
-fieldName=muestreo
 # --field-end--
 # --field-start--
 fieldName=idMarca
@@ -258,9 +264,6 @@ fieldName=valorBluetooh
 # --field-end--
 # --field-start--
 fieldName=valorBluetoothTankTwo
-# --field-end--
-# --field-start--
-fieldName=distancia
 # --field-end--
 # --field-start--
 fieldName=hora

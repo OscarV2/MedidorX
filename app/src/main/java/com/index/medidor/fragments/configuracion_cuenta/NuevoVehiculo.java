@@ -267,8 +267,7 @@ public class NuevoVehiculo extends Fragment {
                             List<Vehiculo> listVehiculos = daoUsuarioModeloCarros.queryForAll();
 
                             if(listVehiculos != null && listVehiculos.size() == 0){
-                                Log.e("id", "SAVED ID " + nuevoVehiculo.getId());
-                                mainActivity.getMyPreferences().edit().putLong(Constantes.DEFAULT_UHMC_ID, nuevoVehiculo.getId()).apply();
+                                mainActivity.getMyPreferences().edit().putLong(Constantes.DEFAULT_VEHICLE_ID, nuevoVehiculo.getId()).apply();
                             }
 
                             daoUsuarioModeloCarros.create(nuevoVehiculo);

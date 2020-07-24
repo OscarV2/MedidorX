@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
@@ -42,7 +41,7 @@ public class EstadosFragment extends Fragment {
     private DataBaseHelper helper;
     private List<Estados> listEstados;
     private Dao<Estados, Integer> daoEstados;
-    private Button btnChangeState;
+    //private Button btnChangeState;
     private RecyclerView rvVehiculos;
     private EstadosAdapter adapter;
     int idSelectedState;
@@ -80,10 +79,10 @@ public class EstadosFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_estados, container, false);
-        btnChangeState = view.findViewById(R.id.btn_update_state);
-        btnChangeState.setOnClickListener(v -> {
-            onChangeStateButtonPressed();
-        });
+        //btnChangeState = view.findViewById(R.id.btn_update_state);
+        //btnChangeState.setOnClickListener(v -> {
+          //  onChangeStateButtonPressed();
+        //});
         rvVehiculos = view.findViewById(R.id.rv_states);
         try {
             listEstados = daoEstados.queryForAll();
@@ -110,7 +109,7 @@ public class EstadosFragment extends Fragment {
 
                 Estados estados = listEstados.get(adapter.mSelectedItem);
                 Vehiculo vehiculo = new Vehiculo();
-                vehiculo.setId(mainActivity.getMyPreferences().getLong(Constantes.DEFAULT_UHMC_ID, 0));
+                vehiculo.setId(mainActivity.getMyPreferences().getLong(Constantes.DEFAULT_VEHICLE_ID, 0));
 
                 newStateHistoryRecord.setEstado(estados);
                 newStateHistoryRecord.setVehiculo(vehiculo);
@@ -170,8 +169,6 @@ public class EstadosFragment extends Fragment {
                     + " must implement OnFragmentInteractionListener");
         }
     }
-
-
 
     @Override
     public void onDetach() {

@@ -23,7 +23,7 @@ import com.index.medidor.utils.Constantes;
 import java.util.List;
 
 
-public class RecorridosAdapter extends RecyclerView.Adapter<RecorridosAdapter.RecorridosViewHolder>{
+public class RecorridosAdapter extends RecyclerView.Adapter<RecorridosAdapter.RecorridosViewHolder> {
 
     private Context context;
     private List<Recorrido> recorridosList;
@@ -36,7 +36,7 @@ public class RecorridosAdapter extends RecyclerView.Adapter<RecorridosAdapter.Re
     @NonNull
     @Override
     public RecorridosViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int i) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.cardview_recorrido,parent,false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.cardview_recorrido, parent, false);
 
         return new RecorridosAdapter.RecorridosViewHolder(view);
     }
@@ -44,12 +44,10 @@ public class RecorridosAdapter extends RecyclerView.Adapter<RecorridosAdapter.Re
     @Override
     public void onBindViewHolder(@NonNull RecorridosViewHolder recorridosViewHolder, int i) {
 
-        if (recorridosList != null){
-
+        if (recorridosList != null) {
             Recorrido recorrido = recorridosList.get(i);
             recorridosViewHolder.bindView(recorrido);
         }
-
     }
 
     @Override
@@ -75,7 +73,7 @@ public class RecorridosAdapter extends RecyclerView.Adapter<RecorridosAdapter.Re
             tvGalRecorrido = itemView.findViewById(R.id.tv_gal_recorrido);
             //mapView = itemView.findViewById(R.id.mapView);
 
-            Typeface light=Typeface.createFromAsset(context.getAssets(),"fonts/Roboto-Light.ttf");
+            Typeface light = Typeface.createFromAsset(context.getAssets(), "fonts/Roboto-Light.ttf");
 
             tvDistancia.setTypeface(light);
             tvGalRecorrido.setTypeface(light);
@@ -100,7 +98,7 @@ public class RecorridosAdapter extends RecyclerView.Adapter<RecorridosAdapter.Re
 
             if (map == null) return;
 
-            Recorrido recorrido = (Recorrido)mapView.getTag();
+            Recorrido recorrido = (Recorrido) mapView.getTag();
 
             if (recorrido == null) return;
 
@@ -147,7 +145,7 @@ public class RecorridosAdapter extends RecyclerView.Adapter<RecorridosAdapter.Re
             */
         }
 
-        public void bindView(Recorrido recorrido){
+        public void bindView(Recorrido recorrido) {
 
             tvDistancia.setText(String.valueOf(recorrido.getDistanciaRecorrida()));
             tvGalRecorrido.setText(String.valueOf(recorrido.getGalonesPerdidos()));

@@ -3,9 +3,9 @@ package com.index.medidor.retrofit;
 import com.index.medidor.model.Estaciones;
 import com.index.medidor.model.Estados;
 import com.index.medidor.model.HistorialEstadoVehiculos;
+import com.index.medidor.model.InndexAppSecurity;
 import com.index.medidor.model.MarcaCarros;
 import com.index.medidor.model.ModeloCarros;
-import com.index.medidor.model.Recorrido;
 import com.index.medidor.model.Tanqueadas;
 import com.index.medidor.model.UnidadRecorrido;
 import com.index.medidor.model.Usuario;
@@ -85,9 +85,6 @@ public interface SmartBillApiServices {
     /**
      * RECORRIDOS
      */
-    @POST(Constantes.POST_REGISTRAR_RECORRIDO)
-    Call<String> postRegisterRecorrido(@Header("Content-Type") String headerContentType,
-                                             @Body Recorrido recorrido);
     @POST(Constantes.POST_RECORRIDOS_BULK)
     Call<UnidadRecorrido> postRecorridosBulk(@Header("Content-Type") String headerContentType,
                                        @Body List<UnidadRecorrido> lUnidadRecorridos, @Query("placa") String placa);
@@ -104,4 +101,11 @@ public interface SmartBillApiServices {
     @POST(Constantes.POST_SAVE_HISTORIAL_ESTADO)
     Call<HistorialEstadoVehiculos> postHistorialEstadosSave(@Header("Content-Type") String headerContentType,
                                                             @Body HistorialEstadoVehiculos historialEstadoVehiculos);
+
+    /**
+     * Inndex - Security
+     */
+    @POST(Constantes.POST_CHECK_PASSWORD)
+    Call<InndexAppSecurity> postCheckMenuPassword(@Header("Content-Type") String headerContentType,
+                                                         @Body InndexAppSecurity inndexAppSecurity);
 }

@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -20,7 +22,6 @@ import android.widget.Toast;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.gson.Gson;
 import com.index.medidor.R;
 import com.index.medidor.activities.MainActivity;
 import com.index.medidor.bluetooth.SpBluetoothDevice;
@@ -51,13 +52,14 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
 
     private Vehiculo vehiculoSelected;
 
-    public class EstacionesViewHolder extends RecyclerView.ViewHolder {
+    public class EstacionesViewHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener {
         public TextView tvPlaca;
         public TextView tvModelo;
         public TextView tvMarca;
         public TextView tvLinea;
         public TextView tvBlueTooth;
         public TextView tvHasTwoTanks;
+        private ImageView imgMiVehicle;
         private RelativeLayout relativeLayout;
         public ImageButton btnChangeBlueTooth;
 
@@ -71,7 +73,7 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
             tvHasTwoTanks = itemView.findViewById(R.id.tv_has_tow_tanks_mi_vehiculo);
             relativeLayout = itemView.findViewById(R.id.rel_mi_vehiculo);
             btnChangeBlueTooth = itemView.findViewById(R.id.img_change_bluetooth);
-
+            imgMiVehicle =itemView.findViewById(R.id.img_mi_vehiculo);
             Typeface light=Typeface.createFromAsset(context.getAssets(),"fonts/Roboto-Light.ttf");
 
             tvPlaca.setTypeface(light);
@@ -80,15 +82,28 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
             tvLinea.setTypeface(light);
             tvBlueTooth.setTypeface(light);
             tvHasTwoTanks.setTypeface(light);
-
-            itemView.setOnClickListener(view -> {
-            });
+            imgMiVehicle.setOnLongClickListener(this);
 
             btnChangeBlueTooth.setOnClickListener(v ->{
                 showBlueToothList();
                 int i = getLayoutPosition();
                 vehiculoSelected = items.get(i);
             });
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+
+            Vibrator vibrator = (Vibrator) mainActivity.getSystemService(Context.VIBRATOR_SERVICE);
+            vibrator.vibrate(800);
+            Vehiculo vehiculo = items.get(getAdapterPosition());
+            if(vehiculo != null ){
+                ((MainActivity)context).upateDefaultVehicle(vehiculo);
+                defaultPlaca = vehiculo.getPlaca();
+                notifyDataSetChanged();
+                Toast.makeText(mainActivity, "VEHÍCULO SELECCIONADO DE MANERA EXITOSA.", Toast.LENGTH_SHORT).show();
+            }
+            return true;
         }
     }
 
@@ -169,7 +184,6 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
         holder.tvPlaca.setText(items.get(position).getPlaca());
 
         if(items.get(position).getHasTwoTanks()){
-
             holder.tvHasTwoTanks.setText("#Tanques: 2");
         }else {
             holder.tvHasTwoTanks.setText("#Tanques: 1");
@@ -183,7 +197,7 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
     private void updateVehiculo() {
 
         try {
-            Integer id = (int)(mainActivity.getMyPreferences().getLong(Constantes.DEFAULT_UHMC_ID, 0));
+            Integer id = (int)(mainActivity.getMyPreferences().getLong(Constantes.DEFAULT_VEHICLE_ID, 0));
             Dao<Vehiculo, Integer> dao = helper.getDaoUsuarioHasModeloCarros();
             Vehiculo uhmc = dao.queryForId(id);
             if(uhmc == null){
@@ -193,7 +207,6 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
             }
             ModeloCarros modeloCarros = new ModeloCarros();
             modeloCarros.setId((int)mainActivity.getMyPreferences().getLong("defaultModeloCarroId",0));
-            Gson gson = new Gson();
 
             vehiculoSelected.setId(uhmc.getId());
             vehiculoSelected.setBluetoothNombre(uhmc.getBluetoothNombre());
@@ -234,7 +247,6 @@ public class VehiculosAdapter extends RecyclerView.Adapter<VehiculosAdapter.Esta
         }
 
     }
-
 
     @Override
     public int getItemCount() {

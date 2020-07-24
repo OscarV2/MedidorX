@@ -156,10 +156,6 @@ public class LoginActivity extends AppCompatActivity {
 
         infoUsuario.apply();
         mCustomProgressDialog.dismiss("");
-
-        //DownloadUsuarioHasModeloCarro downloadUsuarioHasModeloCarro = new DownloadUsuarioHasModeloCarro(user.getId(), this.helper);
-        //downloadUsuarioHasModeloCarro.start();
-
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         startActivity(intent);
         finish();
@@ -207,12 +203,12 @@ public class LoginActivity extends AppCompatActivity {
                                         myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_VALUE_ARRAY, vehiculo.getModeloCarros().getValoresAdq()).apply();
                                         //ModeloCarros modeloCarros = daoModeloCarros.queryForId(uhmc.getModelosCarrosId());
                                         myPreferences.edit().putInt(Constantes.DEFAULT_GAL_CANT, (int)vehiculo.getModeloCarros().getGalones()).apply();
-                                        myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_MAC, vehiculo.getBluetoothMac()).apply();
+                                        //myPreferences.edit().putString(Constantes.DEFAULT_BLUETOOTH_MAC, vehiculo.getBluetoothMac()).apply();
                                         myPreferences.edit().putBoolean(Constantes.MODEL_HAS_TWO_TANKS, vehiculo.getModeloCarros().getHasTwoTanks()).apply();
 
-                                        myPreferences.edit().putLong(Constantes.DEFAULT_UHMC_ID, vehiculo.getId()).apply();
+                                        //myPreferences.edit().putLong(Constantes.DEFAULT_VEHICLE_ID, vehiculo.getId()).apply();
                                         myPreferences.edit().putLong("defaultModeloCarroId", vehiculo.getModeloCarros().getId()).apply();
-                                        myPreferences.edit().putString(Constantes.DEFAULT_PLACA, vehiculo.getPlaca()).apply();
+                                        //myPreferences.edit().putString(Constantes.DEFAULT_PLACA, vehiculo.getPlaca()).apply();
                                         setDefaultState(vehiculo.getEstado());
                                     }
                                     vehiculo.setModelosCarrosId(vehiculo.getModeloCarros().getId());
@@ -233,7 +229,6 @@ public class LoginActivity extends AppCompatActivity {
                             irMain(user);
                         }
                     }else  {
-                        mCustomProgressDialog.dismiss("");
                         Toast.makeText(LoginActivity.this, "NO SE PUDO DESCARGAR LOS VEHICULOS PARA SU USUARIO.", Toast.LENGTH_SHORT).show();
                     }
                 }else {
