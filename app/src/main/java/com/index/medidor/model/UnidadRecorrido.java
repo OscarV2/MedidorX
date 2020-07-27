@@ -34,6 +34,12 @@ public class UnidadRecorrido {
     @DatabaseField
     private Integer estado;
 
+    @DatabaseField
+    private Integer nivelBateria;
+
+    @DatabaseField
+    private Integer conectado;
+
     public UnidadRecorrido() {
     }
 
@@ -131,5 +137,21 @@ public class UnidadRecorrido {
 
     public void setFecha(String fecha) {
         this.fecha = fecha;
+    }
+
+    public Integer getNivelBateria() {
+        return nivelBateria;
+    }
+
+    public void setNivelBateria(Integer nivelBateria) {
+        this.nivelBateria = nivelBateria;
+    }
+
+    public Integer getConectado() {
+        return conectado;
+    }
+
+    public void setConectado(Integer conectado) {
+        this.conectado = conectado;
     }
 }

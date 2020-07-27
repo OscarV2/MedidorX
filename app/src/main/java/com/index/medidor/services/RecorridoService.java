@@ -1,6 +1,11 @@
 package com.index.medidor.services;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.location.Location;
+import android.os.BatteryManager;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.index.medidor.activities.MainActivity;
@@ -19,6 +24,8 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static android.content.Context.BATTERY_SERVICE;
+
 public class RecorridoService {
 
     private Recorrido recorrido;
@@ -33,6 +40,7 @@ public class RecorridoService {
     private short contUpdateRecorrido = 0;
     private String placa;
 
+    private Intent pluggedIntent;
 
     public RecorridoService() {
     }
@@ -100,6 +108,8 @@ public class RecorridoService {
         unidadRecorrido.setHora(Constantes.SDF_HOUR_RECORRIDO.format(new Date()));
         unidadRecorrido.setEstado(mainActivity.getEstado());
         unidadRecorrido.setFecha(Constantes.SDF_DATE_ONLY.format(new Date()));
+        unidadRecorrido.setNivelBateria(getBatteryLevel());
+        unidadRecorrido.setConectado(isConnected(mainActivity));
 
         time += Constantes.DELAY_RECORRIDO;
 
@@ -121,7 +131,6 @@ public class RecorridoService {
     }
 
     public void pararRecorrido() {
-
         if (mTimer != null) {
             mTimer.cancel();
             mTimer.purge();
@@ -150,8 +159,6 @@ public class RecorridoService {
         return recorrido;
     }
 
-
-
     public boolean isModelHasTwoTanks() {
         return modelHasTwoTanks;
     }
@@ -162,6 +169,25 @@ public class RecorridoService {
 
     public void pushTanqueada(Tanqueadas tanqueada) {
         recorrido.getListTanqueadas().add(tanqueada);
+    }
+
+    public int isConnected(Context context) {
+        pluggedIntent = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+
+        if (pluggedIntent != null) {
+            int plugged = pluggedIntent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
+            return plugged == BatteryManager.BATTERY_PLUGGED_AC ||
+                    plugged == BatteryManager.BATTERY_PLUGGED_USB ||
+                    plugged == BatteryManager.BATTERY_PLUGGED_WIRELESS ? 1 : 0;
+        } else {
+            Log.e("ERROR", "cargador es null");
+            return 0;
+        }
+    }
+
+    public int getBatteryLevel() {
+        BatteryManager bm = (BatteryManager) this.mainActivity.getSystemService(BATTERY_SERVICE);
+        return bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
     }
 
     /*public boolean isInUploadingProccess() {
